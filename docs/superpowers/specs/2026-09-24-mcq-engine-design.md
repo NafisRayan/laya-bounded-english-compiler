@@ -68,10 +68,11 @@ class Question(BaseModel):
     feature_id: str | None = None   # None for clarify_unparsed
     parameter_id: str | None = None
     unparsed_index: int | None = None   # sentence index for clarify_unparsed
-    options: list[str] = []
-    confidence: float = 0.0
+    options: list[str] = Field(default_factory=list)
+    confidence: float = 0.5        # neutral default; bands are §3.4 thresholds
     prompt: str = ""
 
+    @property
     def target(self) -> str: ...   # features.<id> | parameters.<f>.<p> | unparsed.<i>
 ```
 
