@@ -141,7 +141,10 @@ class PartialSpec(BaseModel):
         return self.parameter_values.get(parameter_id)
 ```
 
-Note: `Field` is already imported via `BaseModel`? Check line 8 — if the file only imports `BaseModel`, add `Field` to the import. (`Field` is used by `BackendSpec` defaults via `= []`, so check whether `Field` or plain defaults are used; use whichever is already imported. If neither, add `Field` to the pydantic import.)
+Note: `models.py` line 8 currently imports only `BaseModel`. Update it to
+`from pydantic import BaseModel, Field, field_validator` (`Field` is required
+by `PartialSpec`'s `default_factory` defaults; `BackendSpec` uses plain `= []`
+defaults and does not use `Field`).
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -613,15 +616,19 @@ def _classify(capability_id: str, ontology: Ontology):
     return "unknown", (capability_id,)
 
 
-def fold_candidates(candidates: list[Candidate],
-                    ontology: Ontology) -> FoldResult:
+def fold_candidates(candidates: list[Candidate], ontology: Ontology,
+                    spec: PartialSpec | None = None) -> FoldResult:
     """Apply interpreter candidates to a PartialSpec by confidence threshold.
 
     Auto-decides feature/parameter targets with a single high-confidence
     (>= AUTO_ACCEPT) value; records negation conflicts, per-feature
     confidence for ordering bands, and unsupported capability ids.
+
+    `spec` seeds the partial state (user answers already applied). Already
+    decided targets are never overridden, and no negation question is
+    surfaced for a feature the user has already decided.
     """
-    result = FoldResult()
+    result = FoldResult(spec=spec or PartialSpec())
     feature_values: dict[str, list[tuple[Any, float]]] = {}
     param_values: dict[str, list[tuple[Any, float]]] = {}
     roles: list[str] = []
@@ -642,6 +649,8 @@ def fold_candidates(candidates: list[Candidate],
     for fid, proposals in feature_values.items():
         best = max(proposals, key=lambda p: p[1])
         result.feature_confidence[fid] = best[1]
+        if result.spec.is_decided(fid):
+            continue
         distinct = {repr(v) for v, _ in proposals}
         if len(distinct) > 1:
             result.nr_negations.append(Question(
@@ -655,13 +664,15 @@ def fold_candidates(candidates: list[Candidate],
             result.spec.decide_feature(fid, enabled=bool(value))
 
     for key, proposals in param_values.items():
+        if key in result.spec.decided_parameters:
+            continue
         best = max(proposals, key=lambda p: p[1])
         if best[1] >= AUTO_ACCEPT:
             fid = key.partition(".")[0]
             if result.spec.is_enabled(fid):
                 result.spec.decide_parameter(key, value=best[0])
 
-    if roles:
+    if roles and not result.spec.is_decided("roles"):
         result.spec.decide_feature("roles", enabled=True)
         result.spec.decide_parameter("roles.role_names", value=sorted(set(roles)))
 
@@ -770,7 +781,7 @@ on every `contradicts` constraint and mirrors the validator trigger semantics
 
 Edit `compiler/mcq/pipeline.py`:
 
-- Extend imports: add `inspect`-free direct imports — `from compiler.interpreter.merge import check_coverage`, `from compiler.spec.validator import constraint_holds`.
+- Extend imports: add `inspect`-free direct imports — `from compiler.interpreter.merge import check_coverage`, `from compiler.interpreter.negation import SENTENCE_BOUNDARY`, `from compiler.spec.validator import constraint_holds`.
 - Extend `__all__` with `coverage_questions`, `contradiction_questions`.
 - Append functions:
 
@@ -781,18 +792,27 @@ def coverage_questions(text: str, candidates: list[Candidate], ontology: Ontolog
     unparsed = check_coverage(text, candidates)
     questions = []
     options = sorted(ontology.features)
-    idx = 0
-    for sentence in unparsed:
-        while idx in resolved:  # keep indexes aligned with check_coverage order
-            idx += 1
+    # Re-derive original sentence indexes from the SAME split check_coverage
+    # uses (identical boundaries/strip), walking the unparsed list in order.
+    # Covered sentences never match an unparsed entry, so their indexes pass
+    # through untouched — unparsed.1 == the second sentence even when the
+    # first was covered. (An earlier while-resolved counter misaligned gaps
+    # from covered sentences; this version cannot.)
+    unparsed_iter = iter(unparsed)
+    next_unparsed = next(unparsed_iter, None)
+    for idx, chunk in enumerate(SENTENCE_BOUNDARY.split(text)):
+        sentence = chunk.strip()
+        if not sentence:
+            continue
         if idx in resolved:
             continue
-        questions.append(Question(
-            type="clarify_unparsed", unparsed_index=idx,
-            options=options, confidence=0.5,
-            prompt=f"Which capability does this sentence describe? \"{sentence}\"",
-        ))
-        idx += 1
+        if next_unparsed is not None and sentence == next_unparsed:
+            questions.append(Question(
+                type="clarify_unparsed", unparsed_index=idx,
+                options=options, confidence=0.5,
+                prompt=f"Which capability does this sentence describe? \"{sentence}\"",
+            ))
+            next_unparsed = next(unparsed_iter, None)
     return questions
 
 
@@ -817,18 +837,13 @@ def contradiction_questions(features: dict[str, bool], parameters: dict[str, Any
     return questions
 ```
 
-Wait — index alignment: `check_coverage` splits via `SENTENCE_BOUNDARY` and
-returns only unparsed sentences; indexes must match the *original* sentence
-positions. For the fixture `"Users can message each other. Owners can reject
-bad actors."` there are exactly 2 sentences; the first maps (was covered), the
-second is unparsed → its original index is 1. The helper above derives indexes
-by counting forward: for each unparsed sentence, the running `idx` is
-incremented once per sentence. Because `check_coverage` returns unparsed
-sentences *in order*, and each unparsed entry corresponds to exactly one
-original sentence, the running index advances one per returned sentence **and**
-one per already-resolved index. If the implementation's index derivation is
-simpler/more robust (e.g. return original indexes from a helper), use the
-simplest correct version that keeps `unparsed.1` == the second sentence.
+Index alignment: `check_coverage` splits via `SENTENCE_BOUNDARY` and returns
+only unparsed sentences. `coverage_questions` re-splits the text with the SAME
+boundary and walks the unparsed list with a pointer, so each `idx` is a true
+original sentence position. Covered sentences never match an unparsed entry and
+therefore never advance the pointer — `unparsed.1` is always the second
+sentence. This is the canonical implementation; keep the alignment mechanism as
+specified here.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -838,7 +853,7 @@ Expected: all pass (`22 passed`)
 - [ ] **Step 5: Run the full suite (validator refactor must stay green)**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `83 passed` (78 existing + 5 new from Task 5 steps)
+Expected: `100 passed` (78 existing + 22 MCQ tests so far)
 
 - [ ] **Step 6: Commit**
 
@@ -899,12 +914,15 @@ def test_run_mcq_loop_caps_at_max_mcqs(ontology):
     assert len(mcqs) <= 2
 
 
-def test_run_mcq_loop_requires_dependency_answer_to_enable(ontology):
+def test_run_mcq_loop_answers_apply_directly_deps_validated_later(ontology):
     cands = [Candidate("needs_bookings", True, 0.5, "laya", None)]
     spec, mcqs = run_mcq_loop(cands, ontology,
                               user_answers={"features.bookings": True})
-    # bookings stays unasked/off until authentication is enabled
-    assert spec.features.get("bookings") is not True
+    # Answers apply directly regardless of dependencies (single-pass rule);
+    # the missing authentication dependency is a *validation* concern, not a
+    # prompt concern — the MCQ engine never re-asks a user-decided feature.
+    assert spec.features.get("bookings") is True
+    assert not validate(spec, ontology).ok  # MissingDependency(authentication)
 
 
 def test_run_interpreter_to_run_mcq_loop_to_validate(ontology, mock_laya_high_confidence):
@@ -933,13 +951,15 @@ def test_run_mcq_loop_records_decisions_and_unsupported(ontology):
 Notes for correctness:
 - `spec.features` should contain only decided features (True/False as decided);
   an undecided feature simply is not present.
+- **Answers apply directly** (single-pass rule): a `features.<fid>` / `parameters...`
+  answer is written to the partial spec *before* the fold, and the fold never
+  overrides an already-decided target (see the `is_decided` guards added in
+  Task 4). Dependency gating is NOT done at answer time — an ill-ordered answer
+  simply produces a spec that `validate` flags (`MissingDependency`), which is
+  what `test_run_mcq_loop_answers_apply_directly_deps_validated_later` asserts.
 - `test_run_mcq_loop_applies_answers_and_resolves` relies on user answer
   `parameters.bookings.mode` desugaring to `decide_parameter("bookings.mode", "owner_approval")`,
   and the contradiction check re-running *after* answers are applied.
-- `test_run_mcq_loop_requires_dependency_answer_to_enable`: because `bookings`
-  requires `authentication` (not enabled), `next_questions` never emits it, so
-  `features.bookings: True` is treated as an inapplicable answer and is never
-  applied. This is the documented dependency-gating behavior.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
@@ -1001,18 +1021,11 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
             key = target[len("parameters."):]
             spec.decide_parameter(key, value=value)
 
-    # 2) fold candidates
-    folded = fold_candidates(candidates, ontology)
-    # 3) merge answer-decided params into fold decisions when the fold left
-    #    them undecided (fold never overrides a user answer)
-    for key in list(spec.decided_parameters):
-        if key not in folded.spec.decided_parameters:
-            folded.spec.decide_parameter(key, value=spec.parameter_value(key))
-    for fid in list(spec.decided_features):
-        if not folded.spec.is_decided(fid):
-            folded.spec.decide_feature(fid, enabled=spec.is_enabled(fid))
+    # 2) fold candidates into the same partial spec. The fold's is_decided
+    #    guards ensure user answers from step 1 are never overridden.
+    folded = fold_candidates(candidates, ontology, spec=spec)
 
-    # 4) unparsed answers (require text)
+    # 3) unparsed answers (require text)
     unparsed_resolved: dict[int, str] = {}
     if text is not None:
         for target, value in user_answers.items():
@@ -1025,7 +1038,7 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
                     unparsed_resolved[idx] = value
                     folded.spec.decide_feature(value, enabled=True)
 
-    # 5) cover/open questions
+    # 4) cover/open questions
     open_questions = list(folded.nr_negations)
     if text is not None:
         open_questions.extend(coverage_questions(text, candidates, ontology,
@@ -1041,7 +1054,7 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
 
     ordered = order_questions(open_questions, ontology)[:max_mcqs]
 
-    # 6) assemble the final spec
+    # 5) assemble the final spec
     roles = folded.spec.parameter_values.get("roles.role_names", [])
     if not isinstance(roles, list):
         roles = [roles]
@@ -1072,7 +1085,7 @@ Expected: all pass (`28 passed`)
 - [ ] **Step 5: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `89 passed`
+Expected: `106 passed`
 
 - [ ] **Step 6: Commit**
 
@@ -1144,7 +1157,7 @@ when the feature is not already decided. Adjust the negation block in
 - [ ] **Step 4: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `91 passed`
+Expected: `109 passed`
 
 - [ ] **Step 5: Commit**
 
@@ -1160,7 +1173,7 @@ git commit -m "Resolve negation/unparsed via user answers"
 - [ ] **Step 1: Full test run**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `91 passed` (78 legacy + 13 MCQ: 4 PartialSpec, 5 selector, 4 ordering, 6 fold, 3 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed… adjust the total to the actual run count; all GREEN)
+Expected: `109 passed` (78 legacy + 31 MCQ: 4 PartialSpec, 5 selector, 4 ordering, 6 fold, 3 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
 
 - [ ] **Step 2: Review the tree and push**
 
@@ -1201,3 +1214,29 @@ Expected: new commits on `origin/master`.
   `coverage_questions` unparsed-index alignment (Task 5) is the most fragile
   piece — the plan's implementation walks the unparsed list in order, which
   matches `check_coverage`'s split order (opportunity underscored in-task).
+
+## Plan corrections (reviewed before execution)
+
+Applied to fix defects found while preparing Task dispatch (see design doc
+deviation #8):
+
+1. **Answers apply directly, no dependency gating** (Tasks 6/7): the original
+   answer-merge step contradicted its own test. Resolved: answers seed the
+   `PartialSpec` first; `fold_candidates(candidates, ontology, spec=spec)`
+   runs on the SAME spec and its `is_decided` guards prevent the fold from
+   overriding user answers; feature/param answers are never dropped for
+   unmet deps (validator reports `MissingDependency`). `run_mcq_loop` merge
+   steps removed. Test renamed
+   `test_run_mcq_loop_answers_apply_directly_deps_validated_later`.
+2. **`coverage_questions` index alignment** (Task 5): the original
+   while-resolved counter misaligned gaps from covered sentences (produced
+   `unparsed_index=0` for the second sentence). Replaced with a re-split +
+   pointer walk over the same `SENTENCE_BOUNDARY` so `unparsed.i` matches
+   true original sentence positions. Added `SENTENCE_BOUNDARY` import.
+3. **Fold guards moved into Task 4** (already-decided feature/param/roles
+   targets never overridden, negation suppressed for decided features), so
+   Task 7 Step 3 is effectively redundant — keep it only as a verification
+   note.
+4. **Expected run counts corrected** to match the plan's own test
+   definitions: intermediate suite totals 82/100 and full suite `109 passed`
+   (78 legacy + 31 MCQ), not the mis-estimated 83/89/91.

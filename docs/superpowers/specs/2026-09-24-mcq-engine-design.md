@@ -131,7 +131,13 @@ unlock their parameter questions in the same pass).
    - `parameters.<fid>.<pid>` → `decide_parameter(...)` with the value.
    - `unparsed.<i>` → requires `text`; if the sentence is unparsed and the
      value is an ontology feature id → `decide_feature(fid, True)`.
-   - invalid/inapplicable values are ignored (question stays open).
+   - invalid values (unknown option, wrong type, unknown feature id) are ignored
+     (question stays open).
+   - **No dependency gating at answer time.** An answer applies even if its
+     feature's requirements are unmet; whether that produces a valid spec is the
+     `validator`'s job, not the engine's (`MissingDependency` surfaces from
+     `validate`). This keeps application order-independent — an answer is never
+     dropped because a sibling answer hasn't been read yet.
 2. **Fold.** Classify each candidate by `capability_id`:
    - `X.enabled` (X ∈ features) → feature proposal (value bool).
    - `needs_X` (X ∈ features, Laya source) → feature proposal (`bool(noul >= 0.5)`).
@@ -201,3 +207,8 @@ interactive user would still need to answer), ordered and capped at
 6. `order_questions(qs, ontology=None)` — `ontology` optional because §18.10
    calls it with one argument; depth tie-breaks need it.
 7. `confirm_weak` is unranked in §4.3; it sorts last.
+8. User answers apply directly to the partial spec with **no dependency gating**
+   (order-independent single pass); unmet-requirement answers stay applied and
+   surface as `MissingDependency` from `validate`. The plan's earlier
+   "inapplicable → ignored" reading applied that gate only to invalid values,
+   not to dependency state.
