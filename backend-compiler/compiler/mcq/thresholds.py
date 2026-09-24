@@ -1,0 +1,13 @@
+"""Confidence thresholds (Developer Spec.md §3.4)."""
+
+from __future__ import annotations
+
+__all__ = ["AUTO_ACCEPT", "MCQ_MIN", "WEAK_MIN"]
+
+CONFIDENCE_AUTO_ACCEPT = 0.75
+CONFIDENCE_MCQ_MIN = 0.35
+CONFIDENCE_WEAK_MIN = 0.20
+
+AUTO_ACCEPT = CONFIDENCE_AUTO_ACCEPT
+MCQ_MIN = CONFIDENCE_MCQ_MIN
+WEAK_MIN = CONFIDENCE_WEAK_MIN

@@ -95,3 +95,52 @@ def test_question_target_values(ontology):
     assert q2.target == "parameters.bookings.mode"
     q3 = Question(type="clarify_unparsed", unparsed_index=1, options=["messaging"], confidence=0.5)
     assert q3.target == "unparsed.1"
+
+
+from compiler.mcq.graph import order_questions
+from compiler.mcq.selector import Question
+
+
+def _q(type_, feature_id, confidence=0.5):
+    return Question(type=type_, feature_id=feature_id,
+                    parameter_id=None, options=[], confidence=confidence)
+
+
+def test_question_ordering_negation_second(ontology):
+    qs = [
+        _q("confirm_feature", "messaging"),
+        _q("resolve_contradiction", "bookings"),
+        _q("resolve_negation", "payments"),
+        _q("clarify_unparsed", None),
+    ]
+    ordered = order_questions(qs)
+    assert ordered[0].type == "resolve_contradiction"
+    assert ordered[1].type == "resolve_negation"
+    assert ordered[2].type == "clarify_unparsed"
+    assert ordered[3].type == "confirm_feature"
+
+
+def test_confirm_feature_confidence_split(ontology):
+    qs = [
+        _q("confirm_feature", "bookings", confidence=0.70),
+        _q("confirm_feature", "messaging", confidence=0.30),
+    ]
+    ordered = order_questions(qs, ontology)
+    assert [q.feature_id for q in ordered] == ["messaging", "bookings"]
+
+
+def test_choose_parameter_ordered_by_feature_depth(ontology):
+    qs = [
+        Question(type="choose_parameter", feature_id="favorites", parameter_id="x",
+                 options=[], confidence=0.5),
+        Question(type="choose_parameter", feature_id="bookings", parameter_id="mode",
+                 options=[], confidence=0.5),
+    ]
+    ordered = order_questions(qs, ontology)
+    assert [q.feature_id for q in ordered] == ["bookings", "favorites"]
+
+
+def test_confirm_weak_sorts_last(ontology):
+    qs = [_q("confirm_feature", "bookings"), _q("confirm_weak", "authentication")]
+    ordered = order_questions(qs, ontology)
+    assert ordered[-1].type == "confirm_weak"
