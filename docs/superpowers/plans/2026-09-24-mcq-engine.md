@@ -586,7 +586,7 @@ __all__ = ["FoldResult", "fold_candidates", "run_mcq_loop"]
 class FoldResult:
     spec: PartialSpec = field(default_factory=PartialSpec)
     feature_confidence: dict[str, float] = field(default_factory=dict)
-    nr_negations: list[Question] = field(default_factory=list)
+    negations: list[Question] = field(default_factory=list)
     unsupported: list[str] = field(default_factory=list)
 
 
@@ -653,7 +653,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
             continue
         distinct = {repr(v) for v, _ in proposals}
         if len(distinct) > 1:
-            result.nr_negations.append(Question(
+            result.negations.append(Question(
                 type="resolve_negation", feature_id=fid,
                 options=["yes", "no"], confidence=best[1],
                 prompt=f"Conflicting signals for {fid}. Enable it?",
@@ -1039,7 +1039,7 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
                     folded.spec.decide_feature(value, enabled=True)
 
     # 4) cover/open questions
-    open_questions = list(folded.nr_negations)
+    open_questions = list(folded.negations)
     if text is not None:
         open_questions.extend(coverage_questions(text, candidates, ontology,
                                                  resolved=unparsed_resolved))
@@ -1146,7 +1146,7 @@ when the feature is not already decided. Adjust the negation block in
 ```python
         if len(distinct) > 1:
             if not result.spec.is_decided(fid):
-                result.nr_negations.append(Question(
+                result.negations.append(Question(
                     type="resolve_negation", feature_id=fid,
                     options=["yes", "no"], confidence=best[1],
                     prompt=f"Conflicting signals for {fid}. Enable it?",
