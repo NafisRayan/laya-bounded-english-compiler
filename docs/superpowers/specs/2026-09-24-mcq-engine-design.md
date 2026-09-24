@@ -48,12 +48,15 @@ class PartialSpec(BaseModel):
     decided_features: set[str] | dict[str, bool] = Field(default_factory=set)
     enabled_features: set[str] = Field(default_factory=set)
     decided_parameters: set[str] = Field(default_factory=set)
+    parameter_values: dict[str, Any] = Field(default_factory=dict)
 ```
 
 - `decided_features` accepts a `set` or a `dict[str, bool]`; the dict form is
   normalized to a `set` of its keys (test 1 of §18.10 uses `{"authentication": False}`).
   Enabling truth lives in `enabled_features`.
-- Helpers: `decide_feature(id, enabled)`, `decide_parameter(id)`, `is_enabled(id)`.
+- Helpers: `decide_feature(id, enabled)`, `decide_parameter(id, value=None)`
+  (sets the decided marker and, when a value is given, `parameter_values[id]`),
+  `is_enabled(id)`.
 
 ### `Question` (in `compiler/mcq/selector.py`)
 
@@ -64,6 +67,7 @@ class Question(BaseModel):
                                   #         clarify_unparsed | confirm_weak
     feature_id: str | None = None   # None for clarify_unparsed
     parameter_id: str | None = None
+    unparsed_index: int | None = None   # sentence index for clarify_unparsed
     options: list[str] = []
     confidence: float = 0.0
     prompt: str = ""
@@ -86,6 +90,10 @@ For each ontology feature:
 
 ## Ordering — `order_questions(qs, ontology)` (§4.3)
 
+`ontology` is optional (default `None`); §18.10 calls `order_questions(qs)`
+with a single argument, so dependency-depth tie-breaks are only applied when
+an ontology is supplied.
+
 Six tiers:
 
 1. `resolve_contradiction`
@@ -96,9 +104,9 @@ Six tiers:
 6. `choose_parameter`
 
 Within a tier, sort by feature dependency depth (longest path from a root
-feature) ascending, then `feature_id`. Sort is stable. Defaults:
-`MCQ_MIN = 0.35`, `AUTO_ACCEPT = 0.75`, `WEAK_MIN = 0.20` (configurable
-constants).
+feature) ascending, then `feature_id`. Sort is stable. Defaults live in
+`compiler/mcq/thresholds.py`: `MCQ_MIN = 0.35`, `AUTO_ACCEPT = 0.75`,
+`WEAK_MIN = 0.20`. `confirm_weak` is unranked in §4.3; it sorts last.
 
 ## Pipeline — `run_mcq_loop`
 
@@ -113,39 +121,45 @@ run_mcq_loop(
 ) -> tuple[BackendSpec, list[Question]]
 ```
 
-1. **Fold.** Classify each candidate by `capability_id`:
-   - `X.enabled` (X ∈ features) → feature decision (value bool).
-   - `needs_X` (X ∈ features, Laya source) → feature decision (`bool(noul >= 0.5)`).
-   - `X.param` (X feature, param exists) → parameter decision.
-   - `roles.<role>` → parameter decision for `roles.role_names` (append role).
+Single-pass, answer-snapshot semantics: the user's answers are applied first,
+then the remaining questions are surfaced once. Because answers apply directly
+to the `PartialSpec`, no iteration loop is needed (feature-enable answers
+unlock their parameter questions in the same pass).
+
+1. **Apply answers directly** to a fresh `PartialSpec`:
+   - `features.<fid>` → `decide_feature(fid, bool)`.
+   - `parameters.<fid>.<pid>` → `decide_parameter(...)` with the value.
+   - `unparsed.<i>` → requires `text`; if the sentence is unparsed and the
+     value is an ontology feature id → `decide_feature(fid, True)`.
+   - invalid/inapplicable values are ignored (question stays open).
+2. **Fold.** Classify each candidate by `capability_id`:
+   - `X.enabled` (X ∈ features) → feature proposal (value bool).
+   - `needs_X` (X ∈ features, Laya source) → feature proposal (`bool(noul >= 0.5)`).
+   - `X.param` (X feature, param exists) → parameter proposal.
+   - `roles.<role>` → role proposal for `roles.role_names`; implies the
+     `roles` feature is wanted.
    - `needs_X` (X ∈ entities) → ignored; entities are derived by
      `recompute_spec` from activated features.
    - unknown id → recorded as unsupported, ignored.
-2. **Threshold** each target by the best candidate (source + confidence):
-   - two distinct values for one target → conflict → `resolve_negation`.
-   - conf ≥ `AUTO_ACCEPT` → auto-decide.
-   - conf ≥ `MCQ_MIN` → `confirm_feature` (or `choose_parameter` for params).
-   - conf ≥ `WEAK_MIN` → weak `confirm_feature`.
-   - conf < `WEAK_MIN` → dropped unless source is `exact`/`phrase`/
-     `phrase_negated`, in which case a flagged weak `confirm_feature`.
-3. **Coverage** (only if `text` given): `check_coverage(text, outcomes)` →
-   `clarify_unparsed` per unparsed sentence.
-4. **Hard contradictions**: ontology constraints of type `contradicts` where
-   both sides are decided-true → `resolve_contradiction`; options synthesized
-   from the two flip-sides of the constraint.
-5. **Loop** (max `len(features) + 2` iterations): `next_questions` +
-   conflict/coverage/contradiction questions → `order_questions` → for each
-   whose `target()` is in `user_answers`, apply the answer and re-surface;
-   break when no answer applied in the iteration. Total surfaced questions
-   capped at `max_mcqs`.
-6. **Assemble** `BackendSpec` from the settled PartialSpec (features,
-   parameters, roles, decisions as `Decision` records) then
-   `recompute_spec(spec, ontology)` fills derived fields.
-7. Return `(spec, mcqs_asked)`.
+3. **Auto-decide on threshold** (§3.4) per target, unless already decided by a
+   user answer: single value + conf ≥ `AUTO_ACCEPT` → apply. Two distinct
+   values → `resolve_negation` (features) or open `choose_parameter` (params).
+   Feature confidences are retained for question ordering bands.
+4. **Coverage** (only if `text` given): `check_coverage(text, candidates)` →
+   `clarify_unparsed` per remaining unparsed sentence.
+5. **Hard contradictions**: ontology constraints of type `contradicts` whose
+   `if_` condition holds on the current state (mirroring `validator`) →
+   `resolve_contradiction`; options synthesized from the two flip-sides.
+6. **Surface** `order_questions(next_questions(spec, ontology, confidences) +
+   open negations + open unparsed + contradictions)`, truncated to `max_mcqs`.
+7. **Assemble** `BackendSpec` from the settled PartialSpec (features,
+   parameters, roles from `roles.role_names`, decisions as `Decision` records)
+   then `recompute_spec(spec, ontology)` fills derived fields.
+8. Return `(spec, mcqs_asked)`.
 
-`mcqs_asked` = every question surfaced across iterations (user-facing count,
-capped at `max_mcqs`) — matches DoD #2 and the §18.13 `len(mcqs) <= max_mcqs`
-assert.
+`mcqs_asked` = the questions still open after answers were applied (what an
+interactive user would still need to answer), ordered and capped at
+`max_mcqs` — matches DoD #2 and the §18.13 `len(mcqs) <= max_mcqs` assert.
 
 ## Error handling
 
@@ -179,7 +193,11 @@ assert.
    dict form).
 3. `clarify_unparsed` generation requires `text`; without it, that source is
    skipped.
-4. `mcqs_asked` is counted before answers are applied (represents what the user
-   would be asked), capped at `max_mcqs`.
+4. `mcqs_asked` is the set of questions still open after the answer snapshot is
+   applied (not every question the pipeline ever considered), capped at
+   `max_mcqs`.
 5. `resolve_contradiction` options are synthesized from the ontology constraint
    (two flip-side labels); UX wording is deferred to the UI phase.
+6. `order_questions(qs, ontology=None)` — `ontology` optional because §18.10
+   calls it with one argument; depth tie-breaks need it.
+7. `confirm_weak` is unranked in §4.3; it sorts last.
