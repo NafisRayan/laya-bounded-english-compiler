@@ -310,7 +310,7 @@ def next_questions(spec: PartialSpec, ontology: Ontology,
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (Task 1's 4 + Task 2's 5 = `9 passed`)
+Expected: all pass (Task 1's 6 + Task 2's 5 = `11 passed`)
 
 - [ ] **Step 5: Commit**
 
@@ -477,7 +477,7 @@ def order_questions(questions: list[Question],
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`13 passed`)
+Expected: all pass (`15 passed`)
 
 - [ ] **Step 5: Commit**
 
@@ -682,7 +682,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`19 passed`)
+Expected: all pass (`21 passed`)
 
 - [ ] **Step 5: Commit**
 
@@ -848,12 +848,12 @@ specified here.
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`22 passed`)
+Expected: all pass (`24 passed`)
 
 - [ ] **Step 5: Run the full suite (validator refactor must stay green)**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `100 passed` (78 existing + 22 MCQ tests so far)
+Expected: `102 passed` (78 existing + 24 MCQ tests so far)
 
 - [ ] **Step 6: Commit**
 
@@ -1080,12 +1080,12 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`28 passed`)
+Expected: all pass (`30 passed`)
 
 - [ ] **Step 5: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `106 passed`
+Expected: `108 passed`
 
 - [ ] **Step 6: Commit**
 
@@ -1157,7 +1157,7 @@ when the feature is not already decided. Adjust the negation block in
 - [ ] **Step 4: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `109 passed`
+Expected: `111 passed`
 
 - [ ] **Step 5: Commit**
 
@@ -1173,7 +1173,7 @@ git commit -m "Resolve negation/unparsed via user answers"
 - [ ] **Step 1: Full test run**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `109 passed` (78 legacy + 31 MCQ: 4 PartialSpec, 5 selector, 4 ordering, 6 fold, 3 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
+Expected: `111 passed` (78 legacy + 33 MCQ: 6 PartialSpec, 5 selector, 4 ordering, 6 fold, 3 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
 
 - [ ] **Step 2: Review the tree and push**
 
@@ -1238,5 +1238,5 @@ deviation #8):
    Task 7 Step 3 is effectively redundant — keep it only as a verification
    note.
 4. **Expected run counts corrected** to match the plan's own test
-   definitions: intermediate suite totals 82/100 and full suite `109 passed`
+   definitions: intermediate suite totals 84/102 and full suite `111 passed`
    (78 legacy + 31 MCQ), not the mis-estimated 83/89/91.
