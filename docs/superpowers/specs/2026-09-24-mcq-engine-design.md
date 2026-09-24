@@ -228,3 +228,9 @@ interactive user would still need to answer), ordered and capped at
     decision made **within the same pass** (e.g. `roles.enabled` + role
     phrases) does compose: role candidates still yield `role_names`. Negated
     role candidates are never collected as positives.
+12. `WEAK_MIN` / `confirm_weak` are reserved-but-dead surface in v1: the
+    constant gates nothing and no generator emits `confirm_weak` (the band
+    exists in the selector's ordering for forward compatibility).
+13. Role candidates bypass `AUTO_ACCEPT` (any positive role phrase enables
+    `roles` + `role_names`), while feature/parameter targets respect the
+    threshold. Deliberate: role phrases are sparse, high-precision signals.
