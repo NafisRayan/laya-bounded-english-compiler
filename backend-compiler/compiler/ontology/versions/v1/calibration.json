@@ -1,0 +1,4 @@
+{
+  "english":      {"temperature": 1.0, "ece_before": 0.07, "ece_after": 0.07, "needs_fit": false},
+  "multilingual": {"temperature": 1.0, "ece_before": 0.09, "ece_after": 0.09, "needs_fit": false}
+}

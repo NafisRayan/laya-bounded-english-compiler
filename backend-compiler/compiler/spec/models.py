@@ -32,6 +32,10 @@ class Candidate(BaseModel):
 
     Lives in ``spec.models`` so both the interpreter mechanisms and the
     merge step can reference it without a spec <-> interpreter import cycle.
+
+    ``__init__`` additionally accepts positional arguments because the
+    spec's tests construct candidates positionally
+    (e.g. ``Candidate("payments.enabled", True, 0.85, "phrase", "s1")``).
     """
 
     capability_id: str
@@ -39,6 +43,17 @@ class Candidate(BaseModel):
     confidence: float
     source: DecisionSource
     evidence: str | None
+
+    def __init__(self, capability_id=None, value=None, confidence=None,
+                 source=None, evidence=None, **kwargs):
+        super().__init__(
+            capability_id=capability_id,
+            value=value,
+            confidence=confidence,
+            source=source,
+            evidence=evidence,
+            **kwargs,
+        )
 
 
 class BackendSpec(BaseModel):

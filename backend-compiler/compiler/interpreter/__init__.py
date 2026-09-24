@@ -1,0 +1,1 @@
+"""Requirement interpreter: three parallel extraction mechanisms (Spec §3)."""
