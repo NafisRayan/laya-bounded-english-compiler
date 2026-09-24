@@ -1,0 +1,16 @@
+roles:
+  guest: {authenticated: false}
+  user: {authenticated: true}
+  owner:
+    authenticated: true
+    derived_from: user
+    condition: "exists(listings where owner_id = auth.uid())"
+  renter:
+    authenticated: true
+    derived_from: user
+  admin:
+    authenticated: true
+    assigned_by: "profiles.role = 'admin'"
+  verifier:
+    authenticated: true
+    assigned_by: "profiles.role = 'verifier'"

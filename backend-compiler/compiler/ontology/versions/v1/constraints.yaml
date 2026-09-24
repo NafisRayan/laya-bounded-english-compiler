@@ -1,0 +1,42 @@
+constraints:
+  - type: requires
+    if: {feature: payments, value: true}
+    then: {feature: authentication, value: true}
+    message: "Payments requires authentication."
+
+  - type: requires
+    if: {feature: reviews, value: true}
+    then: {feature: bookings, value: true}
+    message: "Reviews require bookings."
+
+  - type: requires
+    if: {feature: verification, value: true}
+    then: {feature: file_storage, value: true}
+    message: "Verification requires file storage for documents."
+
+  - type: requires
+    if: {feature: favorites, value: true}
+    then: {feature: bookings, value: true}
+    message: "Favorites requires listings (via bookings)."
+
+  - type: requires
+    if: {feature: realtime, parameter: channels, contains: messages}
+    then: {feature: messaging, value: true}
+    message: "Realtime messaging requires the messaging feature."
+
+  - type: requires
+    if: {feature: realtime, parameter: channels, contains: bookings}
+    then: {feature: bookings, value: true}
+    message: "Realtime booking updates require the bookings feature."
+
+  - type: contradicts
+    if: {feature: bookings, parameter: mode, value: instant}
+    then: {feature: verification, value: true}
+    reason: "Instant booking is incompatible with owner verification."
+    severity: hard
+
+  - type: weakens
+    if: {feature: messaging, parameter: trigger_event, value: anytime}
+    then: {feature: authentication, value: true}
+    reason: "Anytime messaging requires authenticated identities."
+    severity: soft

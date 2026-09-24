@@ -1,0 +1,120 @@
+version: 1
+entities:
+  users:
+    managed_by: supabase_auth
+    fields:
+      id: {type: uuid, pk: true}
+      email: {type: text, unique: true}
+      created_at: {type: timestamptz, default: now()}
+
+  profiles:
+    fields:
+      id: {type: uuid, pk: true, fk: users.id, on_delete: cascade}
+      display_name: {type: text}
+      avatar_url: {type: text, nullable: true}
+      bio: {type: text, nullable: true}
+      role: {type: text, default: "'user'"}
+      created_at: {type: timestamptz, default: now()}
+    auto_create_on: users.insert
+
+  listings:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      owner_id: {type: uuid, fk: users.id, on_delete: cascade}
+      title: {type: text}
+      description: {type: text}
+      category: {type: text}
+      price_cents: {type: integer}
+      status: {type: text, default: "'draft'"}
+      created_at: {type: timestamptz, default: now()}
+      updated_at: {type: timestamptz, default: now()}
+    indexes:
+      - {columns: [owner_id]}
+      - {columns: [category, status]}
+
+  bookings:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      listing_id: {type: uuid, fk: listings.id, on_delete: cascade}
+      renter_id: {type: uuid, fk: users.id, on_delete: cascade}
+      owner_id: {type: uuid, fk: users.id, on_delete: cascade}
+      start_at: {type: timestamptz}
+      end_at: {type: timestamptz}
+      status: {type: text, default: "'pending'"}
+      created_at: {type: timestamptz, default: now()}
+    indexes:
+      - {columns: [listing_id, start_at, end_at]}
+      - {columns: [renter_id]}
+      - {columns: [owner_id]}
+
+  messages:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      sender_id: {type: uuid, fk: users.id, on_delete: cascade}
+      recipient_id: {type: uuid, fk: users.id, on_delete: cascade}
+      booking_id: {type: uuid, fk: bookings.id, nullable: true, on_delete: set null}
+      body: {type: text}
+      created_at: {type: timestamptz, default: now()}
+    indexes:
+      - {columns: [sender_id, recipient_id]}
+      - {columns: [booking_id]}
+
+  payments:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      booking_id: {type: uuid, fk: bookings.id, nullable: true, on_delete: set null}
+      payer_id: {type: uuid, fk: users.id, on_delete: cascade}
+      amount_cents: {type: integer}
+      currency: {type: text, default: "'usd'"}
+      provider: {type: text, default: "'stripe'"}
+      provider_ref: {type: text}
+      status: {type: text, default: "'pending'"}
+      created_at: {type: timestamptz, default: now()}
+
+  reviews:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      booking_id: {type: uuid, fk: bookings.id, on_delete: cascade}
+      author_id: {type: uuid, fk: users.id, on_delete: cascade}
+      subject_id: {type: uuid, fk: users.id, on_delete: cascade}
+      rating: {type: integer}
+      body: {type: text}
+      created_at: {type: timestamptz, default: now()}
+
+  files:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      owner_id: {type: uuid, fk: users.id, on_delete: cascade}
+      bucket: {type: text}
+      path: {type: text}
+      mime_type: {type: text}
+      size_bytes: {type: integer}
+      created_at: {type: timestamptz, default: now()}
+
+  verification_documents:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      user_id: {type: uuid, fk: users.id, on_delete: cascade}
+      document_type: {type: text}
+      storage_path: {type: text}
+      status: {type: text, default: "'pending'"}
+      reviewed_by: {type: uuid, fk: users.id, nullable: true}
+      reviewed_at: {type: timestamptz, nullable: true}
+      created_at: {type: timestamptz, default: now()}
+
+  favorites:
+    fields:
+      user_id: {type: uuid, fk: users.id, on_delete: cascade, pk: true}
+      listing_id: {type: uuid, fk: listings.id, on_delete: cascade, pk: true}
+      created_at: {type: timestamptz, default: now()}
+
+  notifications:
+    fields:
+      id: {type: uuid, pk: true, default: gen_random_uuid()}
+      user_id: {type: uuid, fk: users.id, on_delete: cascade}
+      kind: {type: text}
+      payload: {type: jsonb}
+      read_at: {type: timestamptz, nullable: true}
+      created_at: {type: timestamptz, default: now()}
+    indexes:
+      - {columns: [user_id, read_at]}

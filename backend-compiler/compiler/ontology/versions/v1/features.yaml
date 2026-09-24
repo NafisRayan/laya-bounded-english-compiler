@@ -1,0 +1,70 @@
+features:
+  authentication:
+    requires: []
+    activates_entities: [profiles]
+    activates_edge_functions: []
+    parameters:
+      method:
+        type: choice
+        options: [email_password, magic_link, oauth_google, oauth_github]
+
+  roles:
+    requires: [authentication]
+    activates_entities: []
+    activates_edge_functions: []
+    parameters:
+      role_names: {type: "list[string]", min: 1, max: 5}
+
+  bookings:
+    requires: [authentication]
+    activates_entities: [listings, bookings]
+    activates_edge_functions: []
+    parameters:
+      mode: {type: choice, options: [instant, owner_approval, request_then_approval, time_slot]}
+
+  messaging:
+    requires: [authentication]
+    activates_entities: [messages]
+    activates_edge_functions: []
+    parameters:
+      trigger_event: {type: choice, options: [before_booking, after_request, after_approval, anytime]}
+
+  payments:
+    requires: [authentication]
+    activates_entities: [payments]
+    activates_edge_functions: [stripe_webhook]
+    parameters:
+      provider: {type: choice, options: [stripe]}
+
+  reviews:
+    requires: [bookings]
+    activates_entities: [reviews]
+    activates_edge_functions: []
+
+  file_storage:
+    requires: [authentication]
+    activates_entities: [files]
+    activates_edge_functions: []
+    parameters:
+      bucket_purpose: {type: choice, options: [avatars, listings, documents, mixed]}
+
+  verification:
+    requires: [authentication, file_storage]
+    activates_entities: [verification_documents]
+    activates_edge_functions: [verification_webhook]
+    parameters:
+      method: {type: choice, options: [email, phone, government_id, admin_approval, government_id_and_admin]}
+
+  realtime:
+    requires: [authentication]
+    activates_entities: [notifications]
+    activates_edge_functions: [notification_dispatch]
+    parameters:
+      channels:
+        type: list[choice]
+        options: [messages, notifications, bookings]
+
+  favorites:
+    requires: [authentication, bookings]
+    activates_entities: [favorites]
+    activates_edge_functions: []

@@ -1,0 +1,8 @@
+rls_patterns:
+  public_read:         {sql: "true"}
+  authenticated_read:  {sql: "auth.uid() IS NOT NULL"}
+  owner_only:          {sql: "auth.uid() = owner_id"}
+  owner_or_admin:      {sql: "auth.uid() = owner_id OR is_admin()"}
+  participant_only:    {sql: "auth.uid() IN (renter_id, owner_id)"}
+  sender_or_recipient: {sql: "auth.uid() IN (sender_id, recipient_id)"}
+  role_restricted:     {sql: "EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = '{role}')"}
