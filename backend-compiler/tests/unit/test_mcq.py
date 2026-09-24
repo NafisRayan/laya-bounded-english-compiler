@@ -236,3 +236,41 @@ def test_fold_role_names_kept_when_roles_decided_this_pass(ontology):
     result = fold_candidates(cands, ontology)
     assert result.spec.is_enabled("roles")
     assert result.spec.parameter_value("roles.role_names") == ["admin"]
+
+
+from compiler.interpreter.merge import check_coverage
+from compiler.mcq.pipeline import contradiction_questions, coverage_questions
+
+
+def test_coverage_question_per_unparsed_sentence(ontology):
+    text = "Users can message each other. Owners can reject bad actors."
+    cands = [Candidate("messaging.enabled", True, 0.9, "phrase", "s1")]
+    qs = coverage_questions(text, cands, ontology, resolved={})
+    assert len(qs) == 1
+    assert qs[0].type == "clarify_unparsed"
+    assert qs[0].unparsed_index == 1
+    assert qs[0].target == "unparsed.1"
+    assert "payments" in qs[0].options
+
+
+def test_coverage_resolved_index_skipped(ontology):
+    text = "We need bookings. Owners can reject bad actors."
+    cands = [Candidate("bookings.enabled", True, 0.9, "phrase", "bookings")]
+    qs = coverage_questions(text, cands, ontology, resolved={1: "bookings"})
+    assert len(qs) == 0
+
+
+def test_contradiction_surfaced_and_resolvable(ontology):
+    cands = [
+        Candidate("authentication.enabled", True, 1.0, "exact", "auth"),
+        Candidate("bookings.enabled", True, 1.0, "exact", "bookings"),
+        Candidate("bookings.mode", "instant", 1.0, "exact", "instant"),
+    ]
+    features = {"authentication": True, "bookings": True}
+    params = {"bookings.mode": "instant"}
+    qs = contradiction_questions(features, params, ontology)
+    assert len(qs) == 1 and qs[0].type == "resolve_contradiction"
+    assert qs[0].target == "features.bookings"
+
+    params2 = {"bookings.mode": "owner_approval"}
+    assert contradiction_questions(features, params2, ontology) == []

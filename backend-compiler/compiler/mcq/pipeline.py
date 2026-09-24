@@ -6,12 +6,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from compiler.interpreter.merge import check_coverage
+from compiler.interpreter.negation import SENTENCE_BOUNDARY
 from compiler.mcq.selector import Question
 from compiler.mcq.thresholds import AUTO_ACCEPT
 from compiler.ontology.loader import Ontology
 from compiler.spec.models import Candidate, PartialSpec
+from compiler.spec.validator import constraint_holds
 
-__all__ = ["FoldResult", "fold_candidates", "run_mcq_loop"]
+__all__ = ["FoldResult", "fold_candidates", "run_mcq_loop",
+           "coverage_questions", "contradiction_questions"]
 
 
 @dataclass
@@ -113,3 +117,54 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
             result.spec.decide_parameter("roles.role_names", value=sorted(set(roles)))
 
     return result
+
+
+def coverage_questions(text: str, candidates: list[Candidate], ontology: Ontology,
+                       resolved: dict[int, str]) -> list[Question]:
+    """clarify_unparsed questions for sentences still unmapped (Spec §3.6)."""
+    unparsed = check_coverage(text, candidates)
+    questions = []
+    options = sorted(ontology.features)
+    # Re-derive original sentence indexes from the SAME split check_coverage
+    # uses (identical boundaries/strip), walking the unparsed list in order.
+    # Covered sentences never match an unparsed entry, so their indexes pass
+    # through untouched — unparsed.1 == the second sentence even when the
+    # first was covered. (An earlier while-resolved counter misaligned gaps
+    # from covered sentences; this version cannot.)
+    unparsed_iter = iter(unparsed)
+    next_unparsed = next(unparsed_iter, None)
+    for idx, chunk in enumerate(SENTENCE_BOUNDARY.split(text)):
+        sentence = chunk.strip()
+        if not sentence:
+            continue
+        if idx in resolved:
+            continue
+        if next_unparsed is not None and sentence == next_unparsed:
+            questions.append(Question(
+                type="clarify_unparsed", unparsed_index=idx,
+                options=options, confidence=0.5,
+                prompt=f"Which capability does this sentence describe? \"{sentence}\"",
+            ))
+            next_unparsed = next(unparsed_iter, None)
+    return questions
+
+
+def contradiction_questions(features: dict[str, bool], parameters: dict[str, Any],
+                            ontology: Ontology) -> list[Question]:
+    """resolve_contradiction questions for hard contradicts constraints whose
+    if_ side holds (mirrors the validator trigger semantics)."""
+    questions = []
+    for constraint in ontology.constraints:
+        if constraint.type != "contradicts":
+            continue
+        if not constraint_holds(constraint.if_, features, parameters):
+            continue
+        fid = constraint.if_.feature
+        questions.append(Question(
+            type="resolve_contradiction", feature_id=fid,
+            options=[f"Change {constraint.if_.feature}",
+                     f"Reconsider {constraint.then.feature if constraint.then else 'conflict'}"],
+            confidence=1.0,
+            prompt=constraint.message or f"Conflicting choices involving {fid}.",
+        ))
+    return questions

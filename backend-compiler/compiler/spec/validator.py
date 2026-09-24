@@ -8,8 +8,9 @@ access. Semantics are otherwise unchanged.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
-from compiler.ontology.loader import ConstraintDef, Ontology
+from compiler.ontology.loader import ConstraintCond, ConstraintDef, Ontology
 from compiler.spec.derive import derive_buckets, derive_edge_functions, derive_entities
 from compiler.spec.models import BackendSpec
 
@@ -133,23 +134,25 @@ class ValidationResult:
     warnings: list[ValidationIssue] = field(default_factory=list)
 
 
-def _constraint_matches(constraint: ConstraintDef, spec: BackendSpec) -> bool:
-    cond = constraint.if_
+def constraint_holds(cond: ConstraintCond, features: dict[str, bool],
+                     parameters: dict[str, Any]) -> bool:
+    """True when a constraint condition holds against feature/parameter state."""
     feature_id = cond.feature
-
     if cond.parameter is None:
-        return spec.features.get(feature_id) == cond.value
-
-    if not spec.features.get(feature_id):
+        return features.get(feature_id) == cond.value
+    if not features.get(feature_id):
         return False
     key = f"{feature_id}.{cond.parameter}"
-    if key not in spec.parameters:
+    if key not in parameters:
         return False
-    actual = spec.parameters[key]
-
+    actual = parameters[key]
     if cond.contains is not None:
         return isinstance(actual, list) and cond.contains in actual
     return actual == cond.value
+
+
+def _constraint_matches(constraint: ConstraintDef, spec: BackendSpec) -> bool:
+    return constraint_holds(constraint.if_, spec.features, spec.parameters)
 
 
 def _detect_cycle(enabled: dict[str, bool], ontology: Ontology) -> list[str] | None:
