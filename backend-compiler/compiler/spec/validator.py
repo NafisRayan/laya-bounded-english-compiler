@@ -17,6 +17,7 @@ from compiler.spec.models import BackendSpec
 __all__ = [
     "BucketDerivationError",
     "CircularDependency",
+    "constraint_holds",
     "EdgeFunctionDerivationError",
     "EntityDerivationError",
     "InvalidParameterLength",

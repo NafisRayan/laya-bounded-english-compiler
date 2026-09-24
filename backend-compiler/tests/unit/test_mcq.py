@@ -274,3 +274,29 @@ def test_contradiction_surfaced_and_resolvable(ontology):
 
     params2 = {"bookings.mode": "owner_approval"}
     assert contradiction_questions(features, params2, ontology) == []
+
+
+def test_contradiction_skips_soft_severity(ontology):
+    from compiler.ontology.loader import ConstraintCond, ConstraintDef
+    soft = ConstraintDef(
+        type="contradicts", severity="soft",
+        if_=ConstraintCond(feature="bookings", parameter="mode", value="instant"),
+        then=ConstraintCond(feature="verification", value=True),
+        message="soft conflict",
+    )
+    ontology.constraints.append(soft)
+    features = {"authentication": True, "bookings": True}
+    params = {"bookings.mode": "instant"}
+    try:
+        # Only the fixture's HARD contradicts surfaces; the soft copy is skipped.
+        assert len(contradiction_questions(features, params, ontology)) == 1
+    finally:
+        # `ontology` is session-scoped: undo the mutation so the fixture
+        # parity check in test_ontology.py still sees the unmodified bundle.
+        ontology.constraints.remove(soft)
+
+
+def test_coverage_identical_unparsed_sentences_both_asked(ontology):
+    text = "Owners can reject bad actors. Owners can reject bad actors."
+    qs = coverage_questions(text, [], ontology, resolved={})
+    assert [q.unparsed_index for q in qs] == [0, 1]

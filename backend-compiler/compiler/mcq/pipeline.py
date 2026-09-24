@@ -121,7 +121,9 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
 
 def coverage_questions(text: str, candidates: list[Candidate], ontology: Ontology,
                        resolved: dict[int, str]) -> list[Question]:
-    """clarify_unparsed questions for sentences still unmapped (Spec §3.6)."""
+    """clarify_unparsed questions for sentences still unmapped (Spec §3.6).
+    (`resolved` is membership-checked only; its values are unused in v1.)
+    """
     unparsed = check_coverage(text, candidates)
     questions = []
     options = sorted(ontology.features)
@@ -155,7 +157,7 @@ def contradiction_questions(features: dict[str, bool], parameters: dict[str, Any
     if_ side holds (mirrors the validator trigger semantics)."""
     questions = []
     for constraint in ontology.constraints:
-        if constraint.type != "contradicts":
+        if constraint.type != "contradicts" or constraint.severity != "hard":
             continue
         if not constraint_holds(constraint.if_, features, parameters):
             continue
