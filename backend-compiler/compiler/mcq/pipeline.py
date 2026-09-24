@@ -4,14 +4,17 @@ questions (Developer Spec.md §3.4 / §4 / §18.13)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 from compiler.interpreter.merge import check_coverage
 from compiler.interpreter.negation import SENTENCE_BOUNDARY
-from compiler.mcq.selector import Question
+from compiler.mcq.graph import order_questions
+from compiler.mcq.selector import Question, next_questions
 from compiler.mcq.thresholds import AUTO_ACCEPT
 from compiler.ontology.loader import Ontology
-from compiler.spec.models import Candidate, PartialSpec
+from compiler.spec.derive import recompute_spec
+from compiler.spec.models import BackendSpec, Candidate, Decision, PartialSpec
 from compiler.spec.validator import constraint_holds
 
 __all__ = ["FoldResult", "fold_candidates", "run_mcq_loop",
@@ -170,3 +173,93 @@ def contradiction_questions(features: dict[str, bool], parameters: dict[str, Any
             prompt=constraint.message or f"Conflicting choices involving {fid}.",
         ))
     return questions
+
+
+def _as_bool(value: Any) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        norm = value.strip().lower()
+        if norm in {"yes", "true", "1"}:
+            return True
+        if norm in {"no", "false", "0"}:
+            return False
+    return None
+
+
+def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
+                 user_answers: dict[str, Any] | None = None,
+                 max_mcqs: int = 10, text: str | None = None,
+                 laya=None) -> tuple[BackendSpec, list[Question]]:
+    """Resolve interpreter candidates into a BackendSpec, returning the
+    ordered list of questions still needing user input."""
+    user_answers = user_answers or {}
+    spec = PartialSpec()
+
+    # 1) apply user answers directly to the partial spec
+    for target, value in user_answers.items():
+        if target.startswith("features."):
+            fid = target[len("features."):]
+            if fid not in ontology.features:
+                continue
+            b = _as_bool(value)
+            if b is not None:
+                spec.decide_feature(fid, enabled=b)
+        elif target.startswith("parameters."):
+            key = target[len("parameters."):]
+            spec.decide_parameter(key, value=value)
+
+    # 2) fold candidates into the same partial spec. The fold's is_decided
+    #    guards ensure user answers from step 1 are never overridden.
+    folded = fold_candidates(candidates, ontology, spec=spec)
+
+    # 3) unparsed answers (require text)
+    unparsed_resolved: dict[int, str] = {}
+    if text is not None:
+        for target, value in user_answers.items():
+            if target.startswith("unparsed."):
+                try:
+                    idx = int(target[len("unparsed."):])
+                except ValueError:
+                    continue
+                if isinstance(value, str) and value in ontology.features:
+                    unparsed_resolved[idx] = value
+                    folded.spec.decide_feature(value, enabled=True)
+
+    # 4) cover/open questions
+    open_questions = list(folded.negations)
+    if text is not None:
+        open_questions.extend(coverage_questions(text, candidates, ontology,
+                                                 resolved=unparsed_resolved))
+    open_questions.extend(next_questions(
+        folded.spec, ontology, confidence=folded.feature_confidence))
+
+    features = {fid: fid in folded.spec.enabled_features
+                for fid in folded.spec.decided_features}
+    contradiction = contradiction_questions(features, dict(folded.spec.parameter_values),
+                                            ontology)
+    open_questions.extend(contradiction)
+
+    ordered = order_questions(open_questions, ontology)[:max_mcqs]
+
+    # 5) assemble the final spec
+    roles = folded.spec.parameter_values.get("roles.role_names", [])
+    if not isinstance(roles, list):
+        roles = [roles]
+    spec_out = BackendSpec(
+        version="1.0",
+        ontology_version=ontology.version,
+        created_at=datetime.now(timezone.utc),
+        features=features,
+        parameters=dict(folded.spec.parameter_values),
+        roles=roles,
+        rls_overrides={},
+        decisions=[Decision(
+            capability_id=c.capability_id, value=c.value,
+            confidence=c.confidence, source=c.source, evidence=c.evidence,
+        ) for c in candidates],
+        defaulted=[],
+        unsupported=folded.unsupported,
+    )
+    spec_out = recompute_spec(spec_out, ontology)
+    return spec_out, ordered

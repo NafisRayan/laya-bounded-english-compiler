@@ -300,3 +300,76 @@ def test_coverage_identical_unparsed_sentences_both_asked(ontology):
     text = "Owners can reject bad actors. Owners can reject bad actors."
     qs = coverage_questions(text, [], ontology, resolved={})
     assert [q.unparsed_index for q in qs] == [0, 1]
+
+
+from compiler.interpreter.pipeline import run_interpreter
+from compiler.mcq.pipeline import run_mcq_loop
+from compiler.spec.derive import recompute_spec
+from compiler.spec.models import Decision
+from compiler.spec.validator import validate
+
+
+def test_run_mcq_loop_applies_answers_and_resolves(ontology):
+    cands = [
+        Candidate("authentication.enabled", True, 1.0, "exact", "auth"),
+        Candidate("bookings.enabled", True, 1.0, "exact", "bookings"),
+        Candidate("bookings.mode", "instant", 1.0, "exact", "instant"),
+    ]
+    spec, mcqs = run_mcq_loop(
+        cands, ontology,
+        user_answers={"parameters.bookings.mode": "owner_approval"},
+    )
+    assert spec.features.get("bookings") is True
+    assert spec.parameters.get("bookings.mode") == "owner_approval"
+    assert not [q for q in mcqs if q.type == "resolve_contradiction"]
+    assert validate(spec, ontology).ok
+
+
+def test_run_mcq_loop_surfaces_open_questions(ontology):
+    cands = [Candidate("needs_payments", True, 0.5, "laya", None)]
+    spec, mcqs = run_mcq_loop(cands, ontology)
+    assert spec.features.get("payments") is False or spec.features.get("payments") is None
+    types = {q.type for q in mcqs}
+    assert "confirm_feature" in types  # payments undecided, normal band
+
+
+def test_run_mcq_loop_caps_at_max_mcqs(ontology):
+    cands = [Candidate(f"needs_{f}", True, 0.5, "laya", None)
+             for f in ("bookings", "messaging", "payments", "reviews")]
+    spec, mcqs = run_mcq_loop(cands, ontology, max_mcqs=2,
+                              user_answers={"features.authentication": True})
+    assert len(mcqs) <= 2
+
+
+def test_run_mcq_loop_answers_apply_directly_deps_validated_later(ontology):
+    cands = [Candidate("needs_bookings", True, 0.5, "laya", None)]
+    spec, mcqs = run_mcq_loop(cands, ontology,
+                              user_answers={"features.bookings": True})
+    # Answers apply directly regardless of dependencies (single-pass rule);
+    # the missing authentication dependency is a *validation* concern, not a
+    # prompt concern — the MCQ engine never re-asks a user-decided feature.
+    assert spec.features.get("bookings") is True
+    assert not validate(spec, ontology).ok  # MissingDependency(authentication)
+
+
+def test_run_interpreter_to_run_mcq_loop_to_validate(ontology, mock_laya_high_confidence):
+    text = "Use stripe for payments and email password for login"
+    candidates = run_interpreter(text, ontology, laya=mock_laya_high_confidence)
+    spec, mcqs = run_mcq_loop(candidates, ontology, text=text,
+                              laya=mock_laya_high_confidence)
+    assert spec.features.get("payments") is True
+    assert spec.parameters.get("payments.provider") == "stripe"
+    assert spec.parameters.get("authentication.method") == "email_password"
+    result = validate(spec, ontology)
+    assert result.ok, f"Spec failed validation: {result.errors}"
+
+
+def test_run_mcq_loop_records_decisions_and_unsupported(ontology):
+    cands = [
+        Candidate("authentication.enabled", True, 1.0, "exact", "auth"),
+        Candidate("unknown.thing", True, 0.9, "laya", None),
+    ]
+    spec, mcqs = run_mcq_loop(cands, ontology)
+    assert "unknown.thing" in spec.unsupported
+    assert any(isinstance(d, Decision) and d.capability_id == "authentication.enabled"
+               for d in spec.decisions)
