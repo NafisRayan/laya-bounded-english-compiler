@@ -552,6 +552,43 @@ def test_fold_role_implies_roles_feature(ontology):
     result = fold_candidates(cands, ontology)
     assert result.spec.is_enabled("roles")
     assert result.spec.parameter_value("roles.role_names") == ["owner"]
+
+
+def test_fold_seeded_decided_feature_not_overridden_no_negation(ontology):
+    spec = PartialSpec()
+    spec.decide_feature("payments", enabled=False)
+    cands = [
+        Candidate("payments.enabled", True, 0.95, "phrase", "pay"),
+        Candidate("payments.enabled", False, 0.95, "phrase_negated", "no pay"),
+    ]
+    result = fold_candidates(cands, ontology, spec=spec)
+    assert result.spec is spec  # the seeded spec is carried through
+    assert not result.spec.is_enabled("payments")
+    assert result.negations == []
+
+
+def test_fold_param_candidate_for_unenabled_feature_not_decided(ontology):
+    cands = [Candidate("authentication.method", "oauth_google", 1.0, "phrase", "google")]
+    result = fold_candidates(cands, ontology)
+    assert "authentication.method" not in result.spec.decided_parameters
+    assert not result.spec.is_enabled("authentication")
+
+
+def test_fold_negated_role_not_collected(ontology):
+    cands = [Candidate("roles.admin", False, 0.9, "phrase_negated", "no admins")]
+    result = fold_candidates(cands, ontology)
+    assert not result.spec.is_decided("roles")
+    assert "roles.role_names" not in result.spec.decided_parameters
+
+
+def test_fold_role_names_kept_when_roles_decided_this_pass(ontology):
+    cands = [
+        Candidate("roles.enabled", True, 0.9, "phrase", "roles on"),
+        Candidate("roles.admin", True, 0.9, "phrase", "admins"),
+    ]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.is_enabled("roles")
+    assert result.spec.parameter_value("roles.role_names") == ["admin"]
 ```
 
 `fold_candidates` is made public (not `_fold_candidates`) so tests can target
@@ -629,6 +666,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
     surfaced for a feature the user has already decided.
     """
     result = FoldResult(spec=spec or PartialSpec())
+    seeded_roles = spec is not None and spec.is_decided("roles")
     feature_values: dict[str, list[tuple[Any, float]]] = {}
     param_values: dict[str, list[tuple[Any, float]]] = {}
     roles: list[str] = []
@@ -640,7 +678,8 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
         elif kind == "parameter":
             param_values.setdefault(payload[0], []).append((cand.value, cand.confidence))
         elif kind == "role":
-            roles.append(payload[0])
+            if cand.value:
+                roles.append(payload[0])
         elif kind == "unknown":
             result.unsupported.append(cand.capability_id)
         # "entity" candidates are ignored: entities are derived from
@@ -651,7 +690,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
         result.feature_confidence[fid] = best[1]
         if result.spec.is_decided(fid):
             continue
-        distinct = {repr(v) for v, _ in proposals}
+        distinct = {value for value, _ in proposals}
         if len(distinct) > 1:
             result.negations.append(Question(
                 type="resolve_negation", feature_id=fid,
@@ -672,9 +711,11 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
             if result.spec.is_enabled(fid):
                 result.spec.decide_parameter(key, value=best[0])
 
-    if roles and not result.spec.is_decided("roles"):
-        result.spec.decide_feature("roles", enabled=True)
-        result.spec.decide_parameter("roles.role_names", value=sorted(set(roles)))
+    if roles and not seeded_roles:
+        if not result.spec.is_decided("roles"):
+            result.spec.decide_feature("roles", enabled=True)
+        if result.spec.is_enabled("roles"):
+            result.spec.decide_parameter("roles.role_names", value=sorted(set(roles)))
 
     return result
 ```
@@ -682,7 +723,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`21 passed`)
+Expected: all pass (`25 passed`)
 
 - [ ] **Step 5: Commit**
 
@@ -848,12 +889,12 @@ specified here.
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`24 passed`)
+Expected: all pass (`28 passed`)
 
 - [ ] **Step 5: Run the full suite (validator refactor must stay green)**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `102 passed` (78 existing + 24 MCQ tests so far)
+Expected: `106 passed` (78 existing + 28 MCQ tests so far)
 
 - [ ] **Step 6: Commit**
 
@@ -1080,12 +1121,12 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`30 passed`)
+Expected: all pass (`34 passed`)
 
 - [ ] **Step 5: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `108 passed`
+Expected: `112 passed`
 
 - [ ] **Step 6: Commit**
 
@@ -1157,7 +1198,7 @@ when the feature is not already decided. Adjust the negation block in
 - [ ] **Step 4: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `111 passed`
+Expected: `115 passed`
 
 - [ ] **Step 5: Commit**
 
@@ -1173,7 +1214,7 @@ git commit -m "Resolve negation/unparsed via user answers"
 - [ ] **Step 1: Full test run**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `111 passed` (78 legacy + 33 MCQ: 6 PartialSpec, 5 selector, 4 ordering, 6 fold, 3 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
+Expected: `115 passed` (78 legacy + 37 MCQ: 6 PartialSpec, 5 selector, 4 ordering, 10 fold, 3 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
 
 - [ ] **Step 2: Review the tree and push**
 
@@ -1238,5 +1279,5 @@ deviation #8):
    Task 7 Step 3 is effectively redundant — keep it only as a verification
    note.
 4. **Expected run counts corrected** to match the plan's own test
-   definitions: intermediate suite totals 84/102 and full suite `111 passed`
+   definitions: intermediate suite totals 84/106 and full suite `115 passed`
    (78 legacy + 31 MCQ), not the mis-estimated 83/89/91.
