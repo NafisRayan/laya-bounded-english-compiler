@@ -381,3 +381,37 @@ def test_run_mcq_loop_rejects_invalid_parameter_answers(ontology):
         "parameters.realtime.channels": 5,        # list[choice] wants a list
     })
     assert spec.parameters == {}
+
+
+def test_resolve_negation_via_answer(ontology):
+    cands = [
+        Candidate("payments.enabled", True, 0.9, "phrase", "pay"),
+        Candidate("payments.enabled", False, 0.9, "phrase_negated", "no pay"),
+    ]
+    spec, mcqs = run_mcq_loop(cands, ontology,
+                              user_answers={"features.payments": False})
+    assert spec.features.get("payments") is False
+    assert not [q for q in mcqs if q.type == "resolve_negation"]
+
+
+def test_unparsed_answer_removes_coverage_question(ontology, mock_laya):
+    text = "Owners can reject bad actors."
+    cands = run_interpreter(text, ontology, laya=mock_laya)
+    spec, mcqs = run_mcq_loop(cands, ontology, text=text,
+                              user_answers={"unparsed.0": "roles"},
+                              laya=mock_laya)
+    assert spec.features.get("roles") is True
+    assert not [q for q in mcqs if q.type == "clarify_unparsed"]
+
+
+def test_run_mcq_loop_surfaces_contradiction_without_answers(ontology):
+    cands = [
+        Candidate("authentication.enabled", True, 1.0, "exact", "auth"),
+        Candidate("bookings.enabled", True, 1.0, "exact", "bookings"),
+        Candidate("bookings.mode", "instant", 1.0, "exact", "instant"),
+    ]
+    spec, mcqs = run_mcq_loop(cands, ontology)
+    assert any(q.type == "resolve_contradiction" for q in mcqs)
+    spec2, mcqs2 = run_mcq_loop(cands, ontology,
+                                user_answers={"parameters.bookings.mode": "owner_approval"})
+    assert not [q for q in mcqs2 if q.type == "resolve_contradiction"]
