@@ -187,12 +187,44 @@ def _as_bool(value: Any) -> bool | None:
     return None
 
 
+def _parameter_answer_ok(key: str, value: Any, ontology: Ontology) -> bool:
+    """True when a parameters.<key> answer is safe to decide against the
+    ontology (known key; value shape/contents match the declared type).
+    Guards recompute_spec from KeyError/TypeError on malformed answers."""
+    fid, _, pid = key.partition(".")
+    feature = ontology.features.get(fid)
+    if feature is None:
+        return False
+    pdef = feature.parameters.get(pid)
+    if pdef is None or value is None:
+        return False
+    if pdef.type == "choice":
+        return isinstance(value, str) and value in pdef.options
+    if pdef.type == "list[choice]":
+        return (isinstance(value, list) and len(value) > 0
+                and all(isinstance(item, str) and item in pdef.options
+                        for item in value))
+    if pdef.type == "list[string]":
+        return (isinstance(value, list) and len(value) > 0
+                and all(isinstance(item, str) and item for item in value))
+    if pdef.type == "integer":
+        if not isinstance(value, int) or isinstance(value, bool):
+            return False
+        if pdef.min is not None and value < pdef.min:
+            return False
+        if pdef.max is not None and value > pdef.max:
+            return False
+        return True
+    return isinstance(value, str) and bool(value)
+
+
 def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
                  user_answers: dict[str, Any] | None = None,
                  max_mcqs: int = 10, text: str | None = None,
                  laya=None) -> tuple[BackendSpec, list[Question]]:
     """Resolve interpreter candidates into a BackendSpec, returning the
-    ordered list of questions still needing user input."""
+    ordered list of questions still needing user input. Invalid parameter
+    answers (unknown key, wrong type, disallowed choice, None) are ignored."""
     user_answers = user_answers or {}
     spec = PartialSpec()
 
@@ -207,7 +239,8 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
                 spec.decide_feature(fid, enabled=b)
         elif target.startswith("parameters."):
             key = target[len("parameters."):]
-            spec.decide_parameter(key, value=value)
+            if _parameter_answer_ok(key, value, ontology):
+                spec.decide_parameter(key, value=value)
 
     # 2) fold candidates into the same partial spec. The fold's is_decided
     #    guards ensure user answers from step 1 are never overridden.

@@ -337,7 +337,7 @@ def test_run_mcq_loop_caps_at_max_mcqs(ontology):
              for f in ("bookings", "messaging", "payments", "reviews")]
     spec, mcqs = run_mcq_loop(cands, ontology, max_mcqs=2,
                               user_answers={"features.authentication": True})
-    assert len(mcqs) <= 2
+    assert len(mcqs) == 2
 
 
 def test_run_mcq_loop_answers_apply_directly_deps_validated_later(ontology):
@@ -372,3 +372,12 @@ def test_run_mcq_loop_records_decisions_and_unsupported(ontology):
     assert "unknown.thing" in spec.unsupported
     assert any(isinstance(d, Decision) and d.capability_id == "authentication.enabled"
                for d in spec.decisions)
+
+
+def test_run_mcq_loop_rejects_invalid_parameter_answers(ontology):
+    spec, _ = run_mcq_loop([], ontology, user_answers={
+        "parameters.nonexistent.thing": "x",      # unknown key
+        "parameters.bookings.mode": "nonsense",   # not a choice option
+        "parameters.realtime.channels": 5,        # list[choice] wants a list
+    })
+    assert spec.parameters == {}
