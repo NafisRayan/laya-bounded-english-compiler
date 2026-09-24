@@ -1055,14 +1055,6 @@ def _as_bool(value: Any) -> bool | None:
     return None
 
 
-def _answers_for_target(user_answers: dict[str, Any], target: str) -> list[Any]:
-    """Return the raw answers for a target (list form supported)."""
-    if target in user_answers:
-        v = user_answers[target]
-        return v if isinstance(v, list) else [v]
-    return []
-
-
 def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
                  user_answers: dict[str, Any] | None = None,
                  max_mcqs: int = 10, text: str | None = None,
