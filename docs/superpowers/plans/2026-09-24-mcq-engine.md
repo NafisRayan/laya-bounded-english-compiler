@@ -1227,6 +1227,19 @@ def test_unparsed_answer_removes_coverage_question(ontology, mock_laya):
                               laya=mock_laya)
     assert spec.features.get("roles") is True
     assert not [q for q in mcqs if q.type == "clarify_unparsed"]
+
+
+def test_run_mcq_loop_surfaces_contradiction_without_answers(ontology):
+    cands = [
+        Candidate("authentication.enabled", True, 1.0, "exact", "auth"),
+        Candidate("bookings.enabled", True, 1.0, "exact", "bookings"),
+        Candidate("bookings.mode", "instant", 1.0, "exact", "instant"),
+    ]
+    spec, mcqs = run_mcq_loop(cands, ontology)
+    assert any(q.type == "resolve_contradiction" for q in mcqs)
+    spec2, mcqs2 = run_mcq_loop(cands, ontology,
+                                user_answers={"parameters.bookings.mode": "owner_approval"})
+    assert not [q for q in mcqs2 if q.type == "resolve_contradiction"]
 ```
 
 - [ ] **Step 2: Run tests to verify they fail (or pass)**
