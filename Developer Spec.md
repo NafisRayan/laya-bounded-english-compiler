@@ -1,6 +1,6 @@
 # Backend Compiler — Developer Specification
 
-**Version:** 1.9
+**Version:** 1.10
 **Status:** Implementation-ready
 **Audience:** Backend/ML engineers building the system
 
@@ -14,6 +14,7 @@
 - v1.7 — Fixed `_spec()` test helper
 - v1.8 — Corrected Laya integration (checkpoint, calibration, mock, env vars)
 - **v1.9 — Fixed `predict_batch` signature (list-of-dicts, no `model=` kwarg); dropped `models={"english": None}` (breaks library default loading); aligned `MockLayaClient` envelope with real library shape (`model: "laya-rl-agent"`, `routing: {model, repo, reason}`, `usage: {input_tokens, output_tokens}`, `action: {act_probability}`); fixed `criteria[0]` → `next(iter(criteria))` to handle dict-valued criteria**
+- **v1.10 — Made `_make_laya_answer` treat `act_probability` as a separate, pinnable quantity (real action head is independently trained, `agent.py:676`); `MockLayaClient.__init__` now documents why `super().__init__()` is skipped (it builds a real preloading Router) and sets explicit `router`/`calibration` placeholders so a future missed override fails loudly; added contract test that `act_probability` is independent of `noul`**
 
 This document is self-contained. Every decision that would normally be a question is made here.
 
@@ -1668,9 +1669,9 @@ def _first_choice(criteria) -> str:
     raise TypeError(f"unsupported criteria type: {type(criteria)}")
 
 
-def _make_laya_answer(qtype: str, value) -> dict:
+def _make_laya_answer(qtype: str, value, act_probability: float = 0.5) -> dict:
     """
-    v1.9 — mirrors the real laya envelope for a single answer.
+    v1.10 — mirrors the real laya envelope for a single answer.
 
     Real single-predict shape (agent.py:699-707, 660-675):
       {
@@ -1680,6 +1681,13 @@ def _make_laya_answer(qtype: str, value) -> dict:
         "answer_confidence": <ECE-calibrated>,
         "action":            {"act_probability": <float>},
       }
+
+    `act_probability` comes from a SEPARATE action head (`act[r, 0]`)
+    trained independently of the option logits (agent.py:676). It is
+    NOT `noul`/`confidence` and must not be conflated with them. The
+    mock does not simulate the action head, so this defaults to a
+    fixed, documented value; a contract test that depends on the act
+    value must pin it explicitly.
     """
     if qtype == "noul":
         p = float(value)
@@ -1688,7 +1696,7 @@ def _make_laya_answer(qtype: str, value) -> dict:
             "noul": p,
             "confidence": max(p, 1 - p),
             "answer_confidence": max(p, 1 - p),
-            "action": {"act_probability": p},
+            "action": {"act_probability": act_probability},
         }
     if qtype == "choice":
         return {
@@ -1696,7 +1704,7 @@ def _make_laya_answer(qtype: str, value) -> dict:
             "choice": value,
             "confidence": 1.0,
             "answer_confidence": 1.0,
-            "action": {"act_probability": 1.0},
+            "action": {"act_probability": act_probability},
         }
     raise ValueError(f"unknown qtype {qtype}")
 
@@ -1716,7 +1724,10 @@ class MockLayaClient(LayaClient):
 
     The mock is a contract test double: if the interpreter reads a
     field, the mock must supply it. If it doesn't, the wiring bug
-    goes unnoticed.
+    goes unnoticed. The mock does not simulate the action head
+    (agent.py:676 — a separately trained head), so mock answers use
+    the fixed default `act_probability` from `_make_laya_answer`,
+    which is independent of `noul`/`confidence`.
     """
 
     CONSTANT_MODEL = "laya-rl-agent"
@@ -1724,6 +1735,15 @@ class MockLayaClient(LayaClient):
     def __init__(self, responses: dict[str, dict] | None = None,
                  checkpoint: str = "english",
                  repo: str = "convaiinnovations/laya"):
+        # v1.10 — super().__init__() is deliberately NOT called: it builds a
+        # real Router with preload=True (downloads ~800MB of weights) and
+        # loads calibration.json. Every LayaClient method that touches that
+        # state is overridden below, so the mock never needs it. The None
+        # placeholders make a future LayaClient method that forgets to
+        # override fail loudly at dev time (AttributeError) instead of
+        # silently using a parent that was never constructed.
+        self.router = None
+        self.calibration = None
         self.responses = responses or {}
         self.checkpoint = checkpoint
         self.repo = repo
@@ -2286,6 +2306,27 @@ def test_action_has_act_probability():
     mock = MockLayaClient()
     resp = mock.predict("s", {"q": {"type": "noul", "instructions": "..."}})
     assert "act_probability" in resp["answers"]["q"]["action"]
+
+
+def test_act_probability_is_independent_of_noul():
+    """v1.10 — the action head is a separate trained quantity (agent.py:676);
+    a caller-pinned act_probability must be preserved verbatim, not recomputed
+    from noul/confidence."""
+    a = _make_laya_answer("noul", 0.9, act_probability=0.4)
+    assert a["noul"] == 0.9
+    assert a["confidence"] == 0.9
+    assert a["action"]["act_probability"] == 0.4
+    assert a["action"]["act_probability"] != a["noul"]
+
+
+def test_mock_constructs_without_network():
+    """v1.10 — MockLayaClient must never build the real Router (which preloads
+    and downloads weights). router/calibration are explicit None placeholders."""
+    mock = MockLayaClient()
+    assert mock.router is None
+    assert mock.calibration is None
+    assert mock.predict("s", {"q": {"type": "noul", "instructions": "..."}})[
+        "model"] == "laya-rl-agent"
 
 
 def test_criteria_dict_supported():
