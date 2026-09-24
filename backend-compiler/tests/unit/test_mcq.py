@@ -199,3 +199,40 @@ def test_fold_role_implies_roles_feature(ontology):
     result = fold_candidates(cands, ontology)
     assert result.spec.is_enabled("roles")
     assert result.spec.parameter_value("roles.role_names") == ["owner"]
+
+
+def test_fold_seeded_decided_feature_not_overridden_no_negation(ontology):
+    spec = PartialSpec()
+    spec.decide_feature("payments", enabled=False)
+    cands = [
+        Candidate("payments.enabled", True, 0.95, "phrase", "pay"),
+        Candidate("payments.enabled", False, 0.95, "phrase_negated", "no pay"),
+    ]
+    result = fold_candidates(cands, ontology, spec=spec)
+    assert result.spec is spec  # the seeded spec is carried through
+    assert not result.spec.is_enabled("payments")
+    assert result.negations == []
+
+
+def test_fold_param_candidate_for_unenabled_feature_not_decided(ontology):
+    cands = [Candidate("authentication.method", "oauth_google", 1.0, "phrase", "google")]
+    result = fold_candidates(cands, ontology)
+    assert "authentication.method" not in result.spec.decided_parameters
+    assert not result.spec.is_enabled("authentication")
+
+
+def test_fold_negated_role_not_collected(ontology):
+    cands = [Candidate("roles.admin", False, 0.9, "phrase_negated", "no admins")]
+    result = fold_candidates(cands, ontology)
+    assert not result.spec.is_decided("roles")
+    assert "roles.role_names" not in result.spec.decided_parameters
+
+
+def test_fold_role_names_kept_when_roles_decided_this_pass(ontology):
+    cands = [
+        Candidate("roles.enabled", True, 0.9, "phrase", "roles on"),
+        Candidate("roles.admin", True, 0.9, "phrase", "admins"),
+    ]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.is_enabled("roles")
+    assert result.spec.parameter_value("roles.role_names") == ["admin"]

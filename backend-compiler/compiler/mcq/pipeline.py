@@ -61,6 +61,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
     surfaced for a feature the user has already decided.
     """
     result = FoldResult(spec=spec or PartialSpec())
+    seeded_roles = spec is not None and spec.is_decided("roles")
     feature_values: dict[str, list[tuple[Any, float]]] = {}
     param_values: dict[str, list[tuple[Any, float]]] = {}
     roles: list[str] = []
@@ -72,7 +73,8 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
         elif kind == "parameter":
             param_values.setdefault(payload[0], []).append((cand.value, cand.confidence))
         elif kind == "role":
-            roles.append(payload[0])
+            if cand.value:
+                roles.append(payload[0])
         elif kind == "unknown":
             result.unsupported.append(cand.capability_id)
         # "entity" candidates are ignored: entities are derived from
@@ -83,7 +85,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
         result.feature_confidence[fid] = best[1]
         if result.spec.is_decided(fid):
             continue
-        distinct = {repr(v) for v, _ in proposals}
+        distinct = {value for value, _ in proposals}
         if len(distinct) > 1:
             result.negations.append(Question(
                 type="resolve_negation", feature_id=fid,
@@ -104,8 +106,10 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
             if result.spec.is_enabled(fid):
                 result.spec.decide_parameter(key, value=best[0])
 
-    if roles and not result.spec.is_decided("roles"):
-        result.spec.decide_feature("roles", enabled=True)
-        result.spec.decide_parameter("roles.role_names", value=sorted(set(roles)))
+    if roles and not seeded_roles:
+        if not result.spec.is_decided("roles"):
+            result.spec.decide_feature("roles", enabled=True)
+        if result.spec.is_enabled("roles"):
+            result.spec.decide_parameter("roles.role_names", value=sorted(set(roles)))
 
     return result
