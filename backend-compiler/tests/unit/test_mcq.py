@@ -144,3 +144,58 @@ def test_confirm_weak_sorts_last(ontology):
     qs = [_q("confirm_feature", "bookings"), _q("confirm_weak", "authentication")]
     ordered = order_questions(qs, ontology)
     assert ordered[-1].type == "confirm_weak"
+
+
+from compiler.mcq.pipeline import fold_candidates
+from compiler.spec.models import Candidate
+
+
+def test_fold_classifies_feature_and_param(ontology):
+    cands = [
+        Candidate("bookings.enabled", True, 1.0, "exact", "bookings"),
+        Candidate("bookings.mode", "instant", 1.0, "exact", "instant"),
+    ]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.is_enabled("bookings")
+    assert result.spec.parameter_value("bookings.mode") == "instant"
+
+
+def test_fold_laya_needs_feature_uses_bool(ontology):
+    cands = [Candidate("needs_payments", True, 0.95, "laya", None)]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.is_enabled("payments")
+
+
+def test_fold_ignores_entity_and_unknown(ontology):
+    cands = [
+        Candidate("needs_profiles", True, 0.95, "laya", None),
+        Candidate("bogus.target", True, 0.95, "laya", None),
+    ]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.decided_features == set()
+    assert "bogus.target" in result.unsupported
+
+
+def test_fold_neutral_confidence_leaves_open(ontology):
+    cands = [Candidate("needs_bookings", True, 0.5, "laya", None)]
+    result = fold_candidates(cands, ontology)
+    assert not result.spec.is_decided("bookings")
+    assert result.feature_confidence.get("bookings") == 0.5
+
+
+def test_fold_conflict_creates_negation(ontology):
+    cands = [
+        Candidate("payments.enabled", True, 0.9, "phrase", "pay"),
+        Candidate("payments.enabled", False, 0.9, "phrase_negated", "no pay"),
+    ]
+    result = fold_candidates(cands, ontology)
+    assert not result.spec.is_decided("payments")
+    assert any(q.type == "resolve_negation" and q.feature_id == "payments"
+               for q in result.negations)
+
+
+def test_fold_role_implies_roles_feature(ontology):
+    cands = [Candidate("roles.owner", True, 0.9, "phrase", "owner")]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.is_enabled("roles")
+    assert result.spec.parameter_value("roles.role_names") == ["owner"]
