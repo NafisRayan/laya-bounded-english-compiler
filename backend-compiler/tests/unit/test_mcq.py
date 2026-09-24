@@ -36,3 +36,16 @@ def test_decide_parameter_without_value():
     spec.decide_parameter("bookings.mode")
     assert "bookings.mode" in spec.decided_parameters
     assert spec.parameter_value("bookings.mode") is None
+
+
+def test_partial_spec_empty_dict_form():
+    spec = PartialSpec(decided_features={}, enabled_features=set())
+    assert spec.decided_features == set()
+    assert spec.enabled_features == set()
+
+
+def test_partial_spec_dict_form_with_true_value():
+    spec = PartialSpec(decided_features={"authentication": True},
+                       enabled_features={"authentication"})
+    assert spec.is_decided("authentication")
+    assert spec.is_enabled("authentication")

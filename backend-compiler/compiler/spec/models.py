@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator
+from pydantic.functional_validators import BeforeValidator
 
 __all__ = ["BackendSpec", "BucketSpec", "Candidate", "Decision", "PartialSpec"]
 
 DecisionSource = Literal["exact", "phrase", "phrase_negated", "laya", "user", "default"]
+
+DecidedFeatures = Annotated[
+    set[str],
+    BeforeValidator(lambda v: set(v) if isinstance(v, dict) else v),
+]
 
 
 class BucketSpec(BaseModel):
@@ -66,17 +72,18 @@ class PartialSpec(BaseModel):
     in `parameter_values`.
     """
 
-    decided_features: set[str] | dict[str, bool] = Field(default_factory=set)
+    decided_features: DecidedFeatures = Field(default_factory=set)
     enabled_features: set[str] = Field(default_factory=set)
     decided_parameters: set[str] = Field(default_factory=set)
     parameter_values: dict[str, Any] = Field(default_factory=dict)
 
-    @field_validator("decided_features", mode="before")
-    @classmethod
-    def _normalize_decided_features(cls, v):
-        if isinstance(v, dict):
-            return set(v)
-        return v
+    @model_validator(mode="after")
+    def _validate_enabled_subset(self) -> "PartialSpec":
+        if not self.enabled_features <= self.decided_features:
+            raise ValueError(
+                "enabled_features must be a subset of decided_features"
+            )
+        return self
 
     def decide_feature(self, feature_id: str, enabled: bool) -> None:
         self.decided_features.add(feature_id)
@@ -86,6 +93,12 @@ class PartialSpec(BaseModel):
             self.enabled_features.discard(feature_id)
 
     def decide_parameter(self, parameter_id: str, value: Any = None) -> None:
+        """Record a parameter decision.
+
+        A missing parameter value and a value of ``None`` are
+        indistinguishable via ``parameter_value``: ``None`` means "unknown,
+        not yet chosen".
+        """
         self.decided_parameters.add(parameter_id)
         if value is not None:
             self.parameter_values[parameter_id] = value
@@ -97,6 +110,11 @@ class PartialSpec(BaseModel):
         return feature_id in self.enabled_features
 
     def parameter_value(self, parameter_id: str) -> Any:
+        """Return the value for a decided parameter, or ``None`` if unknown.
+
+        A missing parameter value and a value of ``None`` are
+        indistinguishable here: ``None`` means "unknown, not yet chosen".
+        """
         return self.parameter_values.get(parameter_id)
 
 
