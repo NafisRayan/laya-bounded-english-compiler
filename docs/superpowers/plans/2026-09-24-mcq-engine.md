@@ -810,6 +810,27 @@ def test_contradiction_surfaced_and_resolvable(ontology):
 
     params2 = {"bookings.mode": "owner_approval"}
     assert contradiction_questions(features, params2, ontology) == []
+
+
+def test_contradiction_skips_soft_severity(ontology):
+    from compiler.ontology.loader import ConstraintCond, ConstraintDef
+    soft = ConstraintDef(
+        type="contradicts", severity="soft",
+        if_=ConstraintCond(feature="bookings", parameter="mode", value="instant"),
+        then=ConstraintCond(feature="verification", value=True),
+        message="soft conflict",
+    )
+    ontology.constraints.append(soft)
+    features = {"authentication": True, "bookings": True}
+    params = {"bookings.mode": "instant"}
+    # Only the fixture's HARD contradicts surfaces; the soft copy is skipped.
+    assert len(contradiction_questions(features, params, ontology)) == 1
+
+
+def test_coverage_identical_unparsed_sentences_both_asked(ontology):
+    text = "Owners can reject bad actors. Owners can reject bad actors."
+    qs = coverage_questions(text, [], ontology, resolved={})
+    assert [q.unparsed_index for q in qs] == [0, 1]
 ```
 
 Note: the fixture ontology's hard `contradicts` constraint is the pair
@@ -824,6 +845,8 @@ Edit `compiler/mcq/pipeline.py`:
 
 - Extend imports: add `inspect`-free direct imports — `from compiler.interpreter.merge import check_coverage`, `from compiler.interpreter.negation import SENTENCE_BOUNDARY`, `from compiler.spec.validator import constraint_holds`.
 - Extend `__all__` with `coverage_questions`, `contradiction_questions`.
+- Also add `constraint_holds` to `validator.py`'s `__all__` (the file keeps
+  strict export discipline).
 - Append functions:
 
 ```python
@@ -863,7 +886,7 @@ def contradiction_questions(features: dict[str, bool], parameters: dict[str, Any
     if_ side holds (mirrors interpreter of the validator)."""
     questions = []
     for constraint in ontology.constraints:
-        if constraint.type != "contradicts":
+        if constraint.type != "contradicts" or constraint.severity != "hard":
             continue
         if not constraint_holds(constraint.if_, features, parameters):
             continue
@@ -889,12 +912,12 @@ specified here.
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`28 passed`)
+Expected: all pass (`30 passed`)
 
 - [ ] **Step 5: Run the full suite (validator refactor must stay green)**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `106 passed` (78 existing + 28 MCQ tests so far)
+Expected: `108 passed` (78 existing + 30 MCQ tests so far)
 
 - [ ] **Step 6: Commit**
 
@@ -1121,12 +1144,12 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`34 passed`)
+Expected: all pass (`36 passed`)
 
 - [ ] **Step 5: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `112 passed`
+Expected: `114 passed`
 
 - [ ] **Step 6: Commit**
 
@@ -1198,7 +1221,7 @@ when the feature is not already decided. Adjust the negation block in
 - [ ] **Step 4: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `115 passed`
+Expected: `117 passed`
 
 - [ ] **Step 5: Commit**
 
@@ -1214,7 +1237,7 @@ git commit -m "Resolve negation/unparsed via user answers"
 - [ ] **Step 1: Full test run**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `115 passed` (78 legacy + 37 MCQ: 6 PartialSpec, 5 selector, 4 ordering, 10 fold, 3 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
+Expected: `117 passed` (78 legacy + 39 MCQ: 6 PartialSpec, 5 selector, 4 ordering, 10 fold, 5 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
 
 - [ ] **Step 2: Review the tree and push**
 
@@ -1279,5 +1302,5 @@ deviation #8):
    Task 7 Step 3 is effectively redundant — keep it only as a verification
    note.
 4. **Expected run counts corrected** to match the plan's own test
-   definitions: intermediate suite totals 84/106 and full suite `115 passed`
+   definitions: intermediate suite totals 84/108 and full suite `117 passed`
    (78 legacy + 31 MCQ), not the mis-estimated 83/89/91.

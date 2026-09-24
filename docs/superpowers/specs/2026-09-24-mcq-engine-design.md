@@ -213,3 +213,18 @@ interactive user would still need to answer), ordered and capped at
    surface as `MissingDependency` from `validate`. The plan's earlier
    "inapplicable → ignored" reading applied that gate only to invalid values,
    not to dependency state.
+9. `contradiction_questions` mirrors the validator exactly: only `contradicts`
+   constraints with `severity == "hard"` trigger questions; soft contradicts
+   are skipped.
+10. `resolve_contradiction` answers are expressed as **ordinary** answers that
+    make the constraint's `if_`-side stop holding (e.g.
+    `parameters.bookings.mode: "owner_approval"` or
+    `features.bookings: false`) — the question's `options` are display-only
+    labels, and its `target`/`feature_id` name the implicated feature, not the
+    resolution slot. The loop is coherent because answers are re-applied
+    before the contradiction check re-runs.
+11. Fold never overrides a **user-seeded** decision (captured before the fold:
+    `seeded_roles` for the roles block, `is_decided` guards elsewhere), but a
+    decision made **within the same pass** (e.g. `roles.enabled` + role
+    phrases) does compose: role candidates still yield `role_names`. Negated
+    role candidates are never collected as positives.
