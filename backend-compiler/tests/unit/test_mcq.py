@@ -304,7 +304,6 @@ def test_coverage_identical_unparsed_sentences_both_asked(ontology):
 
 from compiler.interpreter.pipeline import run_interpreter
 from compiler.mcq.pipeline import run_mcq_loop
-from compiler.spec.derive import recompute_spec
 from compiler.spec.models import Decision
 from compiler.spec.validator import validate
 
