@@ -975,7 +975,7 @@ def test_run_mcq_loop_caps_at_max_mcqs(ontology):
              for f in ("bookings", "messaging", "payments", "reviews")]
     spec, mcqs = run_mcq_loop(cands, ontology, max_mcqs=2,
                               user_answers={"features.authentication": True})
-    assert len(mcqs) <= 2
+    assert len(mcqs) == 2
 
 
 def test_run_mcq_loop_answers_apply_directly_deps_validated_later(ontology):
@@ -1010,6 +1010,15 @@ def test_run_mcq_loop_records_decisions_and_unsupported(ontology):
     assert "unknown.thing" in spec.unsupported
     assert any(isinstance(d, Decision) and d.capability_id == "authentication.enabled"
                for d in spec.decisions)
+
+
+def test_run_mcq_loop_rejects_invalid_parameter_answers(ontology):
+    spec, _ = run_mcq_loop([], ontology, user_answers={
+        "parameters.nonexistent.thing": "x",      # unknown key
+        "parameters.bookings.mode": "nonsense",   # not a choice option
+        "parameters.realtime.channels": 5,        # list[choice] wants a list
+    })
+    assert spec.parameters == {}
 ```
 
 Notes for correctness:
@@ -1055,12 +1064,47 @@ def _as_bool(value: Any) -> bool | None:
     return None
 
 
+def _parameter_answer_ok(key: str, value: Any, ontology: Ontology) -> bool:
+    """True when a parameters.<key> answer is safe to decide against the
+    ontology (known key; value shape/contents match the declared type).
+    Guards recompute_spec from KeyError/TypeError on malformed answers."""
+    fid, _, pid = key.partition(".")
+    feature = ontology.features.get(fid)
+    if feature is None:
+        return False
+    pdef = feature.parameters.get(pid)
+    if pdef is None or value is None:
+        return False
+    if pdef.type == "choice":
+        return isinstance(value, str) and value in pdef.options
+    if pdef.type == "list[choice]":
+        return (isinstance(value, list) and len(value) > 0
+                and all(isinstance(item, str) and item in pdef.options
+                        for item in value))
+    if pdef.type == "list[string]":
+        return (isinstance(value, list) and len(value) > 0
+                and all(isinstance(item, str) and item for item in value))
+    if pdef.type == "integer":
+        if not isinstance(value, int) or isinstance(value, bool):
+            return False
+        if pdef.min is not None and value < pdef.min:
+            return False
+        if pdef.max is not None and value > pdef.max:
+            return False
+        return True
+    return isinstance(value, str) and bool(value)
+
+
 def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
                  user_answers: dict[str, Any] | None = None,
                  max_mcqs: int = 10, text: str | None = None,
                  laya=None) -> tuple[BackendSpec, list[Question]]:
     """Resolve interpreter candidates into a BackendSpec, returning the
-    ordered list of questions still needing user input."""
+    ordered list of questions still needing user input.
+
+    User answers are applied first (and never overridden by the fold).
+    Invalid parameter answers (unknown key, wrong type, disallowed choice,
+    None) are ignored."""
     user_answers = user_answers or {}
     spec = PartialSpec()
 
@@ -1075,7 +1119,8 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
                 spec.decide_feature(fid, enabled=b)
         elif target.startswith("parameters."):
             key = target[len("parameters."):]
-            spec.decide_parameter(key, value=value)
+            if _parameter_answer_ok(key, value, ontology):
+                spec.decide_parameter(key, value=value)
 
     # 2) fold candidates into the same partial spec. The fold's is_decided
     #    guards ensure user answers from step 1 are never overridden.
@@ -1136,12 +1181,12 @@ def run_mcq_loop(candidates: list[Candidate], ontology: Ontology,
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest tests/unit/test_mcq.py -q`
-Expected: all pass (`36 passed`)
+Expected: all pass (`37 passed`)
 
 - [ ] **Step 5: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `114 passed`
+Expected: `115 passed`
 
 - [ ] **Step 6: Commit**
 
@@ -1213,7 +1258,7 @@ when the feature is not already decided. Adjust the negation block in
 - [ ] **Step 4: Run the full suite**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `117 passed`
+Expected: `118 passed`
 
 - [ ] **Step 5: Commit**
 
@@ -1229,7 +1274,7 @@ git commit -m "Resolve negation/unparsed via user answers"
 - [ ] **Step 1: Full test run**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `117 passed` (78 legacy + 39 MCQ: 6 PartialSpec, 5 selector, 4 ordering, 10 fold, 5 coverage/contradiction, 6 run_mcq_loop, 3 negation/unparsed; all GREEN)
+Expected: `118 passed` (78 legacy + 40 MCQ: 6 PartialSpec, 5 selector, 4 ordering, 10 fold, 5 coverage/contradiction, 7 run_mcq_loop, 3 negation/unparsed; all GREEN)
 
 - [ ] **Step 2: Review the tree and push**
 
@@ -1294,8 +1339,8 @@ deviation #8):
    Task 7 Step 3 is effectively redundant — keep it only as a verification
    note.
 4. **Expected run counts corrected** to match the plan's own test
-   definitions: intermediate suite totals 84/108 and full suite `117 passed`
-   (78 legacy + 39 MCQ), not the mis-estimated 83/89/91.
+   definitions: intermediate suite totals 84/108 and full suite `118 passed`
+   (78 legacy + 40 MCQ), not the mis-estimated 83/89/91.
 5. **Integration test text uses the singular alias** ("email password", not
    "email passwords"): Mechanism A exact aliases are word-boundary rigid by
    design (§3.1) — plural tolerance belongs to phrase/laya mechanisms. With
