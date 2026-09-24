@@ -990,7 +990,7 @@ def test_run_mcq_loop_answers_apply_directly_deps_validated_later(ontology):
 
 
 def test_run_interpreter_to_run_mcq_loop_to_validate(ontology, mock_laya_high_confidence):
-    text = "Use stripe for payments and email passwords for login"
+    text = "Use stripe for payments and email password for login"
     candidates = run_interpreter(text, ontology, laya=mock_laya_high_confidence)
     spec, mcqs = run_mcq_loop(candidates, ontology, text=text,
                               laya=mock_laya_high_confidence)
@@ -1296,3 +1296,8 @@ deviation #8):
 4. **Expected run counts corrected** to match the plan's own test
    definitions: intermediate suite totals 84/108 and full suite `117 passed`
    (78 legacy + 39 MCQ), not the mis-estimated 83/89/91.
+5. **Integration test text uses the singular alias** ("email password", not
+   "email passwords"): Mechanism A exact aliases are word-boundary rigid by
+   design (§3.1) — plural tolerance belongs to phrase/laya mechanisms. With
+   the plural form the auth-method signal degrades gracefully to a
+   `choose_parameter` question instead of auto-deciding.
