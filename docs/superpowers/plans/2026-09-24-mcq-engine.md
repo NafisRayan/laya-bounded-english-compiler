@@ -1303,4 +1303,4 @@ deviation #8):
    note.
 4. **Expected run counts corrected** to match the plan's own test
    definitions: intermediate suite totals 84/108 and full suite `117 passed`
-   (78 legacy + 31 MCQ), not the mis-estimated 83/89/91.
+   (78 legacy + 39 MCQ), not the mis-estimated 83/89/91.
