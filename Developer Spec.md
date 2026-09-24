@@ -474,8 +474,10 @@ result = laya_client.predict(user_text, questions)
 # result["answers"]["needs_listings"] == {
 #     "type": "noul", "noul": 0.91,
 #     "confidence": 0.91, "answer_confidence": 0.91,
-#     "action": {"act_probability": 0.91}
+#     "action": {"act_probability": 0.87}
 # }
+# NOTE: act_probability comes from a separate action head (agent.py:676)
+# and is independent of noul / confidence.
 ```
 
 ### 3.2 Negation detection (sentence-boundary clamped)
