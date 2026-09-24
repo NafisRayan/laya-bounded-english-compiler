@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
-__all__ = ["BackendSpec", "BucketSpec", "Candidate", "Decision"]
+__all__ = ["BackendSpec", "BucketSpec", "Candidate", "Decision", "PartialSpec"]
 
 DecisionSource = Literal["exact", "phrase", "phrase_negated", "laya", "user", "default"]
 
@@ -54,6 +54,50 @@ class Candidate(BaseModel):
             evidence=evidence,
             **kwargs,
         )
+
+
+class PartialSpec(BaseModel):
+    """Spec under construction (Developer Spec.md §4.1 / §18.10).
+
+    `decided_features` accepts either a set of feature ids or a dict
+    {feature_id: bool} (the dict form is what §18.10 uses); it normalizes to
+    a set of keys. Enabling truth lives in `enabled_features`. Parameter
+    decisions are recorded in `decided_parameters`; their values (when known)
+    in `parameter_values`.
+    """
+
+    decided_features: set[str] | dict[str, bool] = Field(default_factory=set)
+    enabled_features: set[str] = Field(default_factory=set)
+    decided_parameters: set[str] = Field(default_factory=set)
+    parameter_values: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("decided_features", mode="before")
+    @classmethod
+    def _normalize_decided_features(cls, v):
+        if isinstance(v, dict):
+            return set(v)
+        return v
+
+    def decide_feature(self, feature_id: str, enabled: bool) -> None:
+        self.decided_features.add(feature_id)
+        if enabled:
+            self.enabled_features.add(feature_id)
+        else:
+            self.enabled_features.discard(feature_id)
+
+    def decide_parameter(self, parameter_id: str, value: Any = None) -> None:
+        self.decided_parameters.add(parameter_id)
+        if value is not None:
+            self.parameter_values[parameter_id] = value
+
+    def is_decided(self, feature_id: str) -> bool:
+        return feature_id in self.decided_features
+
+    def is_enabled(self, feature_id: str) -> bool:
+        return feature_id in self.enabled_features
+
+    def parameter_value(self, parameter_id: str) -> Any:
+        return self.parameter_values.get(parameter_id)
 
 
 class BackendSpec(BaseModel):
