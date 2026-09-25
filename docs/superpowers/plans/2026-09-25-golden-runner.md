@@ -50,9 +50,10 @@ from pydantic import BaseModel, Field
 from compiler.interpreter.pipeline import run_interpreter
 from compiler.mcq.pipeline import run_mcq_loop
 from compiler.spec.validator import validate
-from tests.conftest import MockLayaClient
+from tests.conftest import MockLayaClient, _first_choice, _make_laya_answer
 
 CASES = sorted((Path(__file__).parent / "cases").glob("*.yaml"))
+assert CASES, "no golden cases found in tests/golden/cases/"
 
 
 class GoldenCase(BaseModel):
@@ -71,6 +72,7 @@ class _NoLaya(MockLayaClient):
     """Persona 'none': empty answers — run_interpreter always calls predict()."""
 
     def predict(self, state: str, questions: dict) -> dict:
+        self.calls.append((state, questions))
         return self._envelope({})
 
 
@@ -78,8 +80,6 @@ class _HighConfidence(MockLayaClient):
     """Persona 'high': 0.95 noul — every needs_* proposal clears AUTO_ACCEPT."""
 
     def predict(self, state: str, questions: dict) -> dict:
-        from tests.conftest import _first_choice, _make_laya_answer
-
         answers = {}
         for qid, q in questions.items():
             if q["type"] == "noul":
@@ -105,20 +105,24 @@ def pytest_generate_tests(metafunc):
 def spec_matches(actual, expected: dict) -> list[tuple]:
     """Partial submatch of actual.model_dump() against expected (§18.13).
 
-    Dict values submatch per key; list values compare order-insensitively
-    (JSON-canonical sort so dict entries cannot crash sorted()); absent keys
-    are unchecked. Returns mismatch tuples so failures print diffs.
+    Dict values submatch per key; an EMPTY dict value additionally pins the
+    actual field to be empty ({} never means 'unchecked' — omit the key for
+    that); list values compare order-insensitively (JSON-canonical sort so
+    dict entries cannot crash sorted()); absent keys are unchecked. Returns
+    mismatch tuples so failures print diffs.
     """
     actual_dict = actual.model_dump()
     diffs: list[tuple] = []
 
     def canon(items) -> list:
-        return sorted(items or [], key=lambda x: json.dumps(x, sort_keys=True))
+        return sorted(items or [], key=lambda x: json.dumps(x, sort_keys=True, default=str))
 
     for key, expected_val in expected.items():
         actual_val = actual_dict.get(key)
         if isinstance(expected_val, dict):
             actual_sub = actual_val or {}
+            if not expected_val and actual_sub:
+                diffs.append((key, None, {}, actual_sub))
             for k, v in expected_val.items():
                 if actual_sub.get(k) != v:
                     diffs.append((key, k, v, actual_sub.get(k)))
