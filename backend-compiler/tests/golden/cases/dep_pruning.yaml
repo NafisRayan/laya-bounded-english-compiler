@@ -1,0 +1,10 @@
+input: "We need bookings and messaging"
+laya: default
+user_answers:
+  features.authentication: true
+  unparsed.0: authentication
+expected_spec:
+  features:
+    authentication: true
+expect_question_types: [confirm_feature]
+absent_question_targets: [features.favorites]

@@ -1,0 +1,8 @@
+input: "Owners can reject bad actors."
+laya: default
+user_answers:
+  unparsed.0: authentication
+expected_spec:
+  features:
+    authentication: true
+absent_question_types: [clarify_unparsed]

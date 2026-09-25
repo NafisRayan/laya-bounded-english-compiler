@@ -1,0 +1,14 @@
+input: "Admins can manage the platform"
+laya: none
+user_answers:
+  features.authentication: true
+  features.bookings: true
+  parameters.bookings.mode: instant
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+  parameters:
+    bookings.mode: instant
+expect_question_types: [resolve_contradiction]
+validate_ok: false
