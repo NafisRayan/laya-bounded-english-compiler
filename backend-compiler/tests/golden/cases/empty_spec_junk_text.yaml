@@ -1,0 +1,9 @@
+# Junk text produces no candidates, but the engine still asks: the sentence is
+# unmapped (clarify_unparsed) and authentication is always confirmable.
+input: "Hello there."
+laya: none
+expected_spec:
+  features: {}
+  parameters: {}
+  roles: []
+expect_question_types: [clarify_unparsed, confirm_feature]
