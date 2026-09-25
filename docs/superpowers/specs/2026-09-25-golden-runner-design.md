@@ -47,6 +47,8 @@ No compiler code changes. Reuses: `run_interpreter`,
 
 ```python
 class GoldenCase(BaseModel):
+    model_config = ConfigDict(extra="forbid")  # a typo'd case key must fail loudly
+
     input: str
     laya: Literal["default", "high", "none"] = "default"
     user_answers: dict[str, Any] = Field(default_factory=dict)
@@ -165,8 +167,10 @@ construct them directly).
 1. Persona flag (`laya:`) replaces hash-keyed `laya_responses`.
 2. `text=case.input` passed to `run_mcq_loop`.
 3. `GoldenCase` pydantic schema replaces raw dict access.
-4. `spec_matches` returns collected mismatches instead of `bool`; list sorting
-   is JSON-canonical so dict entries cannot crash it.
+4. `spec_matches` returns collected mismatches instead of `bool`; an EMPTY
+   dict value pins the field to be empty (never "unchecked"); list sorting is
+   JSON-canonical (`sort_keys=True, default=str`) so dict entries cannot crash
+   it.
 5. `expect_question_types` / `absent_question_types` added (not in §18.13).
 6. The second `recompute_spec` call in §18.13's sketch is dropped:
    `run_mcq_loop` already returns a recomputed spec (calling it twice is a
