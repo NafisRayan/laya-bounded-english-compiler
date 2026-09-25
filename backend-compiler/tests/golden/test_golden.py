@@ -13,7 +13,7 @@ from typing import Any, Literal
 
 import pytest
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from compiler.interpreter.pipeline import run_interpreter
 from compiler.mcq.pipeline import run_mcq_loop
@@ -25,6 +25,8 @@ assert CASES, "no golden cases found in tests/golden/cases/"
 
 
 class GoldenCase(BaseModel):
+    model_config = ConfigDict(extra="forbid")  # a typo'd case key must fail loudly
+
     input: str
     laya: Literal["default", "high", "none"] = "default"
     user_answers: dict[str, Any] = Field(default_factory=dict)
