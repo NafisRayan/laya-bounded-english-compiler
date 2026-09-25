@@ -49,6 +49,11 @@ def test_apply_temperature_clips_extremes():
     assert apply_temperature(1.0, 1.0) == pytest.approx(1 - 1e-6)
 
 
+def test_apply_temperature_low_side_is_overflow_safe():
+    # exp underflows to 0.0 instead of raising OverflowError (stable sigmoid).
+    assert apply_temperature(1e-6, 0.01) == 0.0
+
+
 def test_load_calibration_v1_english_is_passthrough():
     cal = load_calibration()
     assert cal["english"]["temperature"] == 1.0

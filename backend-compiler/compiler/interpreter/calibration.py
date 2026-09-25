@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+from typing import Sequence
 
 __all__ = [
     "CALIBRATION_FILE",
@@ -34,15 +35,24 @@ def apply_temperature(raw: float, temperature: float) -> float:
     clipped = min(max(raw, 1e-6), 1 - 1e-6)
     logit = math.log(clipped / (1 - clipped))
     z = logit / temperature
-    return 1.0 / (1.0 + math.exp(-z))
+    if z >= 0:
+        return 1.0 / (1.0 + math.exp(-z))
+    ez = math.exp(z)
+    return ez / (1.0 + ez)
 
 
-def expected_calibration_error(probs, labels, n_bins: int = 10) -> float:
+def expected_calibration_error(
+    probs: Sequence[float], labels: Sequence[int], n_bins: int = 10
+) -> float:
     """ECE over equal-width bins (§18.17): Σ bin_share × |mean conf − mean acc|.
 
     Bins are [lo, hi) from linspace(0, 1, n_bins + 1); the last bin is
     [lo, 1.0] so a probability of exactly 1.0 is counted.
     """
+    if not probs:
+        raise ValueError("probs must not be empty")
+    if len(probs) != len(labels):
+        raise ValueError("probs and labels must have equal length")
     edges = [i / n_bins for i in range(n_bins + 1)]
     total = 0.0
     for i in range(n_bins):
@@ -59,7 +69,9 @@ def expected_calibration_error(probs, labels, n_bins: int = 10) -> float:
     return total
 
 
-def fit_temperature(probs, labels) -> float:
+def fit_temperature(
+    probs: Sequence[float], labels: Sequence[int]
+) -> float:
     """Grid-search T ∈ 0.01…10.00 (step 0.01) minimizing the ECE of the
     temperature-scaled probs (§3.5 step 5). Ties resolve to the smaller T,
     and a T of 1.0 (pass-through) is never replaced by an equal-ECE T.
