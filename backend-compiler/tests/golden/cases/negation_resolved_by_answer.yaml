@@ -1,0 +1,8 @@
+input: "Buyers can pay for services. There are no payments."
+laya: none
+user_answers:
+  features.payments: false
+expected_spec:
+  features:
+    payments: false
+absent_question_types: [resolve_negation]

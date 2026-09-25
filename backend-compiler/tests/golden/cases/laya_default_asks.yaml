@@ -1,0 +1,7 @@
+input: "We need bookings and messaging"
+laya: default
+expected_spec:
+  features: {}
+  parameters: {}
+  roles: []
+expect_question_types: [confirm_feature, clarify_unparsed]

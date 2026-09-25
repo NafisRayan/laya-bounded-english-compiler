@@ -1,0 +1,12 @@
+input: "Use stripe for payments and email password for login"
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    payments: true
+  parameters:
+    authentication.method: email_password
+    payments.provider: stripe
+absent_question_types: [clarify_unparsed, choose_parameter]
