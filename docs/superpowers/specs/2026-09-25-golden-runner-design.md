@@ -53,7 +53,9 @@ class GoldenCase(BaseModel):
     expected_spec: dict[str, Any]            # required; partial submatch
     expect_question_types: list[str] = Field(default_factory=list)   # all must appear
     absent_question_types: list[str] = Field(default_factory=list)   # none may appear
+    absent_question_targets: list[str] = Field(default_factory=list) # no q.target may match
     max_mcqs: int = 10
+    validate_ok: bool = True
 ```
 
 Persona semantics:
@@ -62,7 +64,10 @@ Persona semantics:
   engine asks, does not decide)
 - `"high"` — HighConf double: 0.95 noul (signals clear AUTO_ACCEPT →
   auto-decide)
-- `"none"` — `laya=None`: only the deterministic exact/phrase mechanisms run
+- `"none"` — `_NoLaya` empty-answer double. `run_interpreter` **always** calls
+  `predict` (verified: `pipeline.py:50`), so `laya=None` is not an option; the
+  double returns an envelope with no answers so only the deterministic
+  exact/phrase mechanisms run.
 
 `expected_spec` is §18.13's partial match over `spec.model_dump()`: dict keys
 submatch per key, list keys compare sorted, absent keys unchecked. Time-varying
@@ -73,7 +78,15 @@ or bulky keys (`created_at`, `decisions`) stay out of case files.
 the returned `mcqs` (e.g. the contradiction case asserts `resolve_contradiction`
 surfaces, not merely that the spec is clean). `absent_question_types` is the
 negative twin: none of the listed types may appear (used by the
-negation-resolved and dependency-pruning cases).
+negation-resolved case). `absent_question_targets` pins **feature-level**
+absence that type-level checks cannot express — the dependency-pruning case
+asserts no question targets `features.favorites` while `confirm_feature`
+questions exist for other features.
+
+`validate_ok` (default `True`) relaxes §18.13's unconditional
+`result.ok` assertion to an equality check. The contradiction-surfacing case
+needs `validate_ok: false`: surfacing a hard contradiction means the spec is,
+by definition, invalid — that is the behavior being pinned.
 
 ## Runner flow
 
@@ -94,9 +107,13 @@ def test_golden(case_path, ontology):
     for qtype in case.absent_question_types:
         assert not [q for q in mcqs if q.type == qtype], \
             f"{case_path.stem}: {qtype} should be absent"
+    for target in case.absent_question_targets:
+        assert not [q for q in mcqs if q.target == target], \
+            f"{case_path.stem}: nothing should target {target}"
     assert len(mcqs) <= case.max_mcqs
     result = validate(spec, ontology)
-    assert result.ok, f"Spec failed validation: {result.errors}"
+    assert result.ok == case.validate_ok, \
+        f"{case_path.stem}: validate ok={result.ok}, expected {case.validate_ok}"
 ```
 
 Parametrization is §18.13's `pytest_generate_tests` over
@@ -115,22 +132,29 @@ unit tests, not golden cases.
 
 ## The 11 cases
 
-Each pins one behavior end-to-end. Exact YAML contents are pinned by RUNNING
-the engine during implementation planning — no guessed assertions.
+Each case pins one behavior end-to-end. **All texts and expectations below were
+pinned by running the real engine during plan authoring** (no guessed
+assertions). Two vocabulary lessons are baked in:
+
+- Exact-alias words also phrase-match (e.g. "stripe" and "payments" both hit
+  the payments phrase rule), so Mechanism A cannot be isolated — case 1 pins
+  the combined exact+phrase path instead.
+- Role phrase rules are singular-only (`\b(admin|moderator|staff)\b`), so
+  "Admins" never fires; case 9 uses "An admin".
 
 | # | File | `laya` | Pins |
 |---|------|--------|------|
-| 1 | `exact_alias_no_features.yaml` | none | Exact aliases fire, but a parameter whose feature is not enabled is not decided — the engine asks `choose_parameter` instead |
-| 2 | `laya_default_asks.yaml` | default | 0.5 signals → no auto-decisions; `confirm_feature` questions present |
-| 3 | `laya_high_decides.yaml` | high | 0.95 signals → features + parameters auto-decided from text; `validate` ok (the Task 6 integration scenario through YAML) |
-| 4 | `negation_resolved_by_answer.yaml` | none | Conflicting phrase signals + `features.payments: false` answer → no `resolve_negation`; payments stays False |
-| 5 | `contradiction_surfaced.yaml` | none | auth + bookings enabled, `bookings.mode: instant` forced via answers → `resolve_contradiction` present |
-| 6 | `contradiction_resolved.yaml` | none | Same, plus `parameters.bookings.mode: owner_approval` → contradiction absent; validate ok |
-| 7 | `unparsed_coverage_resolved.yaml` | default | One real sentence + one junk sentence; `unparsed.0` answered → feature decided; no `clarify_unparsed` |
-| 8 | `dependency_pruning.yaml` | default | bookings + favorites proposed with authentication off → favorites' confirm absent, authentication's confirm present |
-| 9 | `roles_phrases.yaml` | none | Role-phrase text → `roles` enabled + `role_names` populated |
-| 10 | `max_mcqs_cap.yaml` | default | Many signals, `max_mcqs: 2` → exactly 2 questions |
-| 11 | `no_signal_text.yaml` | none | Text with no engine signals → empty spec, validate ok |
+| 1 | `alias_and_phrase_decide.yaml` | none | Exact alias ("stripe", "email password") + phrase decide `payments` and its provider; with `features.authentication: true` answered, the auth method alias also lands (fold runs after answers); validate ok; `choose_parameter` present |
+| 2 | `laya_default_asks.yaml` | default | 0.5 signals → nothing decided (empty spec); `confirm_feature` + `clarify_unparsed` present |
+| 3 | `laya_high_decides.yaml` | high | 0.95 signals → features + params auto-decided, validate ok; `choose_parameter` present, `confirm_feature`/`resolve_negation` absent |
+| 4 | `negation_resolved_by_answer.yaml` | none | Conflicting phrase+negated payments signals + `features.payments: false` answer → `resolve_negation` absent; payments False; validate ok |
+| 5 | `contradiction_surfaced.yaml` | none | auth+bookings answered, `bookings.mode: instant` → `resolve_contradiction` present; spec invalid by definition (`validate_ok: false`) |
+| 6 | `contradiction_resolved.yaml` | none | Same but `owner_approval` → contradiction absent; validate ok |
+| 7 | `unparsed_coverage_resolved.yaml` | default | Junk sentence, `unparsed.0: authentication` answered → auth decided; `clarify_unparsed` absent; validate ok |
+| 8 | `dep_pruning.yaml` | default | auth answered, bookings/messaging weak → favorites' confirm pruned (`absent_question_targets: [features.favorites]`) while other confirms present |
+| 9 | `roles_phrases.yaml` | none | "An admin can manage the platform." → `roles` enabled, `role_names: [admin]`, validate ok |
+| 10 | `max_mcqs_cap.yaml` | default | 8 questions pre-cap (clarify + 6 confirms + choose_parameter), `max_mcqs: 4` → at most 4 returned |
+| 11 | `empty_spec_junk_text.yaml` | none | Junk text, no candidates → empty valid spec; `clarify_unparsed` + `confirm_feature` still asked (coverage + auth are always askable) |
 
 An "unsupported capability" case was considered and dropped: unknown-id
 candidates cannot be produced through the public text pipeline (unit tests
@@ -147,6 +171,10 @@ construct them directly).
 6. The second `recompute_spec` call in §18.13's sketch is dropped:
    `run_mcq_loop` already returns a recomputed spec (calling it twice is a
    no-op; the sketch predated that).
+7. `absent_question_targets` and `validate_ok` schema fields (§18.13 has no
+   equivalent; needed for the pruning and contradiction-surfacing pins).
+8. Persona `"none"` is an empty-answer mock double, not `laya=None` —
+   `run_interpreter` unconditionally calls `predict`.
 
 ## Failure UX
 
