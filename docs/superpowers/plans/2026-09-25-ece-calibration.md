@@ -10,7 +10,7 @@
 
 **Design doc:** `docs/superpowers/specs/2026-09-25-ece-calibration-design.md` (authoritative for deviations from §18.17: production-math home, unconditional fit-path test, synthetic dataset).
 
-**Baseline:** 129 tests pass on `master`. Final state: **139** (129 + 8 unit math tests + 2 gates). All dataset/ECE numbers below were pinned by running the planned math (script output: calibration_set ECE = 0.045; miscalibrated ECE 0.45 → best T = 10.0 → 0.104711).
+**Baseline:** 129 tests pass on `master`. Final state: **140** (129 + 9 unit math tests + 2 gates). All dataset/ECE numbers below were pinned by running the planned math (script output: calibration_set ECE = 0.045; miscalibrated ECE 0.45 → best T = 10.0 → 0.104711).
 
 ---
 
@@ -76,6 +76,11 @@ def test_apply_temperature_clips_extremes():
     assert apply_temperature(1.0, 1.0) == pytest.approx(1 - 1e-6)
 
 
+def test_apply_temperature_low_side_is_overflow_safe():
+    # exp underflows to 0.0 instead of raising OverflowError (stable sigmoid).
+    assert apply_temperature(1e-6, 0.01) == 0.0
+
+
 def test_load_calibration_v1_english_is_passthrough():
     cal = load_calibration()
     assert cal["english"]["temperature"] == 1.0
@@ -103,15 +108,36 @@ __all__ = [
 ]
 ```
 
-Append the two functions at the end of the file:
+REPLACE the existing `apply_temperature` with the overflow-stable sigmoid
+(same values everywhere except where `math.exp` previously raised
+`OverflowError` for raw < ~8e-4 at low T; z ≥ 0 keeps the original branch):
 
 ```python
-def expected_calibration_error(probs, labels, n_bins: int = 10) -> float:
+def apply_temperature(raw: float, temperature: float) -> float:
+    clipped = min(max(raw, 1e-6), 1 - 1e-6)
+    logit = math.log(clipped / (1 - clipped))
+    z = logit / temperature
+    if z >= 0:
+        return 1.0 / (1.0 + math.exp(-z))
+    ez = math.exp(z)
+    return ez / (1.0 + ez)
+```
+
+Append the two functions at the end of the file (note the `Sequence` type
+hints — add `from typing import Sequence` to the imports):
+
+```python
+def expected_calibration_error(probs: Sequence[float], labels: Sequence[int],
+                               n_bins: int = 10) -> float:
     """ECE over equal-width bins (§18.17): Σ bin_share × |mean conf − mean acc|.
 
     Bins are [lo, hi) from linspace(0, 1, n_bins + 1); the last bin is
     [lo, 1.0] so a probability of exactly 1.0 is counted.
     """
+    if not probs:
+        raise ValueError("probs must not be empty")
+    if len(probs) != len(labels):
+        raise ValueError("probs and labels must have equal length")
     edges = [i / n_bins for i in range(n_bins + 1)]
     total = 0.0
     for i in range(n_bins):
@@ -128,7 +154,7 @@ def expected_calibration_error(probs, labels, n_bins: int = 10) -> float:
     return total
 
 
-def fit_temperature(probs, labels) -> float:
+def fit_temperature(probs: Sequence[float], labels: Sequence[int]) -> float:
     """Grid-search T ∈ 0.01…10.00 (step 0.01) minimizing the ECE of the
     temperature-scaled probs (§3.5 step 5). Ties resolve to the smaller T,
     and a T of 1.0 (pass-through) is never replaced by an equal-ECE T.
@@ -149,8 +175,8 @@ def fit_temperature(probs, labels) -> float:
 
 - [ ] **Step 4: Run to verify pass**
 
-Run: `python -m pytest tests/unit/test_calibration.py -q` → Expected: `8 passed`
-Run full: `python -m pytest -q` → Expected: `137 passed`
+Run: `python -m pytest tests/unit/test_calibration.py -q` → Expected: `9 passed`
+Run full: `python -m pytest -q` → Expected: `138 passed`
 
 - [ ] **Step 5: Commit**
 
@@ -307,7 +333,7 @@ Create `backend-compiler/tests/fixtures/golden_calibration/miscalibrated_set.jso
 - [ ] **Step 3: Verify pass**
 
 Run: `python -m pytest tests/integration -q` → Expected: `2 passed`
-Run full: `python -m pytest -q` → Expected: `139 passed`
+Run full: `python -m pytest -q` → Expected: `140 passed`
 
 - [ ] **Step 4: Commit**
 
@@ -323,7 +349,7 @@ git commit -m "Add ECE measurement gates with pinned calibration sets"
 - [ ] **Step 1: Full test run**
 
 Run: `& "C:\Users\BS00861\Documents\GitHub\Laya Supabase\system\backend-compiler\.venv\Scripts\python.exe" -m pytest -q`
-Expected: `139 passed`
+Expected: `140 passed`
 
 - [ ] **Step 2: Verify clean tree and push (after final code review)**
 
@@ -344,6 +370,7 @@ Expected: clean tree; new commits on `origin/master`.
   miscalibrated_set.json → ECE 0.45 before fit, strictly lower after (pinned
   best T = 10.0 → ≈ 0.1047). If a fresh run disagrees, STOP and report BLOCKED
   with actual output — do NOT edit fixtures or math to force a pass.
-- Zero changes are expected outside `calibration.py` (+'__all__'), the new
-  test files, and the new fixtures. `laya_client.py`, `conftest.py`, and
-  `calibration.json` (v1) must NOT change.
+-   Zero changes are expected outside `calibration.py` (+`__all__`, stable
+  sigmoid in `apply_temperature`), the new test files, and the new fixtures.
+  `laya_client.py`, `conftest.py`, and `calibration.json` (v1) must NOT change.
+  Ensure `calibration.py` ends with a trailing newline.
