@@ -1,0 +1,14 @@
+# Role phrase rules are singular-only (\badmin\b) — "Admins" never fires;
+# the text uses "An admin". The fold's roles block enables the feature and
+# derives role_names from positive role candidates.
+input: "An admin can manage the platform."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names: [admin]
+  roles: [admin]

@@ -1,0 +1,10 @@
+# 8 questions pre-cap (clarify_unparsed + 6 confirm_feature +
+# choose_parameter authentication.method); the cap must bind.
+input: "Owners can reject bad actors."
+laya: default
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+max_mcqs: 4
