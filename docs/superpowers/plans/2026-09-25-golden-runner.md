@@ -144,7 +144,8 @@ def test_golden(case_path, ontology):
     spec, mcqs = run_mcq_loop(candidates, ontology,
                               user_answers=case.user_answers,
                               text=case.input,
-                              laya=mock)
+                              laya=mock,
+                              max_mcqs=case.max_mcqs)
 
     diffs = spec_matches(spec, case.expected_spec)
     assert not diffs, f"{case_path.stem}: spec mismatch — {diffs}"

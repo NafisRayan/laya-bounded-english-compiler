@@ -175,6 +175,10 @@ construct them directly).
    equivalent; needed for the pruning and contradiction-surfacing pins).
 8. Persona `"none"` is an empty-answer mock double, not `laya=None` —
    `run_interpreter` unconditionally calls `predict`.
+9. `max_mcqs` is **forwarded** into `run_mcq_loop` (§18.13's sketch only
+   asserts a post-hoc ceiling against the engine's default of 10, which makes
+   any custom cap dead). Behavior-neutral for every other case: they omit
+   `max_mcqs`, and forwarded default == engine default.
 
 ## Failure UX
 
