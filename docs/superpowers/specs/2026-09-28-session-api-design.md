@@ -122,7 +122,7 @@ use; `ImportError`/construction failure → `503 {"detail": "laya unavailable"}`
 - `404` — unknown/expired session id (all id-route handlers)
 - `409` — state violations: interpret-after-answers, answer/spec-before-interpret, approve-while-open
 - `422` — FastAPI request validation (empty `text`, missing body)
-- `501` — the five deploy-side stubs
+- `501` — the four deploy-side stubs
 - `503` — `laya` client construction failure at request time
 
 ## Testing
