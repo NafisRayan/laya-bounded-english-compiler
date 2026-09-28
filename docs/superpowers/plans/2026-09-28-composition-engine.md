@@ -73,7 +73,7 @@ sql: |
 (id→Fragment), and must expose `list_all_fragments() -> list[str]` (sorted ids,
 spec §18.18:2974) and `load(fragment_id) -> Fragment` (missing id →
 `CompositionError(f"unknown fragment: {id}")`). `load` must also work for
-generated ids (`table_<entity>`, `rls_<entity>_<op>`) by delegating to
+generated ids (`table_<entity>`, `rls_<entity>_<group>`) by delegating to
 `table_fragments` / `rls` builders when not found in the static YAML set
 (`rls_listings_owner` etc. are thus available to `topo_sort` tests).
 A `load_all()` returning `list[Fragment]` (static + generated for all ontology
@@ -102,36 +102,47 @@ table_listings`.
 `provides`: `["entity.{entity}"]`.
 
 ### D4 — RLS policy plans (`rls.py`)
-`rls_for(entity, spec, ontology) -> list[Fragment]` returns per-operation policy
-fragment ids `rls_{entity}_{op}` for ops in a per-entity plan. Each rls fragment:
+`rls_for(entity, spec, ontology) -> list[Fragment]` returns fragment ids
+`rls_{entity}_{group}` per the group table below (fragment ids are per role-GROUP,
+so `rls_listings_owner` exists as required by spec §18.11:2656). Each rls fragment
+emits, for EVERY op in its group, an owner-policy with that op's predicate, plus a
+single `ENABLE ROW LEVEL SECURITY`:
 ```sql
 ALTER TABLE {entity} ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS {entity}_{op}_rls_{entity}_{op} ON {entity};
-CREATE POLICY {entity}_{op}_rls_{entity}_{op} ON {entity}
+DROP POLICY IF EXISTS {entity}_{op}_rls_{entity}_{group} ON {entity};
+CREATE POLICY {entity}_{op}_rls_{entity}_{group} ON {entity}
   FOR {OP} USING ({predicate});
 ```
 Policy name follows spec §7.4: `{table}_{operation}_{fragment_id}`.
-`users` gets NO rls (managed). Plans (op → predicate), all columns verified to exist:
-| entity | SELECT | INSERT | UPDATE | DELETE |
-|---|---|---|---|---|
-| profiles | `auth.uid() IS NOT NULL` | `auth.uid() IS NOT NULL` | `auth.uid() = id` | `auth.uid() = id` |
-| listings | `auth.uid() = owner_id` | `auth.uid() IS NOT NULL` | `auth.uid() = owner_id` | `auth.uid() = owner_id` |
-| bookings | `auth.uid() IN (renter_id, owner_id)` | `auth.uid() IN (renter_id, owner_id)` | `auth.uid() IN (renter_id, owner_id)` | `auth.uid() IN (renter_id, owner_id)` |
-| messages | `auth.uid() IN (sender_id, recipient_id)` | `auth.uid() IN (sender_id, recipient_id)` | `auth.uid() IN (sender_id, recipient_id)` | `auth.uid() IN (sender_id, recipient_id)` |
-| payments | `auth.uid() = payer_id` | `auth.uid() IS NOT NULL` | *(none)* | *(none)* |
-| reviews | `auth.uid() IN (author_id, subject_id)` | `auth.uid() = author_id` | `auth.uid() = author_id` | `auth.uid() = author_id` |
-| files | `auth.uid() = owner_id` | `auth.uid() IS NOT NULL` | `auth.uid() = owner_id` | `auth.uid() = owner_id` |
-| verification_documents | `auth.uid() = user_id` | `auth.uid() IS NOT NULL` | `auth.uid() = user_id` | `auth.uid() = user_id` |
-| favorites | `auth.uid() = user_id` | `auth.uid() = user_id` | *(none)* | `auth.uid() = user_id` |
-| notifications | `auth.uid() = user_id` | *(none)* | `auth.uid() = user_id` | `auth.uid() = user_id` |
+`users` gets NO rls (managed). Group table (entity → groups; group → ops + predicate),
+all columns verified against `versions/v1/entities.yaml`:
+| entity | group | ops | predicate |
+|---|---|---|---|
+| profiles | auth | SELECT, INSERT | `auth.uid() IS NOT NULL` |
+| profiles | owner | UPDATE, DELETE | `auth.uid() = id` |
+| listings | owner | SELECT, UPDATE, DELETE | `auth.uid() = owner_id` |
+| listings | insert | INSERT | `auth.uid() IS NOT NULL` |
+| bookings | participant | SELECT, INSERT, UPDATE, DELETE | `auth.uid() IN (renter_id, owner_id)` |
+| messages | participant | SELECT, INSERT, UPDATE, DELETE | `auth.uid() IN (sender_id, recipient_id)` |
+| payments | owner | SELECT | `auth.uid() = payer_id` |
+| payments | insert | INSERT | `auth.uid() IS NOT NULL` |
+| reviews | author | SELECT, INSERT, UPDATE, DELETE | `auth.uid() IN (author_id, subject_id)` |
+| files | owner | SELECT, UPDATE, DELETE | `auth.uid() = owner_id` |
+| files | insert | INSERT | `auth.uid() IS NOT NULL` |
+| verification_documents | owner | SELECT, UPDATE, DELETE | `auth.uid() = user_id` |
+| verification_documents | insert | INSERT | `auth.uid() IS NOT NULL` |
+| favorites | owner | SELECT, INSERT, DELETE | `auth.uid() = user_id` |
+| notifications | owner | SELECT, UPDATE, DELETE | `auth.uid() = user_id` |
 `requires`: `[table_{entity}, function_is_admin]`. (Uniform across all RLS
 fragments: keeps role-helper functions ordered before every policy — spec §18.11's
 `test_topological_sort_respects_requires` pins exactly this edge — and guarantees
 the matrix's policy-only pairs still create `profiles` + `is_admin()`.) 
-`provides: ["rls.{entity}.{op}"]`.
+`provides: ["rls.{entity}.{group}"]`.
 `rls_for` ignores `spec` contents today but keeps the signature per spec
 §7.3:1082 (forward-compat for `rls_overrides`).
+Fragment-id parse for generated rls ids: `rls_{entity}_{group}` where group ∈ the
+group names above.
 
 ### D5 — Static fragments (YAML) to author
 - `function_is_admin`: `requires [table_profiles]`, body as D2 example.
