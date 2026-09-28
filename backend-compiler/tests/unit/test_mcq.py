@@ -1,6 +1,16 @@
 """MCQ engine unit tests (Developer Spec.md §18.10 + pipeline tests)."""
 
-from compiler.spec.models import PartialSpec
+from compiler.interpreter.pipeline import run_interpreter
+from compiler.mcq.graph import order_questions
+from compiler.mcq.pipeline import (
+    contradiction_questions,
+    coverage_questions,
+    fold_candidates,
+    run_mcq_loop,
+)
+from compiler.mcq.selector import Question, next_questions
+from compiler.spec.models import Candidate, Decision, PartialSpec
+from compiler.spec.validator import validate
 
 
 def test_partial_spec_set_form():
@@ -51,10 +61,6 @@ def test_partial_spec_dict_form_with_true_value():
     assert spec.is_enabled("authentication")
 
 
-from compiler.mcq.selector import Question, next_questions
-from compiler.spec.models import PartialSpec
-
-
 def test_no_questions_when_feature_disabled(ontology):
     spec = PartialSpec(decided_features={"authentication": False}, enabled_features=set())
     qs = next_questions(spec, ontology)
@@ -95,10 +101,6 @@ def test_question_target_values(ontology):
     assert q2.target == "parameters.bookings.mode"
     q3 = Question(type="clarify_unparsed", unparsed_index=1, options=["messaging"], confidence=0.5)
     assert q3.target == "unparsed.1"
-
-
-from compiler.mcq.graph import order_questions
-from compiler.mcq.selector import Question
 
 
 def _q(type_, feature_id, confidence=0.5):
@@ -144,10 +146,6 @@ def test_confirm_weak_sorts_last(ontology):
     qs = [_q("confirm_feature", "bookings"), _q("confirm_weak", "authentication")]
     ordered = order_questions(qs, ontology)
     assert ordered[-1].type == "confirm_weak"
-
-
-from compiler.mcq.pipeline import fold_candidates
-from compiler.spec.models import Candidate
 
 
 def test_fold_classifies_feature_and_param(ontology):
@@ -238,10 +236,6 @@ def test_fold_role_names_kept_when_roles_decided_this_pass(ontology):
     assert result.spec.parameter_value("roles.role_names") == ["admin"]
 
 
-from compiler.interpreter.merge import check_coverage
-from compiler.mcq.pipeline import contradiction_questions, coverage_questions
-
-
 def test_coverage_question_per_unparsed_sentence(ontology):
     text = "Users can message each other. Owners can reject bad actors."
     cands = [Candidate("messaging.enabled", True, 0.9, "phrase", "s1")]
@@ -261,11 +255,6 @@ def test_coverage_resolved_index_skipped(ontology):
 
 
 def test_contradiction_surfaced_and_resolvable(ontology):
-    cands = [
-        Candidate("authentication.enabled", True, 1.0, "exact", "auth"),
-        Candidate("bookings.enabled", True, 1.0, "exact", "bookings"),
-        Candidate("bookings.mode", "instant", 1.0, "exact", "instant"),
-    ]
     features = {"authentication": True, "bookings": True}
     params = {"bookings.mode": "instant"}
     qs = contradiction_questions(features, params, ontology)
@@ -300,12 +289,6 @@ def test_coverage_identical_unparsed_sentences_both_asked(ontology):
     text = "Owners can reject bad actors. Owners can reject bad actors."
     qs = coverage_questions(text, [], ontology, resolved={})
     assert [q.unparsed_index for q in qs] == [0, 1]
-
-
-from compiler.interpreter.pipeline import run_interpreter
-from compiler.mcq.pipeline import run_mcq_loop
-from compiler.spec.models import Decision
-from compiler.spec.validator import validate
 
 
 def test_run_mcq_loop_applies_answers_and_resolves(ontology):

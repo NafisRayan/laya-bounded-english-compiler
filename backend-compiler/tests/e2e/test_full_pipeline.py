@@ -2,11 +2,11 @@
 import pytest
 import requests
 
+from compiler.deployer.deployer import deploy_spec
+from compiler.generator.composer import compose
 from compiler.interpreter.pipeline import run_interpreter
 from compiler.mcq.pipeline import run_mcq_loop
 from compiler.spec.validator import validate
-from compiler.generator.composer import compose
-from compiler.deployer.deployer import deploy_spec
 
 
 @pytest.mark.slow

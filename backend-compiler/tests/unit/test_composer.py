@@ -28,8 +28,8 @@ def test_compose_marketplace_spec(marketplace_spec, ontology):
 
 
 def test_realtime_empty_channels_no_notifications_table(ontology):
-    from compiler.spec.models import BackendSpec
     from compiler.spec.derive import recompute_spec
+    from compiler.spec.models import BackendSpec
     spec = recompute_spec(BackendSpec(
         version="1.0", ontology_version=1, created_at="2025-01-01T00:00:00Z",
         features={"authentication": True, "realtime": True},
@@ -43,8 +43,8 @@ def test_realtime_empty_channels_no_notifications_table(ontology):
 
 
 def test_realtime_fragment_present_when_enabled(ontology):
-    from compiler.spec.models import BackendSpec
     from compiler.spec.derive import recompute_spec
+    from compiler.spec.models import BackendSpec
     spec = recompute_spec(BackendSpec(
         version="1.0", ontology_version=1, created_at="2025-01-01T00:00:00Z",
         features={"authentication": True, "messaging": True, "realtime": True},
@@ -110,8 +110,8 @@ def test_compose_no_edge_function_migrations(marketplace_spec, ontology):
 
 
 def test_compose_verification_emits_trigger(ontology):
-    from compiler.spec.models import BackendSpec
     from compiler.spec.derive import recompute_spec
+    from compiler.spec.models import BackendSpec
     spec = recompute_spec(BackendSpec(
         version="1.0", ontology_version=1, created_at="2025-01-01T00:00:00Z",
         features={"authentication": True, "file_storage": True, "verification": True},
@@ -136,8 +136,8 @@ def test_compose_is_deterministic(marketplace_spec, ontology):
 
 
 def test_compose_renders_bucket_placeholders(ontology):
-    from compiler.spec.models import BackendSpec
     from compiler.spec.derive import recompute_spec
+    from compiler.spec.models import BackendSpec
     spec = recompute_spec(BackendSpec(
         version="1.0", ontology_version=1, created_at="2025-01-01T00:00:00Z",
         features={"authentication": True, "file_storage": True},
@@ -251,8 +251,8 @@ def test_conflict_duplicate_bucket_raises():
 
 
 def test_compose_duplicate_fragment_raises(ontology):
-    from compiler.spec.models import BackendSpec
     from compiler.spec.derive import recompute_spec
+    from compiler.spec.models import BackendSpec
     spec = recompute_spec(BackendSpec(
         version="1.0", ontology_version=1, created_at="2025-01-01T00:00:00Z",
         features={"authentication": True, "messaging": True, "realtime": True},
@@ -343,8 +343,8 @@ def test_composition_error_renders_every_issue():
 
 
 def test_realtime_renders_channel_and_keeps_dollar_quotes(ontology):
-    from compiler.spec.models import BackendSpec
     from compiler.spec.derive import recompute_spec
+    from compiler.spec.models import BackendSpec
     spec = recompute_spec(BackendSpec(
         version="1.0", ontology_version=1, created_at="2025-01-01T00:00:00Z",
         features={"authentication": True, "messaging": True, "realtime": True},

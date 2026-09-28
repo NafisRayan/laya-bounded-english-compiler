@@ -1,0 +1,61 @@
+# .github/workflows/ci.yml -- Developer Spec.md §18.20.
+# Adaptations from the spec's literal snippet: branch `master` (this repo's
+# default), `TEST_DATABASE_URL` (the name tests/conftest.py reads), and the
+# e2e secrets/env named after the actual fixture. The e2e job skips itself
+# when the secrets are absent, so PR CI stays green without credentials.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check compiler tests
+      - run: mypy compiler
+      - name: Unit + golden + idempotency + fragment matrix
+        run: |
+          pytest tests/unit tests/golden tests/integration \
+            --cov=compiler --cov-report=xml --cov-fail-under=80 \
+            -x -q
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      - uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+
+  e2e:
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+      - run: pytest tests/e2e -q
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_ORG_SLUG: ${{ secrets.SUPABASE_ORG_SLUG }}

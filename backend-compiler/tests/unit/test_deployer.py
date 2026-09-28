@@ -5,8 +5,8 @@ import pytest
 from compiler.deployer import deployer
 from compiler.deployer.deployer import (
     apply_migrations,
-    deploy_with_remediation,
     deploy_spec,
+    deploy_with_remediation,
     link_project,
 )
 from compiler.deployer.errors import MigrationError

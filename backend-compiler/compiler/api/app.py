@@ -26,7 +26,7 @@ __all__ = ["create_app"]
 
 V1 = "/v1/sessions"
 STUB_DETAIL = "Not implemented (deployer, Phase 3)"
-ERR_RESPONSES = {
+ERR_RESPONSES: dict[int | str, dict[str, Any]] = {
     404: {"description": "Session not found"},
     409: {"description": "State violation"},
     503: {"description": "Laya client construction failed"},
@@ -75,6 +75,9 @@ def create_app(
             ) from exc
 
     def _run(session: Session):
+        if session.text is None:
+            raise HTTPException(status_code=409,
+                                detail="interpret required before answering")
         laya = _laya()
         candidates = run_interpreter(session.text, ontology, laya=laya)
         return run_mcq_loop(candidates, ontology,

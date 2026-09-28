@@ -74,8 +74,8 @@ def test_derive_buckets_mixed_includes_verification(ontology):
 
 
 def test_bucket_derivation_invariant_enforced(ontology):
-    from compiler.spec.validator import validate
     from compiler.spec.models import BucketSpec
+    from compiler.spec.validator import validate
     spec = _spec(ontology,
         features={"authentication": True, "file_storage": True},
         parameters={"file_storage.bucket_purpose": "avatars"},

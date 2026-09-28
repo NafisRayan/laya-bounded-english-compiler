@@ -11,7 +11,6 @@ import json
 from pathlib import Path
 from typing import Any, Literal
 
-import pytest
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 

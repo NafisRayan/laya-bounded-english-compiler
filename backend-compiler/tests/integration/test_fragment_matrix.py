@@ -1,12 +1,11 @@
 # tests/integration/test_fragment_matrix.py
 import itertools
 
-import pytest
 import psycopg
+import pytest
 
-from compiler.generator.fragments import list_all_fragments
 from compiler.generator.composer import compose
-
+from compiler.generator.fragments import list_all_fragments
 
 pytestmark = pytest.mark.slow
 

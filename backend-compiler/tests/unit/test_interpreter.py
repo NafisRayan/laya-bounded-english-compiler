@@ -1,7 +1,8 @@
 import pytest
+
 from compiler.interpreter.aliases import exact_match
-from compiler.interpreter.rules import phrase_match
 from compiler.interpreter.merge import check_coverage
+from compiler.interpreter.rules import phrase_match
 from compiler.spec.models import Candidate
 
 

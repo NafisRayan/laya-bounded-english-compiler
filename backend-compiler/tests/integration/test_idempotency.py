@@ -1,8 +1,8 @@
 # tests/integration/test_idempotency.py
 import hashlib
 
-import pytest
 import psycopg
+import pytest
 
 from compiler.generator.composer import compose
 

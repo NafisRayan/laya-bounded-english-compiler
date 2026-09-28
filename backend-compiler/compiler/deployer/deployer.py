@@ -27,11 +27,11 @@ from compiler.deployer.errors import (
     remediation_options,
 )
 from compiler.deployer.models import DeployResult
+from compiler.deployer.supabase_api import create_project, wait_for_healthy
 from compiler.generator.composer import compose
 from compiler.generator.models import Migration
 from compiler.ontology.loader import Ontology, load_ontology
 from compiler.spec.models import BackendSpec
-from compiler.deployer.supabase_api import create_project, wait_for_healthy
 
 __all__ = [
     "apply_migrations",

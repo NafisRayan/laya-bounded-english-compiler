@@ -1,4 +1,5 @@
 import pytest
+
 from compiler.interpreter.negation import is_negated, phrase_match_with_negation
 
 

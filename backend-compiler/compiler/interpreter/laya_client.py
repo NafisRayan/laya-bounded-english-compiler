@@ -25,7 +25,7 @@ class LayaClient:
     `laya` package or its downloaded weights.
     """
 
-    def __init__(self, device: str | None = None):
+    def __init__(self, device: str | None = None):  # pragma: no cover - needs the laya package and its downloaded weights; tests exercise MockLayaClient instead
         self.device = device or os.environ.get("LAYA_DEVICE", "cpu")
         from laya import Router
 

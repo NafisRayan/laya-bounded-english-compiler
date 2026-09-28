@@ -14,8 +14,9 @@ Verifies:
   - Router is constructed without a models= override.
 """
 import pytest
-from compiler.interpreter.laya_client import LayaClient, CHECKPOINT
-from tests.conftest import MockLayaClient, _make_laya_answer, _first_choice
+
+from compiler.interpreter.laya_client import CHECKPOINT, LayaClient
+from tests.conftest import MockLayaClient, _first_choice, _make_laya_answer
 
 
 def test_mock_returns_full_envelope():
@@ -141,3 +142,50 @@ def test_interpreter_consumes_answer_confidence():
     c = next(c for c in candidates if c.capability_id == "needs_listings")
     assert c.confidence == pytest.approx(0.6), \
         "interpreter must read answer_confidence, not noul"
+# --- real LayaClient: router-forwarding and calibration logic (no weights) ---
+
+
+def _client_with_router(router, calibration=None):
+    client = LayaClient.__new__(LayaClient)
+    client.router = router
+    client.calibration = calibration or {"english": {"temperature": 1.0}}
+    return client
+
+
+def test_predict_forwards_to_router_with_pinned_checkpoint():
+    calls = {}
+
+    class _Router:
+        def predict(self, state, questions, model):
+            calls.update(state=state, questions=questions, model=model)
+            return {"answers": {}}
+
+    client = _client_with_router(_Router())
+    out = client.predict("s", {"q1": {"type": "noul"}})
+
+    assert out == {"answers": {}}
+    assert calls == {"state": "s", "questions": {"q1": {"type": "noul"}}, "model": CHECKPOINT}
+
+
+def test_predict_batch_builds_per_state_request_dicts():
+    class _Router:
+        def predict_batch(self, requests):
+            return [r["state"] + "!" for r in requests]
+
+    client = _client_with_router(_Router())
+    assert client.predict_batch(["a", "b"], {}) == ["a!", "b!"]
+
+
+def test_calibrated_confidence_passes_through_at_temperature_one():
+    client = _client_with_router(None)
+    assert client.calibrated_confidence({"answer_confidence": 0.7}) == 0.7
+
+
+def test_calibrated_confidence_applies_fitted_temperature():
+    from compiler.interpreter.calibration import apply_temperature
+
+    client = _client_with_router(None, {"english": {"temperature": 2.0}})
+    raw = 0.9
+    assert client.calibrated_confidence({"answer_confidence": raw}) == pytest.approx(
+        apply_temperature(raw, 2.0)
+    )
