@@ -49,7 +49,7 @@ def create_app(
     """
     sessions = sessions or InMemorySessionStore()
     ontology = ontology or load_ontology(
-        Path(__file__).resolve().parents[2] / "ontology" / "versions" / "v1")
+        Path(__file__).resolve().parents[1] / "ontology" / "versions" / "v1")
     if client is None:
         from compiler.interpreter.laya_client import LayaClient
 

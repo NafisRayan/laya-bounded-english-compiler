@@ -186,3 +186,8 @@ def test_spec_before_completion_lists_open_questions(make_app):
     assert rs.status_code == 200
     assert rs.json()["validation"]["ok"] is True
     assert len(rs.json()["open_questions"]) == 2
+
+
+def test_create_app_default_wiring_loads_production_ontology():
+    app = create_app()
+    assert app.title == "Laya compiler session API"
