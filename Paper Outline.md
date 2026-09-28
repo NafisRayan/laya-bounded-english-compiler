@@ -43,7 +43,7 @@ the repo, at `../../laya/`.
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set (target 30–50, spec §10.2) | **Pending** | Dataset authoring; baseline harness | `tests/golden/cases/` (11 cases, mock client) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Pending** (mechanics exist) | Run harness; fine-grained labels | `compiler/interpreter/pipeline.py` (mech. A/B/C) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — gate not passed** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
-| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Blocked** | §7 generator + §8 deployer not built (§7 = Phase 2 composition, §8 = Phase 3 deployer) | `compiler/` (no `generator/` or `deployer/` package) |
+| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Blocked** | §7 composition engine + §8 generator/deployer not built (§7 = Phase 2, §8 = Phase 3 deployer) | `compiler/` (no `generator/` or `deployer/` package) |
 
 **Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
 pinned fixture whose per-bin accuracies were *chosen* to land under the 0.1 gate
@@ -93,8 +93,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
 ## 3. System Design (Methodology)
 - **Source:** spec §2 (ontology, NOT §17 — a cross-ref bug in the old draft,
   fixed), §3 (interpreter + confidence + calibration), §4 (MCQ), §5 (spec/IR),
-  §6 (validator), §7 (generator), §8 (deployer), §9 (remediation). Duplicate
-  §19 (Contacts) is dropped.
+  §6 (validator), §7 (composition engine), §8 (generator + deployer), §9
+  (remediation). Duplicate §19 (Contacts) is dropped.
 - **Content:** Formal problem statement (task in §1) plus IR notation —
   `BackendSpec` carries features, parameters, entities, roles, storage
   buckets, edge functions, and RLS policy fragments.
@@ -122,7 +122,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
   golden set; `calibrated = sigmoid(logit(clip(p, 1e-6, 1−1e-6)) / T)` with
   re-calibration triggers enumerated.
 - **Current evidence state:** system implemented up to validation
-  (`backend-compiler/compiler/`); §7 generator and §8 deployer are not built.
+  (`backend-compiler/compiler/`); §7 composition engine and §8
+  generator/deployer are not built.
   Confidence thresholds and calibration module are implemented and tested.
 
 ## 4. Experimental Setup
@@ -196,8 +197,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
   schema (design doc `2026-09-25-ece-calibration-design.md`).
 - **5.4 End-to-end (secondary).** Deployment success, idempotency, time-to-spec,
   MCQ burden, cost/latency vs. LLM baseline.
-  **Current evidence state:** blocked — the §7 generator (Phase 2) and §8
-  deployer (Phase 3) are not built.
+  **Current evidence state:** blocked — the §7 composition engine (Phase 2)
+  and §8 generator/deployer (Phase 3) are not built.
 
 ## 6. Discussion
 - **Source:** spec §3.6 coverage check, DoD #6/#11; limitations of negation
@@ -226,7 +227,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
   still above the 0.1 gate, so R3 is not yet demonstrated; the validation/MCQ
   system. Three blockers remain before results are claimable: (i) golden
   dataset + baseline harness, (ii) real-Laya calibration pairs, (iii) the §7
-  generator (Phase 2) and §8 deployer (Phase 3) — no end-to-end numbers exist.
+  composition engine (Phase 2) and §8 generator/deployer (Phase 3) — no
+  end-to-end numbers exist.
 
 ---
 
@@ -245,9 +247,9 @@ not match the harness (0.045); reconcile when the real model is measurable.
   (temperatures clamped to [0.5, 5.0]) reproduce the vendor's refit
   0.466 → 0.081 (`laya/README.md`)? The fit routine currently has no
   production path; auto-accept coverage may collapse at threshold 0.75.
-- **E2E:** no deployment evidence until the §7 generator (Phase 2) and §8
-  deployer (Phase 3) ship — deployment success, idempotency, and time-to-spec
-  all block on them, so the paper must not imply end-to-end results.
+- **E2E:** no deployment evidence until the §7 composition engine (Phase 2) and
+  §8 generator/deployer (Phase 3) ship — deployment success, idempotency, and
+  time-to-spec all block on them, so the paper must not imply end-to-end results.
 
 ## Critical path (evidence-led order)
 1. **Author the golden dataset** (30–50) — collection method, splits,
