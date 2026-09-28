@@ -3,9 +3,9 @@
 Status: research-grade outline (v2, 2026-09-28). Re-scoped claim set and a
 per-section evidence ledger based on a repository audit (design:
 `docs/superpowers/specs/2026-09-28-paper-outline-design.md`). Venue: Systems/SE
-(ICSE/FSE). Every section names its source in `Developer Spec.md` /
-`initial idea.md`, its concrete experiment, and its **current evidence state** —
-sections that are not yet measured say so.
+(ICSE/FSE). Sections name their source in `Developer Spec.md` /
+`initial idea.md`, their concrete experiment, and their **current evidence
+state**; sections that are not yet measured say so.
 
 Target claim set (re-scoped 2026-09-28):
 
@@ -21,12 +21,13 @@ Target claim set (re-scoped 2026-09-28):
 
 *What changed vs v1:* R2 dropped "viable accuracy vs LLM-only and rules-only"
 (untenable — the vendor's own benchmarks place the *base* `english` checkpoint
-below the majority-class baseline on typed-decision tasks, 0.362/0.352 vs 0.461,
-`laya/BENCHMARKS.md`, and Phase-7 fine-tuning has not run) and is now a relative
-ablation claim. R3 no longer says "thresholded at 0.1": 0.1 is the ECE *gate*
-(`Developer Spec.md` §3.5, DoD #11) and 0.75 is the auto-accept *decision*
-threshold (`compiler/mcq/thresholds.py`). R1 is scoped to an explicit task
-vocabulary because the ontology bounds expressiveness by construction.
+(0.361/0.362) and `laya-multilingual` (0.352) below the majority-class baseline
+on typed-decision tasks (0.461, `laya/BENCHMARKS.md`; 0.362 is the vendor prose
+figure, the table row reads 0.361), and Phase-7 fine-tuning has not run) and is
+now a relative ablation claim. R3 no longer says "thresholded at 0.1": 0.1 is
+the ECE *gate* (`Developer Spec.md` §3.5, DoD #11) and 0.75 is the auto-accept
+*decision* threshold (`compiler/mcq/thresholds.py`). R1 is scoped to an explicit
+task vocabulary because the ontology bounds expressiveness by construction.
 
 ---
 
@@ -34,13 +35,15 @@ vocabulary because the ontology bounds expressiveness by construction.
 
 Claim → experiment → metric → dataset → status → blocking gap → repo artifact.
 "Built" means the harness/evidence exists; it does not mean a model measurement.
+Repo paths are relative to `backend-compiler/`; vendored `laya/` is an untracked
+sibling under `../laya/`.
 
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set (target 30–50, spec §10.2) | **Pending** | Dataset authoring; baseline harness | `tests/golden/cases/` (11 cases, mock client) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Pending** (mechanics exist) | Run harness; fine-grained labels | `compiler/interpreter/pipeline.py` (mech. A/B/C) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic)** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
-| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Blocked** | §7 generator + §8 deployer not built (Phase 3) | `compiler/` (no `generator/` or `deployer/` package) |
+| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Blocked** | §7 generator + §8 deployer not built (§7 = Phase 2 composition, §8 = Phase 3 deployer) | `compiler/` (no `generator/` or `deployer/` package) |
 
 **Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
 pinned fixture whose per-bin accuracies were *chosen* to land under the 0.1 gate
@@ -74,7 +77,7 @@ not match the harness (0.045); reconcile when the real model is measurable.
   measurements exist.
 
 ## 2. Related Work
-- **Source:** none in repo. Survey required — five clusters, all flagged
+- **Source:** not yet surveyed — five clusters, all flagged
   **citation hunt required**:
   1. NL → schema / backend generation and text-to-SQL.
   2. Program synthesis with intermediate representations (IR tradeoffs).
@@ -82,9 +85,10 @@ not match the harness (0.045); reconcile when the real model is measurable.
   4. Model calibration and selective prediction (ECE, temperature scaling,
      coverage-aware deferral).
   5. Backend/schema generator tooling (DbSmash; Supabase ecosystem
-     generators — informal mentions only in `initial idea.md`).
+     generators — informal in-repo mentions only in `initial idea.md`).
 - **Current evidence state:** empty. Venue (Systems/SE) decides which
-  clusters are central; §2 is ~1.5 pages and blocks nothing experimental.
+  clusters are central; target §2 length ~1.5 pages; blocks nothing
+  experimental.
 
 ## 3. System Design (Methodology)
 - **Source:** spec §2 (ontology, NOT §17 — a cross-ref bug in the old draft,
@@ -94,8 +98,10 @@ not match the harness (0.045); reconcile when the real model is measurable.
 - **Content:** Formal problem statement (task in §1) plus IR notation —
   `BackendSpec` carries features, parameters, entities, roles, storage
   buckets, edge functions, and RLS policy fragments.
-  Pipeline (spec §1 canonical diagram): `interpret → classify → clarify →
-  specify → validate → approve → compile → deploy → remediate → retry`.
+  Pipeline (workflow, `initial idea.md:19`; the spec §1.1 canonical diagram
+  lists the same stages with derivation split out): `interpret → classify →
+  clarify → specify → validate → approve → compile → deploy → remediate →
+  retry`.
   Interpreter mechanisms (spec §3.1): error **A** exact alias matches; error
   **B** phrase rules with character-span negation clamped at sentence
   boundaries; error **C** Laya typed-decision classification against the fixed
@@ -147,6 +153,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
   - Exact-match = final `BackendSpec` equality with ground truth on the full
     representation.
   - Negation precision = correct negations ÷ negations detected.
+  - Merge correctness = conflict-resolution outputs respect the v1.5 tier
+    semantics (`exact` > `phrase`/`phrase_negated`) per spec §10.4, DoD #18.
   - MCQ count (DoD: ≤ 10 complex, ≤ 3 simple); time-to-spec; first-attempt
     deployment success (DoD ≥ 80%, ≥ 95% with remediation); idempotency
     (re-run → identical spec, DoD 100%); ECE (10 equal-width bins, Σ over
@@ -175,16 +183,21 @@ not match the harness (0.045); reconcile when the real model is measurable.
 - **5.3 → R3. Calibration & auto-accept gate.** ECE before/after temperature
   fit; auto-accept coverage-vs-correctness curve; threshold sweep anchored on
   0.75 (the shipped `CONFIDENCE_AUTO_ACCEPT`).
-  **Current evidence state:** gates pass on synthetic pins —
-  `test_ece_on_shipped_answer_confidence_is_acceptable` (ECE 0.045 < 0.1 over
-  the 40-entry fixture) and `test_fit_temperature_improves_miscalibrated_set`
-  (0.45 → 0.1047, best T = 10.0, 20-entry set). Synthetic only — replace with
-  measured `(answer_confidence, label)` pairs in the same JSON schema
-  (design doc `2026-09-25-ece-calibration-design.md`).
+  **Current evidence state:** synthetic only, and it does not yet pass the
+  gate. ECE 0.045 < 0.1 (`test_ece_on_shipped_answer_confidence_is_acceptable`,
+  40-entry fixture) passes, but the temperature-fit demo
+  (`test_fit_temperature_improves_miscalibrated_set`) stops at 0.45 → 0.1047
+  (20-entry set) — still above the 0.1 gate, with best T = 10.0 sitting at the
+  grid-search bound (`compiler/interpreter/calibration.py`), not a converged
+  optimum; the vendor further clamps persisted temperatures to [0.5, 5.0], so
+  T = 10.0 is not enforceable. The demo therefore shows the fit *improves* a
+  deliberately miscalibrated set, not that it passes the gate on this fixture.
+  Replace with measured `(answer_confidence, label)` pairs in the same JSON
+  schema (design doc `2026-09-25-ece-calibration-design.md`).
 - **5.4 End-to-end (secondary).** Deployment success, idempotency, time-to-spec,
   MCQ burden, cost/latency vs. LLM baseline.
-  **Current evidence state:** blocked — §7 generator and §8 deployer are Phase
-  3 (not built).
+  **Current evidence state:** blocked — the §7 generator (Phase 2) and §8
+  deployer (Phase 3) are not built.
 
 ## 6. Discussion
 - **Source:** spec §3.6 coverage check, DoD #6/#11; limitations of negation
@@ -193,8 +206,10 @@ not match the harness (0.045); reconcile when the real model is measurable.
   outside the ontology vocabulary). MCQ burden vs. correctness tradeoff.
   Deference semantics — auto-accept at 0.75 vs. always-ask; what the
   coverage-vs-correctness curve must show. Calibration generalization across
-  checkpoints/languages (vendor README reports per-language macro ECE spread
-  for the English checkpoint; pending real measurement).
+  checkpoints/languages — vendor README reports a per-language macro ECE
+  spread for the English checkpoint, and the same vendor data shows a
+  temperature refit moving shipped ECE 0.466 → 0.081 (`laya/README.md`): the
+  mechanism of R3 demonstrated on a real model, pending in-repo reproduction.
 
 ## 7. Limitations & Ethics
 - English-only v1; ontology bounds expressiveness — unsupported requirements
@@ -207,9 +222,11 @@ not match the harness (0.045); reconcile when the real model is measurable.
 
 ## 8. Conclusion
 - Recap R1–R3 in re-scoped form. Numbers that exist today: ECE 0.045
-  (synthetic fixture) and the temperature-fit demo 0.45 → 0.1047; the
-  validation/MCQ system. Two blockers remain before results are claimable:
-  (i) golden dataset + baseline harness, (ii) real-Laya calibration data.
+  (synthetic fixture) and the temperature-fit demo 0.45 → 0.1047 — the latter
+  still above the 0.1 gate, so R3 is not yet demonstrated; the validation/MCQ
+  system. Three blockers remain before results are claimable: (i) golden
+  dataset + baseline harness, (ii) real-Laya calibration pairs, (iii) the §7
+  generator (Phase 2) and §8 deployer (Phase 3) — no end-to-end numbers exist.
 
 ---
 
@@ -221,9 +238,16 @@ not match the harness (0.045); reconcile when the real model is measurable.
   hybrid might not beat it, given the base checkpoint is below the
   majority-class baseline on typed decisions (vendor benchmark); MCQ burden
   could erode the latency win.
-- **R3:** real held-out Laya ECE may be ≥ 0.1 (triggering `needs_fit` and a
-  fit routine that currently has no production path); auto-accept coverage
-  may collapse at threshold 0.75.
+- **R3:** real held-out Laya ECE on the pinned `english` checkpoint is
+  *expected* to be ≥ 0.1 — the vendor measures 0.175 (typed-decisions,
+  `laya/BENCHMARKS.md`) and up to 0.466 as shipped — so `needs_fit` is the
+  expected path, not a tail risk. Open questions: can the in-repo fit
+  (temperatures clamped to [0.5, 5.0]) reproduce the vendor's refit
+  0.466 → 0.081 (`laya/README.md`)? The fit routine currently has no
+  production path; auto-accept coverage may collapse at threshold 0.75.
+- **E2E:** no deployment evidence until the §7 generator (Phase 2) and §8
+  deployer (Phase 3) ship — deployment success, idempotency, and time-to-spec
+  all block on them, so the paper must not imply end-to-end results.
 
 ## Critical path (evidence-led order)
 1. **Author the golden dataset** (30–50) — collection method, splits,
@@ -234,6 +258,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
    golden set — begins before the full system ships.
 4. **Real-Laya calibration** (blocked until Laya is installable or Phase-7
    fine-tuning decision is made); regenerate the fixture in the same schema.
+   This step owns R3's primary endpoint: ECE < 0.1 **and** the auto-accept
+   coverage-vs-correctness curve, plus the 0.75 threshold sweep.
 5. **Write §1–§3 now** — source material exists (spec §1–§6, `initial idea.md`).
 6. **Write §4–§6 once runs land**; keep the ledger in sync as statuses flip
    from Pending → Done.
