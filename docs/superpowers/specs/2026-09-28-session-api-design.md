@@ -17,7 +17,7 @@ modeling logic lives here.
 ## Design decisions (confirmed with user)
 
 1. **All 9 §14 endpoints; deploy-side stubbed.** `sessions`, `interpret`,
-   `answer`, `spec`, `approve` are real. The five deploy-side endpoints
+   `answer`, `spec`, `approve` are real. The four deploy-side endpoints
    (`deploy`, `deploy/status`, `remediate`, `logs`) return **501 Not
    Implemented** — the deployer is Phase 3 and does not exist yet. Stubs keep
    the §14 URL surface stable now; the deployer fills them later.
@@ -71,6 +71,7 @@ class Session:
     status: Literal["new", "collecting", "complete", "approved"]
     text: str | None
     answers: dict[str, Any]      # keyed by Question.target; union merge
+    max_mcqs: int = 10           # clamped [1, 10]; set at interpret; re-runs reuse it
 ```
 
 `SessionStore` (protocol): `create() -> Session` · `get(id) -> Session | None`
@@ -126,8 +127,8 @@ use; `ImportError`/construction failure → `503 {"detail": "laya unavailable"}`
 
 ## Testing
 
-- **`tests/unit/test_session_store.py`** (~5 tests): create assigns id/status; get/save round trip; unknown id → None; **TTL lazy eviction** (backdate `created_at` by forcing the expiry check); save updates survive a fresh get.
-- **`tests/integration/test_session_api.py`** (~12 tests, FastAPI `TestClient`, `MockLayaClient`, fresh in-memory store per test): (1) happy path — create → interpret (params on a familiar text, e.g. the caramel-marketplace golden input) → answer every returned target with valid values → assert remaining shrinks to 0 and `GET /spec` validates ok; (2) interpret idempotence — 409 on second interpret once answers exist, 200 when answers still empty; (3) answer before interpret → 409; (4) spec before interpret → 409; (5) approve on incomplete → 409, on complete → 200 `approved`; (6) every 501 endpoint sampled; (7) unknown id → 404 on all 6 id-routes; (8) 422 empty text; (9) 503 via a client provider that raises; (10) stale answer dropped — post an answer the engine rejects (unknown `features.*` id or a disallowed parameter choice); assert that target's question remains open and no exception surfaces; a subsequent valid answer for the same target still closes it; (11) `max_mcqs` clamp; (12) target field present on every returned question. Expected deltas pinned during planning.
+- **`tests/unit/test_session_store.py`** (~5 tests): create assigns id/status; get/save round trip; unknown id → None; **TTL lazy eviction** (save a `Session` with `created_at` backdated past TTL → `get` returns None); fresh session survives `get`.
+- **`tests/integration/test_session_api.py`** (~12 tests, FastAPI `TestClient`, `MockLayaClient`, fresh in-memory store per test): (1) happy path — create → interpret `"We need bookings and messaging"` (default client: **exactly 2 questions**, `clarify_unparsed unparsed.0` + `confirm_feature features.authentication`, empirically pinned) → answer the pinned combined set (resolve `unparsed.0 = authentication`, disable the six laya-confirmed features, choose `authentication.method = email_password`) → `remaining == 0`, `finished` true, status `complete` → `GET /spec` `validation.ok == True` → `approve` → `200 approved`; (2) interpret idempotence — 409 on second interpret once answers exist, 200 when answers still empty; (3) answer before interpret → 409; (4) spec before interpret → 409; (5) approve on incomplete → 409, approve without text → 409; (6) every 501 stub sampled (4 endpoints, correct HTTP verb); (7) unknown id → 404 on all 4 id-routes (valid bodies); (8) 422 empty text; (9) 503 via a client provider that raises; (10) stale answer dropped — unknown `features.*` target leaves the same 2 questions open; (11) `max_mcqs` clamp — 1 → 1 question, 50 → clamped to 10 (2 < 10, unchanged), 0 → clamped up to 1; (12) `GET /spec` before completion lists the 2 open questions and validates ok. Expected counts pinned during planning.
 
 Target full-suite count: **140 → ~157**.
 
