@@ -42,7 +42,7 @@ the repo, at `../../laya/`.
 |---|---|---|---|---|---|---|
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set (target 30–50, spec §10.2) | **Pending** | Dataset authoring; baseline harness | `tests/golden/cases/` (11 cases, mock client) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Pending** (mechanics exist) | Run harness; fine-grained labels | `compiler/interpreter/pipeline.py` (mech. A/B/C) |
-| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — gate not passed** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
+| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — fit demo not under gate** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Blocked** | §7 composition engine + §8 generator/deployer not built (§7 = Phase 2, §8 = Phase 3 deployer) | `compiler/` (no `generator/` or `deployer/` package) |
 
 **Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
@@ -209,8 +209,9 @@ not match the harness (0.045); reconcile when the real model is measurable.
   coverage-vs-correctness curve must show. Calibration generalization across
   checkpoints/languages — vendor README reports a per-language macro ECE
   spread for the English checkpoint, and the same vendor data shows a
-  temperature refit moving shipped ECE 0.466 → 0.081 (`laya/README.md`): the
-  mechanism of R3 demonstrated on a real model, pending in-repo reproduction.
+  temperature refit moving shipped ECE 0.466 → 0.081 (`laya/README.md`); the
+  vendor fits one temperature per (question type, option count), while R3's
+  in-repo mechanism is a single scalar T — pending in-repo reproduction.
 
 ## 7. Limitations & Ethics
 - English-only v1; ontology bounds expressiveness — unsupported requirements
