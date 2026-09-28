@@ -149,6 +149,21 @@ def test_laya_unavailable_503(make_app):
     assert c.post(f"/v1/sessions/{s}/interpret", json={"text": TEXT}).status_code == 503
 
 
+def test_laya_client_constructed_once(make_app):
+    calls = []
+
+    def factory():
+        calls.append(1)
+        return MockLayaClient()
+
+    c = TestClient(make_app(client=factory))
+    for _ in range(3):
+        s = c.post("/v1/sessions").json()["id"]
+        assert c.post(f"/v1/sessions/{s}/interpret",
+                      json={"text": TEXT}).status_code == 200
+    assert len(calls) == 1
+
+
 def test_stale_answer_ignored(make_app):
     c = TestClient(make_app())
     s = c.post("/v1/sessions").json()["id"]
@@ -167,15 +182,13 @@ def test_max_mcqs_clamp(make_app):
     c = TestClient(make_app())
     s = c.post("/v1/sessions").json()["id"]
     r1 = c.post(f"/v1/sessions/{s}/interpret", json={"text": TEXT, "max_mcqs": 1})
-    assert r1.json()["remaining"] == 1
+    assert r1.json()["remaining"] == 1  # clamped down; default client gives 2
 
     s2 = c.post("/v1/sessions").json()["id"]
-    r50 = c.post(f"/v1/sessions/{s2}/interpret", json={"text": TEXT, "max_mcqs": 50})
-    assert r50.json()["remaining"] == 2  # clamped to 10; 2 < 10 unchanged
-
-    s3 = c.post("/v1/sessions").json()["id"]
-    r0 = c.post(f"/v1/sessions/{s3}/interpret", json={"text": TEXT, "max_mcqs": 0})
+    r0 = c.post(f"/v1/sessions/{s2}/interpret", json={"text": TEXT, "max_mcqs": 0})
     assert r0.json()["remaining"] == 1  # clamped up to 1
+# Note: the upper clamp (min(10, x)) is unreachable with the default mock —
+# question count per interpret call is 2; exercising it needs a >10-question client.
 
 
 def test_spec_before_completion_lists_open_questions(make_app):
