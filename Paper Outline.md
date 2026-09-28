@@ -40,10 +40,10 @@ the repo, at `../../laya/`.
 
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
-| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set (target 30–50, spec §10.2) | **Pending** | Dataset authoring; baseline harness | `tests/golden/cases/` (11 cases, mock client) |
+| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored — runs pending** | Baseline harness; ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Pending** (mechanics exist) | Run harness; fine-grained labels | `compiler/interpreter/pipeline.py` (mech. A/B/C) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — fit demo not under gate** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
-| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Blocked** | §7 composition engine + §8 generator/deployer not built (§7 = Phase 2, §8 = Phase 3 deployer) | `compiler/` (no `generator/` or `deployer/` package) |
+| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Built — runs pending** (no measured deployments) | Baseline harness; real Supabase credentials/runs | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG |
 
 **Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
 pinned fixture whose per-bin accuracies were *chosen* to land under the 0.1 gate
@@ -73,8 +73,10 @@ not match the harness (0.045); reconcile when the real model is measurable.
   MCQ clarification (R2); (3) a closed-form ECE measurement + temperature-fit
   procedure as an in-compiler calibration gate for auto-accept (R3); (4) an
   evaluation protocol and baselines for NL-to-backend fidelity (§4).
-- **Current evidence state:** task and metrics are definable today; no
-  measurements exist.
+- **Current evidence state:** task and metrics are definable today; the
+  system is implemented end to end (interpreter → MCQ → spec → composer →
+  deployer) with 50 golden cases and a 595-pair SQL matrix, but no
+  comparative measurements exist.
 
 ## 2. Related Work
 - **Source:** not yet surveyed — five clusters, all flagged
@@ -121,21 +123,23 @@ not match the harness (0.045); reconcile when the real model is measurable.
   `answer_confidence`; fit temperature only if measured ECE ≥ 0.1 on the
   golden set; `calibrated = sigmoid(logit(clip(p, 1e-6, 1−1e-6)) / T)` with
   re-calibration triggers enumerated.
-- **Current evidence state:** system implemented up to validation
-  (`backend-compiler/compiler/`); §7 composition engine and §8
-  generator/deployer are not built.
-  Confidence thresholds and calibration module are implemented and tested.
+- **Current evidence state:** the system is implemented end to end
+  (`backend-compiler/compiler/`): interpreter, MCQ engine, derivation and
+  typed validation, §7 composition engine (idempotency + 595-pair fragment
+  matrix on live PostgreSQL 15), and §8 deployer with the remediation loop.
+  Confidence thresholds and calibration module are implemented and tested;
+  no comparative measurements exist.
 
 ## 4. Experimental Setup
 - **Gap status:** this was the missing blocking section; protocol now concrete.
 - **4.1 Task & dataset.** Formal task (spec §0): NL description → `BackendSpec`
   → deployed project. Golden set target **30–50 hand-crafted inputs** (spec
-  §10.2); today there are **11 golden YAML cases** (`tests/golden/cases/`)
-  using an in-repo `MockLayaClient` persona (`default | high | none`) — a
-  regression corpus, not a research dataset. Need to decide: collection method
-  (human-written / templated / LLM-assisted), train / golden / held-out
-  splits, domain distribution, and annotation of ground-truth `BackendSpec`
-  per input.
+  §10.2): **50 engine-pinned YAML cases** now exist (`tests/golden/cases/`)
+  using in-repo `MockLayaClient` personas (`default | high | none`). Still to
+  decide: train / golden / held-out splits, domain distribution beyond the
+  current feature coverage, and annotation of ground-truth `BackendSpec` per
+  input (the case expectations are engine-pinned regression truth, not yet
+  independent annotations).
 - **4.2 Baselines** (all **NOT BUILT** today):
   1. End-to-end LLM (e.g. GPT-4o / Claude) direct-to-SQL.
   2. End-to-end LLM → `BackendSpec` → same fragment composer (isolates the IR).
@@ -174,8 +178,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
 ## 5. Results
 - **5.1 → R1. Spec fidelity vs. baselines.** Silent-omission rate,
   hallucinated-table rate, exact-match, per baseline.
-  **Current evidence state:** none — baselines not built; golden set is the 11
-  regression cases only.
+  **Current evidence state:** none — baselines not built; the golden set is
+  50 engine-pinned regression cases (no independent annotation yet).
 - **5.2 → R2. Ablations.** Rules + Laya vs. rules-only vs. Laya-only;
   MCQ-on vs. MCQ-off; merge-tier with/without the v1.5 negated-tier fix;
   ontology size sweep.
@@ -197,8 +201,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
   schema (design doc `2026-09-25-ece-calibration-design.md`).
 - **5.4 End-to-end (secondary).** Deployment success, idempotency, time-to-spec,
   MCQ burden, cost/latency vs. LLM baseline.
-  **Current evidence state:** blocked — the §7 composition engine (Phase 2)
-  and §8 generator/deployer (Phase 3) are not built.
+  **Current evidence state:** built (composition + deployer + nightly
+  credential-gated e2e tier) — no measured deployments yet.
 
 ## 6. Discussion
 - **Source:** spec §3.6 coverage check, DoD #6/#11; limitations of negation
@@ -226,10 +230,10 @@ not match the harness (0.045); reconcile when the real model is measurable.
 - Recap R1–R3 in re-scoped form. Numbers that exist today: ECE 0.045
   (synthetic fixture) and the temperature-fit demo 0.45 → 0.1047 — the latter
   still above the 0.1 gate, so R3 is not yet demonstrated; the validation/MCQ
-  system. Three blockers remain before results are claimable: (i) golden
-  dataset + baseline harness, (ii) real-Laya calibration pairs, (iii) the §7
-  composition engine (Phase 2) and §8 generator/deployer (Phase 3) — no
-  end-to-end numbers exist.
+  system. Three blockers remain before results are claimable: (i) baseline
+  harness runs on the 50-case golden set (with independent annotation), (ii)
+  real-Laya calibration pairs, (iii) measured end-to-end deployments — the
+  engines ship, the numbers do not exist yet.
 
 ---
 
@@ -248,22 +252,25 @@ not match the harness (0.045); reconcile when the real model is measurable.
   (temperatures clamped to [0.5, 5.0]) reproduce the vendor's refit
   0.466 → 0.081 (`laya/README.md`)? The fit routine currently has no
   production path; auto-accept coverage may collapse at threshold 0.75.
-- **E2E:** no deployment evidence until the §7 composition engine (Phase 2) and
-  §8 generator/deployer (Phase 3) ship — deployment success, idempotency, and
-  time-to-spec all block on them, so the paper must not imply end-to-end results.
+- **E2E:** the §7 composition engine and §8 generator/deployer have shipped
+  (idempotency + 595-pair matrix on live PostgreSQL; remediation harness) —
+  but no deployment *evidence* exists until real Supabase runs happen, so the
+  paper must not imply end-to-end results.
 
 ## Critical path (evidence-led order)
-1. **Author the golden dataset** (30–50) — collection method, splits,
-   ground-truth annotation. The most likely bottleneck; start immediately.
+1. ~~Author the golden dataset (30–50)~~ — **done**: 50 engine-pinned cases
+   shipped (2026-09-28). Remaining: independent ground-truth annotation and
+   splits before §5.1 runs.
 2. **Run the free three-mechanism ablation** (rules/Laya/hybrid) plus MCQ-on/off
-   on the existing 11 golden cases — mechanics exist today.
+   on the 50 golden cases — mechanics exist today.
 3. **Build the baseline harness** (LLM e2e, LLM→`BackendSpec`, DbSmash) on the
-   golden set — begins before the full system ships.
+   golden set — begins before measured deployments land.
 4. **Real-Laya calibration** (blocked until Laya is installable or Phase-7
    fine-tuning decision is made); regenerate the fixture in the same schema.
    This step owns R3's primary endpoint: ECE < 0.1 **and** the auto-accept
    coverage-vs-correctness curve, plus the 0.75 threshold sweep.
-5. **Write §1–§3 now** — source material exists (spec §1–§6, `initial idea.md`).
+5. ~~Write §1–§3 now~~ — **done**: `Paper.md` §1–§3 shipped (2026-09-28),
+   sourced from spec §1–§6 and `initial idea.md`.
 6. **Write §4–§6 once runs land**; keep the ledger in sync as statuses flip
    from Pending → Done.
 
