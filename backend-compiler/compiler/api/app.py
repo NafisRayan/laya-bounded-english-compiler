@@ -115,6 +115,9 @@ def create_app(
         if session.text is None:
             raise HTTPException(status_code=409,
                                 detail="interpret required before answering")
+        if session.status == "approved":
+            raise HTTPException(status_code=409,
+                                detail="session is approved and immutable")
         # Merge on a local copy; the store hands out the live object, so
         # mutating in place would survive a mid-pipeline 500.
         pending = replace(session, answers={**session.answers, **body.answers})

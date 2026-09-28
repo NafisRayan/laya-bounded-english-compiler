@@ -266,3 +266,18 @@ def test_failed_pipeline_does_not_commit_state(make_app):
     assert ra.status_code == 200
     assert ra.json()["finished"] is True
     assert ra.json()["remaining"] == 0
+
+
+def test_answer_rejected_after_approval(make_app):
+    c = TestClient(make_app())
+    s = c.post("/v1/sessions").json()["id"]
+    c.post(f"/v1/sessions/{s}/interpret", json={"text": TEXT})
+    c.post(f"/v1/sessions/{s}/answer", json={"answers": COMPLETE_ANSWERS})
+    assert c.post(f"/v1/sessions/{s}/approve").status_code == 200
+    # approved spec is immutable: further answers are rejected, status holds
+    r = c.post(f"/v1/sessions/{s}/answer",
+               json={"answers": {"features.payments": True}})
+    assert r.status_code == 409
+    rs = c.get(f"/v1/sessions/{s}/spec")
+    assert rs.json()["spec"]["features"]["payments"] is False
+    assert c.get(f"/v1/sessions/{s}/spec").json()["validation"]["ok"] is True
