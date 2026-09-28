@@ -13,6 +13,7 @@ def test_create_session_assigns_id_and_status():
     assert s.text is None
     assert s.answers == {}
     assert s.created_at.tzinfo is not None
+    assert s.max_mcqs == 10
 
 
 def test_save_then_get_round_trips():
@@ -43,3 +44,14 @@ def test_fresh_session_survives_get():
     store = InMemorySessionStore(ttl=timedelta(days=7))
     s = store.create()
     assert store.get(s.id) is not None
+
+
+def test_ttl_boundary_is_strict_greater():
+    store = InMemorySessionStore(ttl=timedelta(days=7))
+    young = Session(id="b" * 32, created_at=datetime.now(timezone.utc) - timedelta(days=7, seconds=-1))
+    store.save(young)
+    assert store.get(young.id) is not None  # 1s under the TTL still lives (>)
+
+    older = Session(id="c" * 32, created_at=datetime.now(timezone.utc) - timedelta(days=7, seconds=1))
+    store.save(older)
+    assert store.get(older.id) is None  # 1s past 7 days is evicted
