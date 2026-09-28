@@ -29,6 +29,37 @@ COMPLETE_ANSWERS = {
 }
 
 
+class FlakyClient:
+    """Delegating wrapper that fails exactly one call, at a set index.
+
+    The pipeline makes exactly one laya call per request
+    (interpreter/pipeline.py:50), so with `fail_on_call_index=2` the failing
+    call is the /answer that follows a successful /interpret. The failure
+    latches: later calls pass through, so the same client can keep driving
+    requests after the 500.
+    """
+
+    def __init__(self, inner, fail_on_call_index=2):
+        self._inner = inner
+        self._limit = fail_on_call_index
+        self.calls = 0
+        self.failed = False
+
+    def __getattr__(self, name):
+        attr = getattr(self._inner, name)
+        if not callable(attr):
+            return attr
+
+        def wrapper(*args, **kwargs):
+            self.calls += 1
+            if not self.failed and self.calls == self._limit:
+                self.failed = True
+                raise RuntimeError("inference failed")
+            return attr(*args, **kwargs)
+
+        return wrapper
+
+
 @pytest.fixture
 def make_app(ontology):
     def _make(client=None, sessions=None):
@@ -187,8 +218,9 @@ def test_max_mcqs_clamp(make_app):
     s2 = c.post("/v1/sessions").json()["id"]
     r0 = c.post(f"/v1/sessions/{s2}/interpret", json={"text": TEXT, "max_mcqs": 0})
     assert r0.json()["remaining"] == 1  # clamped up to 1
-# Note: the upper clamp (min(10, x)) is unreachable with the default mock —
-# question count per interpret call is 2; exercising it needs a >10-question client.
+    # Note: the upper clamp (min(10, x)) is unreachable with the default mock —
+    # question count per interpret call is 2; exercising it needs a
+    # >10-question client.
 
 
 def test_spec_before_completion_lists_open_questions(make_app):
@@ -204,3 +236,33 @@ def test_spec_before_completion_lists_open_questions(make_app):
 def test_create_app_default_wiring_loads_production_ontology():
     app = create_app()
     assert app.title == "Laya compiler session API"
+
+
+def test_failed_pipeline_does_not_commit_state(make_app):
+    flaky = FlakyClient(MockLayaClient(), fail_on_call_index=2)
+    store = InMemorySessionStore()
+    c = TestClient(make_app(client=lambda: flaky, sessions=store),
+                   raise_server_exceptions=False)
+    s = c.post("/v1/sessions").json()["id"]
+    assert c.post(f"/v1/sessions/{s}/interpret",
+                  json={"text": TEXT}).status_code == 200
+    assert flaky.calls == 1  # one laya call per request: index 2 is the /answer
+
+    # second pipeline run (the /answer) blows up mid-flight
+    assert c.post(f"/v1/sessions/{s}/answer",
+                  json={"answers": {"features.authentication": True}}).status_code == 500
+
+    # the failed answer was never committed to the stored session
+    stored = store.get(s)
+    assert stored.answers == {}
+    assert stored.text == TEXT
+
+    # ...so the text lock never engaged: re-interpret is still allowed
+    assert c.post(f"/v1/sessions/{s}/interpret",
+                  json={"text": TEXT}).status_code == 200
+
+    # ...and a clean follow-up answer completes the session as usual
+    ra = c.post(f"/v1/sessions/{s}/answer", json={"answers": COMPLETE_ANSWERS})
+    assert ra.status_code == 200
+    assert ra.json()["finished"] is True
+    assert ra.json()["remaining"] == 0

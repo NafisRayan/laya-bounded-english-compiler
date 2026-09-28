@@ -29,7 +29,6 @@ STUB_DETAIL = "Not implemented (deployer, Phase 3)"
 ERR_RESPONSES = {
     404: {"description": "Session not found"},
     409: {"description": "State violation"},
-    422: {"description": "Request validation failed"},
     503: {"description": "Laya client construction failed"},
 }
 
