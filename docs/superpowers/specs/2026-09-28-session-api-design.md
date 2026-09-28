@@ -85,7 +85,7 @@ the entry (**404** at the route layer).
 |---|---|---|
 | `POST /v1/sessions` | `201` `{id, created_at, status}` (status `new`) | — |
 | `POST …/interpret` body `{text, max_mcqs?}` | `200` `{status, questions, remaining}`; sets `text`, status `collecting` | `404` unknown id; `409` if `text` already set and `answers` nonempty (text lock); `422` empty text; `503` laya unavailable |
-| `POST …/answer` body `{answers}` | `200` `{status, questions, remaining, finished}`; merges answers (repeat target replaces), re-runs; status → `complete` when `remaining == 0` | `404`; `409` if `text` unset (must interpret first); `503` |
+| `POST …/answer` body `{answers}` | `200` `{status, questions, remaining, finished}`; merges answers (repeat target replaces), re-runs; status → `complete` when `remaining == 0` | `404`; `409` if `text` unset (must interpret first) or session `approved` (spec immutable, §16); `503` |
 | `GET …/spec` | `200` `{spec, validation, open_questions}`; re-runs with current answers | `404`; `409` if `text` unset; `503` |
 | `POST …/approve` | `200` `{status: "approved"}`; requires `complete`, marks approved, **no deploy action** | `404`; `409` if not `complete` (open questions remain) |
 | `POST …/deploy` | `501` | — |
@@ -121,16 +121,17 @@ use; `ImportError`/construction failure → `503 {"detail": "laya unavailable"}`
 
 - `404` — unknown/expired session id (all id-route handlers)
 - `409` — state violations: interpret-after-answers, answer/spec-before-interpret, approve-while-open
+- `409` — answer on an `approved` session: the spec is immutable after approval (Developer Spec.md §16), so `POST ./answer` is rejected and the approved spec cannot be mutated. `interpret` is already blocked by the text lock (answers are non-empty once approved); `approve` stays idempotent.
 - `422` — FastAPI request validation (empty `text`, missing body)
 - `501` — the four deploy-side stubs
 - `503` — `laya` client construction failure at request time
 
 ## Testing
 
-- **`tests/unit/test_session_store.py`** (~5 tests): create assigns id/status; get/save round trip; unknown id → None; **TTL lazy eviction** (save a `Session` with `created_at` backdated past TTL → `get` returns None); fresh session survives `get`.
-- **`tests/integration/test_session_api.py`** (~12 tests, FastAPI `TestClient`, `MockLayaClient`, fresh in-memory store per test): (1) happy path — create → interpret `"We need bookings and messaging"` (default client: **exactly 2 questions**, `clarify_unparsed unparsed.0` + `confirm_feature features.authentication`, empirically pinned) → answer the pinned combined set (resolve `unparsed.0 = authentication`, disable the six laya-confirmed features, choose `authentication.method = email_password`) → `remaining == 0`, `finished` true, status `complete` → `GET /spec` `validation.ok == True` → `approve` → `200 approved`; (2) interpret idempotence — 409 on second interpret once answers exist, 200 when answers still empty; (3) answer before interpret → 409; (4) spec before interpret → 409; (5) approve on incomplete → 409, approve without text → 409; (6) every 501 stub sampled (4 endpoints, correct HTTP verb); (7) unknown id → 404 on all 4 id-routes (valid bodies); (8) 422 empty text; (9) 503 via a client provider that raises; (10) stale answer dropped — unknown `features.*` target leaves the same 2 questions open; (11) `max_mcqs` clamp — 1 → 1 question, 50 → clamped to 10 (2 < 10, unchanged), 0 → clamped up to 1; (12) `GET /spec` before completion lists the 2 open questions and validates ok. Expected counts pinned during planning.
+- **`tests/unit/test_session_store.py`** (6 tests): create assigns id/status; get/save round trip; unknown id → None; **TTL lazy eviction** (save a `Session` with `created_at` backdated past TTL → `get` returns None); fresh session survives `get`.
+- **`tests/integration/test_session_api.py`** (16 tests, FastAPI `TestClient`, `MockLayaClient`, fresh in-memory store per test): (1) happy path — create → interpret `"We need bookings and messaging"` (default client: **exactly 2 questions**, `clarify_unparsed unparsed.0` + `confirm_feature features.authentication`, empirically pinned) → answer the pinned combined set (resolve `unparsed.0 = authentication`, disable the six laya-confirmed features, choose `authentication.method = email_password`) → `remaining == 0`, `finished` true, status `complete` → `GET /spec` `validation.ok == True` → `approve` → `200 approved`; (2) interpret idempotence — 409 on second interpret once answers exist, 200 when answers still empty; (3) answer before interpret → 409; (4) spec before interpret → 409; (5) approve on incomplete → 409, approve without text → 409; (6) every 501 stub sampled (4 endpoints, correct HTTP verb); (7) unknown id → 404 on all 4 id-routes (valid bodies); (8) 422 empty text; (9) 503 via a client provider that raises; (10) stale answer dropped — unknown `features.*` target leaves the same 2 questions open; (11) `max_mcqs` clamp — 1 → 1 question, 0 → clamped up to 1 (the upper clamp is unreachable with the default mock, which yields 2 questions per interpret call); (12) `GET /spec` before completion lists the 2 open questions and validates ok; (13) default wiring — `create_app()` with no args loads the production v1 ontology bundle; (14) the laya client is constructed exactly once across repeated calls; (15) a mid-pipeline failure leaves the stored session untouched (atomic updates); (16) answer on an `approved` session → 409 and the approved spec is unmutated.
 
-Target full-suite count: **140 → ~157**.
+Target full-suite count: **140 → 162 (140 + 6 store + 16 integration)**.
 
 ## Deviations from Developer Spec.md (documented)
 
