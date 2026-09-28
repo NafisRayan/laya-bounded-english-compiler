@@ -1,0 +1,12 @@
+input: "Sellers must verify their identity with government id before listing."
+laya: none
+user_answers:
+  features.authentication: true
+  features.file_storage: true
+expected_spec:
+  features:
+    authentication: true
+    file_storage: true
+    verification: true
+  entities: [files, profiles, verification_documents]
+expect_question_types: [choose_parameter]

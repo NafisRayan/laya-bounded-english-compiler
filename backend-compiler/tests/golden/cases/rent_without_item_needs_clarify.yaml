@@ -1,0 +1,8 @@
+input: "The site shows available equipment to renters."
+laya: default
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+expect_question_types: [clarify_unparsed]

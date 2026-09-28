@@ -1,0 +1,12 @@
+input: "Vendors can charge for their services. There will be no review system."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    payments: true
+    reviews: false
+  entities: [payments, profiles]
+  edge_functions: []
+absent_question_types: [resolve_negation]

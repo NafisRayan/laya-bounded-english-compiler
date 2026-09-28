@@ -1,0 +1,15 @@
+input: "Hosts upload a profile photo when they sign up."
+laya: none
+user_answers:
+  features.authentication: true
+  features.file_storage: true
+  parameters.file_storage.bucket_purpose: avatars
+expected_spec:
+  features:
+    authentication: true
+    file_storage: true
+  parameters:
+    file_storage.bucket_purpose: avatars
+  buckets:
+    - {name: avatars, public: true, rls_pattern: owner_only, file_size_limit_mb: 10}
+absent_question_targets: [parameters.file_storage.bucket_purpose]

@@ -1,0 +1,17 @@
+input: "Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners need verification, users can message each other, payments use Stripe. Owners upload photos of their gear."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+    messaging: true
+    payments: true
+    file_storage: true
+    verification: true
+  parameters:
+    payments.provider: stripe
+  entities: [bookings, files, listings, messages, payments, profiles, verification_documents]
+  edge_functions: [stripe_webhook, verification_webhook]
+expect_question_types: [choose_parameter]

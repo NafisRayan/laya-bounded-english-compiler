@@ -1,0 +1,11 @@
+input: "We run an id check on every renter before approval."
+laya: none
+user_answers:
+  features.authentication: true
+  features.file_storage: true
+expected_spec:
+  features:
+    authentication: true
+    file_storage: true
+    verification: true
+expect_question_types: [choose_parameter]

@@ -1,0 +1,20 @@
+input: "An admin verifies each government id document by hand."
+laya: none
+user_answers:
+  features.authentication: true
+  features.file_storage: true
+  features.verification: true
+  parameters.verification.method: admin_approval
+expected_spec:
+  features:
+    authentication: true
+    roles: true
+    file_storage: true
+    verification: true
+  parameters:
+    roles.role_names: [admin]
+    verification.method: admin_approval
+  roles: [admin]
+  entities: [files, profiles, verification_documents]
+  edge_functions: [verification_webhook]
+absent_question_targets: [parameters.verification.method, features.verification]

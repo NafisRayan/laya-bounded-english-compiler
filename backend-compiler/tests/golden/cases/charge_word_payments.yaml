@@ -1,0 +1,11 @@
+input: "We charge renters for each booking."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    payments: true
+  entities: [payments, profiles]
+expect_question_types: [choose_parameter]
+absent_question_targets: [features.payments]

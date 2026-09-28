@@ -1,0 +1,18 @@
+input: "Start simple: a place where renters book each item."
+laya: high
+expected_spec:
+  features:
+    authentication: true
+    roles: true
+    bookings: true
+    messaging: true
+    payments: true
+    reviews: true
+    file_storage: true
+    verification: true
+    realtime: true
+    favorites: true
+  entities: [bookings, favorites, files, listings, messages, payments, profiles, reviews, verification_documents]
+  edge_functions: [verification_webhook]
+expect_question_types: [choose_parameter]
+absent_question_types: [confirm_feature, clarify_unparsed]

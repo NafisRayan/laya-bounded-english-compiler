@@ -1,0 +1,17 @@
+input: "The app stores avatars, listing photos, and personal documents."
+laya: none
+user_answers:
+  features.authentication: true
+  features.file_storage: true
+  parameters.file_storage.bucket_purpose: mixed
+expected_spec:
+  features:
+    authentication: true
+    file_storage: true
+  parameters:
+    file_storage.bucket_purpose: mixed
+  buckets:
+    - {name: avatars, public: true, rls_pattern: owner_only, file_size_limit_mb: 10}
+    - {name: listings, public: true, rls_pattern: owner_only, file_size_limit_mb: 10}
+    - {name: documents, public: false, rls_pattern: owner_only, file_size_limit_mb: 10}
+absent_question_targets: [parameters.file_storage.bucket_purpose]

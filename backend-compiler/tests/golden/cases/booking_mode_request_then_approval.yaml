@@ -1,0 +1,15 @@
+input: "Renters can request a booking and the owner approves first."
+laya: none
+user_answers:
+  features.authentication: true
+  features.bookings: true
+  parameters.bookings.mode: request_then_approval
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+  parameters:
+    bookings.mode: request_then_approval
+  entities: [bookings, listings, profiles]
+expect_question_types: [choose_parameter]
+absent_question_targets: [parameters.bookings.mode]

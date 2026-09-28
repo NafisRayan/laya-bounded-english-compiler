@@ -1,0 +1,17 @@
+input: "A senior team checks every id document."
+laya: none
+user_answers:
+  features.authentication: true
+  features.roles: true
+  parameters.roles.role_names: [admin, verifier]
+expected_spec:
+  features:
+    authentication: true
+    roles: true
+    file_storage: true
+  parameters:
+    roles.role_names: [admin, verifier]
+  roles: [admin, verifier]
+  entities: [files, profiles]
+expect_question_types: [choose_parameter]
+absent_question_targets: [parameters.roles.role_names]

@@ -1,0 +1,13 @@
+input: "Guests can leave a review after their stay and save a favorite listing for later."
+laya: none
+user_answers:
+  features.authentication: true
+  features.bookings: true
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+    reviews: true
+    favorites: true
+expect_question_types: [choose_parameter]
+absent_question_targets: [features.reviews, features.favorites]

@@ -1,0 +1,18 @@
+input: "An admin can manage the platform."
+laya: none
+user_answers:
+  features.authentication: true
+  features.bookings: true
+  parameters.bookings.mode: owner_approval
+expected_spec:
+  features:
+    authentication: true
+    roles: true
+    bookings: true
+  parameters:
+    roles.role_names: [admin]
+    bookings.mode: owner_approval
+  roles: [admin]
+  entities: [bookings, listings, profiles]
+validate_ok: true
+absent_question_types: [resolve_contradiction]

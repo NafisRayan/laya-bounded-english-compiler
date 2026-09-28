@@ -1,0 +1,42 @@
+input: "A site where renters book each item, chat with each other, pay through stripe, leave a review, upload a photo, complete an id check, get live updates, and keep a favorite list."
+laya: none
+user_answers:
+  features.authentication: true
+  features.realtime: true
+  features.roles: true
+  parameters.authentication.method: email_password
+  parameters.bookings.mode: owner_approval
+  parameters.messaging.trigger_event: after_request
+  parameters.payments.provider: stripe
+  parameters.file_storage.bucket_purpose: listings
+  parameters.verification.method: admin_approval
+  parameters.realtime.channels: [bookings]
+  parameters.roles.role_names: [admin]
+expected_spec:
+  features:
+    authentication: true
+    roles: true
+    bookings: true
+    messaging: true
+    payments: true
+    reviews: true
+    file_storage: true
+    verification: true
+    realtime: true
+    favorites: true
+  parameters:
+    authentication.method: email_password
+    bookings.mode: owner_approval
+    messaging.trigger_event: after_request
+    payments.provider: stripe
+    file_storage.bucket_purpose: listings
+    verification.method: admin_approval
+    realtime.channels: [bookings]
+    roles.role_names: [admin]
+  roles: [admin]
+  entities: [bookings, favorites, files, listings, messages, notifications, payments, profiles, reviews, verification_documents]
+  buckets:
+    - {name: listings, public: true, rls_pattern: owner_only, file_size_limit_mb: 10}
+    - {name: verification, public: false, rls_pattern: owner_only, file_size_limit_mb: 10}
+  edge_functions: [notification_dispatch, stripe_webhook, verification_webhook]
+absent_question_types: [confirm_feature, choose_parameter, clarify_unparsed, resolve_negation, resolve_contradiction]

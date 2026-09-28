@@ -1,0 +1,13 @@
+input: "Users can book each item. We don't take payments."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+    payments: false
+  entities: [bookings, listings, profiles]
+  edge_functions: []
+absent_question_types: [resolve_negation]
+expect_question_types: [choose_parameter]

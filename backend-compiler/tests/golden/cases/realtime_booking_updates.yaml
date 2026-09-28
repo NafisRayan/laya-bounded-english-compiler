@@ -1,0 +1,17 @@
+input: "Renters book items and get live updates the moment their booking status changes."
+laya: none
+user_answers:
+  features.authentication: true
+  features.bookings: true
+  features.realtime: true
+  parameters.realtime.channels: [bookings]
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+    realtime: true
+  parameters:
+    realtime.channels: [bookings]
+  entities: [bookings, listings, notifications, profiles]
+  edge_functions: [notification_dispatch]
+absent_question_targets: [parameters.realtime.channels]

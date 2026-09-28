@@ -1,0 +1,10 @@
+input: "Login uses magic link."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+  parameters:
+    authentication.method: magic_link
+absent_question_types: [choose_parameter, clarify_unparsed]

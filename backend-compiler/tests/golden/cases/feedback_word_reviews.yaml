@@ -1,0 +1,13 @@
+input: "Customers give feedback after each rental."
+laya: none
+user_answers:
+  features.authentication: true
+  features.bookings: true
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+    reviews: true
+  entities: [bookings, listings, profiles, reviews]
+expect_question_types: [choose_parameter]
+absent_question_targets: [features.reviews]

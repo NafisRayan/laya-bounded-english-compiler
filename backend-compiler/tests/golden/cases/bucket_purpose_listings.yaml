@@ -1,0 +1,15 @@
+input: "Sellers upload photos of their property listings."
+laya: none
+user_answers:
+  features.authentication: true
+  features.file_storage: true
+  parameters.file_storage.bucket_purpose: listings
+expected_spec:
+  features:
+    authentication: true
+    file_storage: true
+  parameters:
+    file_storage.bucket_purpose: listings
+  buckets:
+    - {name: listings, public: true, rls_pattern: owner_only, file_size_limit_mb: 10}
+absent_question_targets: [parameters.file_storage.bucket_purpose]

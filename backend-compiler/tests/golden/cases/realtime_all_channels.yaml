@@ -1,0 +1,19 @@
+input: "Everything should update live: new messages, booking changes, and notifications."
+laya: none
+user_answers:
+  features.authentication: true
+  features.messaging: true
+  features.bookings: true
+  features.realtime: true
+  parameters.realtime.channels: [messages, bookings, notifications]
+expected_spec:
+  features:
+    authentication: true
+    messaging: true
+    bookings: true
+    realtime: true
+  parameters:
+    realtime.channels: [messages, bookings, notifications]
+  entities: [bookings, listings, messages, notifications, profiles]
+  edge_functions: [notification_dispatch]
+absent_question_targets: [parameters.realtime.channels]

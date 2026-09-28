@@ -1,0 +1,19 @@
+input: "A marketplace where owners list equipment, renters book items, both parties chat with each other, payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify government id before anyone can favorite a listing."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+    messaging: true
+    payments: true
+    reviews: true
+    file_storage: true
+    verification: true
+    favorites: true
+  parameters:
+    payments.provider: stripe
+  entities: [bookings, favorites, files, listings, messages, payments, profiles, reviews, verification_documents]
+  edge_functions: [stripe_webhook, verification_webhook]
+expect_question_types: [choose_parameter]

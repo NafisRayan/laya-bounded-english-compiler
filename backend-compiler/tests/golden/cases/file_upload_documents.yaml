@@ -1,0 +1,10 @@
+input: "Users can upload documents to their profiles."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    file_storage: true
+  entities: [files, profiles]
+expect_question_types: [choose_parameter]

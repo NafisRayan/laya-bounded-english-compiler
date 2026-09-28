@@ -1,0 +1,7 @@
+input: "We skip the bookmark feature to keep the app lean."
+laya: none
+expected_spec:
+  features:
+    favorites: false
+  entities: []
+absent_question_types: [resolve_negation]

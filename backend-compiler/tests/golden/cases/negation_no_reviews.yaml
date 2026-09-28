@@ -1,0 +1,12 @@
+input: "We let renters book each equipment item. There is no review system."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    bookings: true
+    reviews: false
+  entities: [bookings, listings, profiles]
+absent_question_types: [resolve_negation]
+expect_question_types: [choose_parameter]

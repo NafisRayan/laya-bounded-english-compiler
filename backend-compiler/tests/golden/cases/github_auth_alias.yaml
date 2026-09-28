@@ -1,0 +1,10 @@
+input: "Developers sign in with github auth."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+  parameters:
+    authentication.method: oauth_github
+absent_question_types: [choose_parameter, clarify_unparsed]

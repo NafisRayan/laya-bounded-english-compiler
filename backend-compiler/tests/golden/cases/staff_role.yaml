@@ -1,0 +1,12 @@
+input: "Staff can manage the platform."
+laya: none
+user_answers:
+  features.authentication: true
+expected_spec:
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names: [admin]
+  roles: [admin]
+absent_question_targets: [features.roles]
