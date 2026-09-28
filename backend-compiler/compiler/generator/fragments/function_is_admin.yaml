@@ -1,0 +1,9 @@
+id: function_is_admin
+type: function
+requires: [table_profiles]
+provides: [function.is_admin]
+sql: |
+  CREATE OR REPLACE FUNCTION is_admin()
+  RETURNS boolean LANGUAGE sql STABLE AS $$
+    SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin');
+  $$;

@@ -1,0 +1,14 @@
+id: bucket_documents
+type: bucket
+requires: []
+provides: [bucket.documents]
+sql: |
+  INSERT INTO storage.buckets (id, name, public, file_size_limit)
+  VALUES ('{name}', '{name}', {public}, {size})
+  ON CONFLICT (id) DO NOTHING;
+
+  DROP POLICY IF EXISTS {name}_insert_owner ON storage.objects;
+  CREATE POLICY {name}_insert_owner ON storage.objects
+    FOR INSERT WITH CHECK (
+      bucket_id = '{name}' AND auth.uid()::text = (storage.foldername(name))[1]
+    );

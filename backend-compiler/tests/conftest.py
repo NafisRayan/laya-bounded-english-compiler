@@ -10,6 +10,10 @@ builder mirroring the real library shape) and ``_first_choice``.
 """
 
 import json
+import os
+import socket
+import subprocess
+import time
 from pathlib import Path
 
 import pytest
@@ -215,3 +219,94 @@ def mock_laya_high_confidence() -> MockLayaClient:
                     answers[qid] = _make_laya_answer("choice", _first_choice(q["criteria"]))
             return self._envelope(answers)
     return HighConf()
+
+
+# --- composition-engine fixtures (spec §18.2 + plan D11) ---
+
+
+@pytest.fixture(scope="session")
+def local_postgres():
+    """A postgres:15 test database (connection URL).
+
+    Uses `TEST_DATABASE_URL` when set; otherwise manages an ephemeral
+    postgres:15 container with the docker CLI on a free local port and
+    removes it after the session. The `subprocess.run` call raises on a
+    missing docker daemon; the readiness loop skips the suite instead.
+    """
+    dsn = os.environ.get("TEST_DATABASE_URL")
+    if dsn:
+        yield dsn
+        return
+
+    s = socket.socket()
+    s.bind(("127.0.0.1", 0))
+    port = s.getsockname()[1]
+    s.close()
+    name = "laya-test-pg"
+    subprocess.run(["docker", "rm", "-f", name], capture_output=True)
+    subprocess.run(
+        ["docker", "run", "-d", "--name", name, "-e", "POSTGRES_PASSWORD=postgres",
+         "-e", "POSTGRES_USER=postgres", "-p", f"{port}:5432", "postgres:15"],
+        check=True, capture_output=True,
+    )
+    url = f"postgresql://postgres:postgres@127.0.0.1:{port}/postgres"
+
+    import psycopg
+
+    deadline = time.time() + 120
+    while time.time() < deadline:
+        try:
+            with psycopg.connect(url) as conn:
+                conn.execute("SELECT 1")
+            break
+        except Exception:  # container still starting
+            time.sleep(1)
+    else:
+        subprocess.run(["docker", "rm", "-f", name], capture_output=True)
+        pytest.skip("postgres:15 container did not become ready")
+
+    yield url
+    subprocess.run(["docker", "rm", "-f", name], capture_output=True)
+
+
+@pytest.fixture
+def fresh_db(local_postgres):
+    """A clean, stubbed Supabase backend for one test.
+
+    Resets the `public` schema and stubs exactly the spec's auth + storage
+    surface (§18.2, Developer Spec.md:1857-1894). On top of that stub it
+    additionally creates the `supabase_realtime` publication: the realtime
+    fragments execute `ALTER PUBLICATION supabase_realtime ADD TABLE ...`,
+    which requires the publication to exist. `auth.uid()` returns NULL so
+    RLS predicates never accidentally expose rows during DDL-only tests.
+    """
+    import psycopg
+
+    with psycopg.connect(local_postgres, autocommit=True) as conn:
+        cur = conn.cursor()
+        cur.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+        cur.execute("DROP SCHEMA IF EXISTS auth CASCADE; CREATE SCHEMA auth;")
+        cur.execute("CREATE TABLE auth.users (id uuid PRIMARY KEY);")
+        cur.execute(
+            "CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql "
+            "AS $$ SELECT NULL::uuid $$;"
+        )
+        cur.execute("DROP SCHEMA IF EXISTS storage CASCADE; CREATE SCHEMA storage;")
+        cur.execute(
+            "CREATE TABLE storage.buckets "
+            "(id text PRIMARY KEY, name text, public boolean, file_size_limit bigint);"
+        )
+        cur.execute(
+            "CREATE TABLE storage.objects "
+            "(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), bucket_id text, name text);"
+        )
+        cur.execute(
+            "CREATE OR REPLACE FUNCTION storage.foldername(text) RETURNS text[] "
+            "LANGUAGE sql AS $$ SELECT string_to_array($1, '/') $$;"
+        )
+        cur.execute(
+            "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_publication "
+            "WHERE pubname='supabase_realtime') THEN CREATE PUBLICATION "
+            "supabase_realtime; END IF; END $$;"
+        )
+    yield local_postgres

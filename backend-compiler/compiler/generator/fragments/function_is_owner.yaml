@@ -1,0 +1,11 @@
+id: function_is_owner
+type: function
+requires: [table_listings]
+provides: [function.is_owner]
+sql: |
+  CREATE OR REPLACE FUNCTION is_owner()
+  RETURNS boolean LANGUAGE plpgsql STABLE AS $$
+  BEGIN
+    RETURN EXISTS (SELECT 1 FROM listings WHERE owner_id = auth.uid());
+  END;
+  $$;

@@ -25,3 +25,6 @@ include = ["compiler*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "slow: integration tests requiring the postgres:15 test container or long runtime",
+]

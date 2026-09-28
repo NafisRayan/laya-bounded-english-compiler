@@ -1,0 +1,15 @@
+id: trigger_verification_status
+type: trigger
+requires: [table_verification_documents]
+provides: [trigger.verification_status]
+sql: |
+  CREATE OR REPLACE FUNCTION set_verification_status() RETURNS trigger AS $$
+  BEGIN
+    NEW.status := COALESCE(NEW.status, 'pending');
+    RETURN NEW;
+  END; $$ LANGUAGE plpgsql;
+
+  DROP TRIGGER IF EXISTS trigger_verification_status ON verification_documents;
+  CREATE TRIGGER trigger_verification_status
+    BEFORE INSERT OR UPDATE ON verification_documents
+    FOR EACH ROW EXECUTE FUNCTION set_verification_status();
