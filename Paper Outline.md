@@ -35,14 +35,14 @@ task vocabulary because the ontology bounds expressiveness by construction.
 
 Claim → experiment → metric → dataset → status → blocking gap → repo artifact.
 "Built" means the harness/evidence exists; it does not mean a model measurement.
-Repo paths are relative to `backend-compiler/`; vendored `laya/` is an untracked
-sibling under `../laya/`.
+Repo paths are relative to `backend-compiler/`; vendored `laya/` lives outside
+the repo, at `../../laya/`.
 
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set (target 30–50, spec §10.2) | **Pending** | Dataset authoring; baseline harness | `tests/golden/cases/` (11 cases, mock client) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Pending** (mechanics exist) | Run harness; fine-grained labels | `compiler/interpreter/pipeline.py` (mech. A/B/C) |
-| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic)** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
+| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — gate not passed** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Blocked** | §7 generator + §8 deployer not built (§7 = Phase 2 composition, §8 = Phase 3 deployer) | `compiler/` (no `generator/` or `deployer/` package) |
 
 **Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
@@ -240,8 +240,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
   could erode the latency win.
 - **R3:** real held-out Laya ECE on the pinned `english` checkpoint is
   *expected* to be ≥ 0.1 — the vendor measures 0.175 (typed-decisions,
-  `laya/BENCHMARKS.md`) and up to 0.466 as shipped — so `needs_fit` is the
-  expected path, not a tail risk. Open questions: can the in-repo fit
+  `laya/BENCHMARKS.md`) and ~0.466 mean ECE as shipped — so `needs_fit` is
+  the expected path, not a tail risk. Open questions: can the in-repo fit
   (temperatures clamped to [0.5, 5.0]) reproduce the vendor's refit
   0.466 → 0.081 (`laya/README.md`)? The fit routine currently has no
   production path; auto-accept coverage may collapse at threshold 0.75.
