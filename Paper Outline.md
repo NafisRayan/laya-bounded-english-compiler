@@ -40,10 +40,10 @@ the repo, at `../../laya/`.
 
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
-| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored — runs pending** | Baseline harness; ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client) |
-| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Pending** (mechanics exist) | Run harness; fine-grained labels | `compiler/interpreter/pipeline.py` (mech. A/B/C) |
+| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored; harness built — LLM runs pending** | LLM API keys; independent ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client); `tests/experiments/baselines.py` |
+| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured (mock personas) — see §5.2 table; real-model runs pending** | Real Laya install (→ R3); fine-grained labels | `tests/experiments/run_ablation.py` + `results/ablation.jsonl`; `compiler/interpreter/pipeline.py` (mech. A/B/C) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — fit demo not under gate** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
-| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Built — runs pending** (no measured deployments) | Baseline harness; real Supabase credentials/runs | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG |
+| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Built — runs pending** (no measured deployments) | Real Supabase credentials/runs | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG |
 
 **Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
 pinned fixture whose per-bin accuracies were *chosen* to land under the 0.1 gate
@@ -75,8 +75,9 @@ not match the harness (0.045); reconcile when the real model is measurable.
   evaluation protocol and baselines for NL-to-backend fidelity (§4).
 - **Current evidence state:** task and metrics are definable today; the
   system is implemented end to end (interpreter → MCQ → spec → composer →
-  deployer) with 50 golden cases and a 595-pair SQL matrix, but no
-  comparative measurements exist.
+  deployer) with 50 golden cases and a 595-pair SQL matrix; a mock-model
+  mechanism ablation is measured (Paper §5.2), but no comparative
+  measurements against LLM baselines exist.
 
 ## 2. Related Work
 - **Source:** not yet surveyed — five clusters, all flagged
@@ -128,7 +129,8 @@ not match the harness (0.045); reconcile when the real model is measurable.
   typed validation, §7 composition engine (idempotency + 595-pair fragment
   matrix on live PostgreSQL 15), and §8 deployer with the remediation loop.
   Confidence thresholds and calibration module are implemented and tested;
-  no comparative measurements exist.
+  a mock-model mechanism ablation is measured (Paper §5.2); no LLM-comparative
+  measurements exist.
 
 ## 4. Experimental Setup
 - **Gap status:** this was the missing blocking section; protocol now concrete.
@@ -140,16 +142,16 @@ not match the harness (0.045); reconcile when the real model is measurable.
   current feature coverage, and annotation of ground-truth `BackendSpec` per
   input (the case expectations are engine-pinned regression truth, not yet
   independent annotations).
-- **4.2 Baselines** (all **NOT BUILT** today):
-  1. End-to-end LLM (e.g. GPT-4o / Claude) direct-to-SQL.
-  2. End-to-end LLM → `BackendSpec` → same fragment composer (isolates the IR).
-  3. Rules-only: mechanisms A + B, no Laya.
-  4. Laya-only: mechanism C, no rules.
-  5. DbSmash / off-the-shelf Supabase generator.
-  Baselines 3 and 4 are essentially free — all three mechanisms already run in
-  one pipeline (`pipeline.py`), so the ablation is pure run-harness work.
-  Baseline 2 requires only the LLM→`BackendSpec` adapter; baselines 1 and 5
-  need sandboxed Supabase projects plus cost.
+- **4.2 Baselines** (adapters BUILT 2026-09-29; LLM runs credential-gated):
+  1. End-to-end LLM (e.g. GPT-4o / Claude) direct-to-SQL — `DirectSqlBaseline`.
+  2. End-to-end LLM → `BackendSpec` → same fragment composer (isolates the IR)
+     — `BackendSpecBaseline`, parse → spec → score unit-tested offline.
+  3. Rules-only: mechanisms A + B, no Laya — measured (§5.2).
+  4. Laya-only: mechanism C, no rules — measured (§5.2, mock persona).
+  5. DbSmash / off-the-shelf Supabase generator — adapter only (external tool).
+  Baselines 3 and 4 are free (one pipeline); 1 and 2 need `OPENAI_API_KEY` /
+  `ANTHROPIC_API_KEY` (absent here → self-skip, like the e2e tier); 5 needs the
+  external tool configured.
 - **4.3 Metrics** (precise definitions; formulas where cheap):
   - Silent-omission rate = requirements in the NL input absent from the final
     `BackendSpec` ÷ total requirements (golden-annotated).
@@ -178,13 +180,23 @@ not match the harness (0.045); reconcile when the real model is measurable.
 ## 5. Results
 - **5.1 → R1. Spec fidelity vs. baselines.** Silent-omission rate,
   hallucinated-table rate, exact-match, per baseline.
-  **Current evidence state:** none — baselines not built; the golden set is
-  50 engine-pinned regression cases (no independent annotation yet).
+  **Current evidence state:** harness built, golden set fixed (50 engine-pinned
+  regression cases, no independent annotation yet); no measured rows — LLM
+  baselines self-skip without API keys. Composition-side determinism is
+  measured (595-pair matrix on live PG, byte-identical recompiles).
 - **5.2 → R2. Ablations.** Rules + Laya vs. rules-only vs. Laya-only;
   MCQ-on vs. MCQ-off; merge-tier with/without the v1.5 negated-tier fix;
   ontology size sweep.
-  **Current evidence state:** mechanisms exist and are unit/golden-tested
-  (with a mock client); no comparative runs on a research dataset.
+  **Current evidence state: MEASURED (mock personas) — 2026-09-29.** Full
+  9-config table in `Paper.md` §5.2 and `tests/experiments/results/ablation_summary.md`
+  (500 rows, `ablation.jsonl` committed). Headline: hybrid(A+B+C)+MCQ pooled
+  recall 1.000 / precision 0.942, 0 omissions, feature-exact 49/50, params
+  26/26; rules-only 0.922 recall, 10 omissions; Laya-only+MCQ 0.643; Laya-only
+  no-MCQ 0.093; MCQ-on is the completeness driver (hybrid omissions 65 → 0).
+  All 8 hallucinations confined to the two `high`-persona cases and invisible
+  to the golden partial submatch — caught by experiment-tier precision.
+  Open items: real-checkpoint runs (replaces the persona in the same schema),
+  vocab sweep, v1.5-tier-to-space vetting for the merge abscissa.
 - **5.3 → R3. Calibration & auto-accept gate.** ECE before/after temperature
   fit; auto-accept coverage-vs-correctness curve; threshold sweep anchored on
   0.75 (the shipped `CONFIDENCE_AUTO_ACCEPT`).
@@ -261,10 +273,14 @@ not match the harness (0.045); reconcile when the real model is measurable.
 1. ~~Author the golden dataset (30–50)~~ — **done**: 50 engine-pinned cases
    shipped (2026-09-28). Remaining: independent ground-truth annotation and
    splits before §5.1 runs.
-2. **Run the free three-mechanism ablation** (rules/Laya/hybrid) plus MCQ-on/off
-   on the 50 golden cases — mechanics exist today.
-3. **Build the baseline harness** (LLM e2e, LLM→`BackendSpec`, DbSmash) on the
-   golden set — begins before measured deployments land.
+2. ~~Run the free three-mechanism ablation (rules/Laya/hybrid) plus MCQ-on/off
+   on the 50 golden cases~~ — **done**: full 9-config table measured with mock
+   personas (2026-09-29), results committed. Remaining: fine-grained labels and
+   a real-model rerun on the same cases/schema.
+3. ~~Build the baseline harness (LLM e2e, LLM→BackendSpec, DbSmash) on the
+   golden set~~ — **done (2026-09-29)**: adapters + offline-scored unit tests;
+   LLM *runs* still gated on `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` (self-skip),
+   DbSmash on the external tool.
 4. **Real-Laya calibration** (blocked until Laya is installable or Phase-7
    fine-tuning decision is made); regenerate the fixture in the same schema.
    This step owns R3's primary endpoint: ECE < 0.1 **and** the auto-accept

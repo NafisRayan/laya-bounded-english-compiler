@@ -304,5 +304,222 @@ composition (idempotency + 595-pair matrix on live PostgreSQL), and the
 deployer (§18.15 stale-file cleanup, §18.16 error-injection with project
 reuse). The nightly end-to-end tier against real Supabase credentials exists
 and is credential-gated. Not yet done: real-model calibration pairs
-(R3's primary endpoint), baseline harness runs, and any comparative
-measurement — §4–§5 are empty until those land.
+(R3's primary endpoint), baseline runs against LLM backends, and any
+comparative measurement against external generators — §5.1/§5.3/§5.4 report
+the status of each.
+
+## 4. Experimental Setup
+
+### 4.1 Task and dataset
+
+The task (§3.1) is `compile : NL → BackendSpec → deployed project`. The
+golden corpus is **50 hand-crafted inputs** (`tests/golden/cases/`, spec
+§10.2) covering the full ontology surface — every feature, parameter branch,
+bucket purpose, derived edge function, role combination, and the display
+cases for negation and contradiction resolution. Each case pins: the input
+text; a Laya *persona* (`none` = empty model envelope, `default` = 0.5 noul
+answers, `high` = 0.95 noul answers); the `user_answers` a human would give
+the clarification loop; and the expected `BackendSpec` fragment (features,
+parameters, and, where relevant, roles, entities, buckets, edge functions).
+
+**Honesty note on the dataset.** The expected specs are *engine-pinned*:
+they were written and then confirmed by running the engine with the mock
+personas, so they are regression truth, not yet independent human
+annotation. Splits (train / golden / held-out) and independent annotation
+are part of the §4.4 protocol but not yet authored. All experiment numbers
+in §5.2 are therefore measurements of the *engine with the contract-test
+model double*, not of the real 421M checkpoint (which remains blocked on
+installation; §5.3).
+
+### 4.2 Baselines
+
+Per §4.3 of the outline, five baselines; their harness states today:
+
+1. **End-to-end LLM direct-to-SQL** — *built, gated.* `DirectSqlBaseline`
+   prompts an OpenAI/Anthropic model (pinned checkpoint ids; §4.4) for a
+   Supabase migration and scores artifact-level CREATE TABLE presence
+   against the case's gold entities. Constructs a real completer only when
+   `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` is set; otherwise self-skips
+   (credentials absent in this environment → no measured rows yet).
+2. **LLM → `BackendSpec` → same composer** — *built, gated.*
+   `BackendSpecBaseline` prompts the model (bounded to the ontology
+   vocabulary) for a `BackendSpec` JSON, parses it, runs it through the
+   *same* `recompute_spec` and fragment composer as Mechanism C's output, and
+   scores with the same fidelity metrics — isolating the contribution of the
+   IR from the generator. Self-skips without keys. The parse → spec → score
+   path is unit-tested offline with injected completers.
+3. **Rules-only** — *measured* (§5.2, mechanisms `A+B`).
+4. **Laya-only** — *measured* (§5.2, mechanism `C`, mock persona).
+5. **DbSmash / off-the-shelf generator** — adapter surface only; the tool is
+   external and not configured, so the adapter reports `skipped` with the
+   reason, matching the e2e tier's behavior.
+
+### 4.3 Metrics
+
+All metrics are computed from the golden labels (§4.1) against the spec a
+configuration produces (`tests/experiments/metrics.py`, runnable via
+`python -m tests.experiments.run_ablation`):
+
+- **Feature precision / recall** over the *positive* class (feature
+  enabled): `precision = TP / |predicted enabled|`, `recall = TP /
+  |gold enabled|`. A case with no gold-enabled features (pure-negation case)
+  scores 1.0 iff nothing was enabled.
+- **Silent-omission rate** (R1's primary endpoint) and **hallucinated-feature
+  count** = `|gold enabled \ predicted|` and `|predicted \ gold enabled|`.
+  Note the asymmetry: the golden suite's partial submatch (§18.13) asserts
+  presence but *cannot* catch additions — the precision half of this metric
+  is what surfaces them.
+- **Dimension exactness** for parameters, roles, entities, buckets, edge
+  functions, each scored only when the case pins that dimension; the empty
+  gold case (`no gold-true features`) is handled explicitly.
+- **MCQ burden** = the number of questions the clarification loop would put
+  to the user, measured as the untruncated residual question count of
+  `run_mcq_loop` with no user answers.
+- **Latency** = wall-clock ms per run (mock model ≈ 0.2–0.4 ms).
+- **Spec-exact** (all-match) = features exact *and* every pinned dimension
+  exact.
+
+### 4.4 Protocol
+
+Deterministic: mock personas are tape-like, so every row reproduces
+byte-for-byte (`ablation.jsonl` is committed). For the LLM baselines the
+protocol pins model versions (`gpt-4o`, `claude-sonnet-4-20250514`), ≥ 3
+seeds, a paired per-requirement comparison, and McNemar on omission /
+Wilcoxon signed-rank on continuous metrics (outline §4.4). The default Laya
+behaviors under measurement are the shipped mock personas; real-checkpoint
+measurements replace the persona on the same cases in the same JSON schema
+(R3, §5.3). `laya-typed-decisions` is intentionally out of scope (DoD #22).
+
+## 5. Results
+
+### 5.1 → R1. Fidelity vs. baselines
+
+**Current evidence state: no measured rows yet.** The harness is built and
+the golden corpus is fixed; every LLM baseline self-skips in this
+environment because no `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` is configured.
+Filling this section requires (i) credentials for §4.2.1/2/5, and (ii)
+independent ground-truth annotation so the golden expectations are not
+author-authored by the engine it measures.
+
+What *is* measurable today is the composition side of R1: the delivered
+`BackendSpec` compiles to SQL that applies cleanly twice across the 595-pair
+fragment matrix on live PostgreSQL 15, byte-identically for identical input
+(§3.5), giving the claim's determinism half a firm basis.
+
+### 5.2 → R2. Ablations (mechanism subset × MCQ on/off)
+
+Measurements on the 50 golden cases with the mock personas
+(`python -m tests.experiments.run_ablation`; full detail in
+`tests/experiments/results/ablation_summary.md`):
+
+| Config | macro R / P | pooled R / P | omissions | hallucinations | feature-exact | params (pinned) | MCQ count (mean) | ms (mean) |
+|---|---|---|---|---|---|---|---|---|
+| A only + MCQ | 0.702 / 0.960 | 0.550 / 1.000 | 58 | 0 | 21/50 | 16/26 | 6.58 | 0.3 |
+| A only (no MCQ) | 0.080 / 0.080 | 0.000 / 1.000 | 129 | 0 | 4/50 | 0/26 | 1.30 | 0.2 |
+| B only + MCQ | 0.972 / 1.000 | 0.922 / 1.000 | 10 | 0 | 48/50 | 19/26 | 6.70 | 0.3 |
+| A+B rules + MCQ | 0.972 / 1.000 | 0.922 / 1.000 | 10 | 0 | 48/50 | 25/26 | 6.54 | 0.3 |
+| A+B rules (no MCQ) | 0.397 / 0.720 | 0.419 / 1.000 | 75 | 0 | 4/50 | 6/26 | 2.14 | 0.2 |
+| C only (Laya) + MCQ | 0.742 / 0.984 | 0.643 / 0.912 | 46 | 8 | 22/50 | 13/26 | 6.94 | 0.3 |
+| C only (Laya) (no MCQ) | 0.120 / 0.104 | 0.093 / 0.600 | 117 | 8 | 5/50 | 0/26 | 1.58 | 0.3 |
+| **A+B+C hybrid + MCQ** | 1.000 / 0.984 | 1.000 / 0.942 | **0** | **8** | **49/50** | **26/26** | 6.74 | 0.4 |
+| A+B+C hybrid (no MCQ) | 0.425 / 0.704 | 0.496 / 0.889 | 65 | 8 | 5/50 | 7/26 | 2.34 | 0.3 |
+
+Four findings, each honest to its measurement setting (mock personas):
+
+1. **The clarification loop carries the completeness.** Across every
+   mechanism subset, disabling MCQ collapses recall (hybrid pooled recall
+   0.496 → 1.000 with MCQ on) and multiplies omissions (65 → 0). The loop's
+   residual question burden is low — ~6.5–6.9 questions per input for the
+   human-answerable configs, 2.34 for the interpretation-only floor — which
+   is the case for the always-ask-vs-auto-accept trade (§6).
+2. **Mechanism A (aliases) is a parameter supplier, not a feature detector.**
+   Alone it decides nothing (pooled recall 0.000 without MCQ) but lifts
+   parameters from 19/26 to 25/26 when added to B — provider, auth-method,
+   and lifetime params arrive only via exact matches.
+3. **Mechanism B (phrases) is the workhorse** on its own vocabulary: 0.922
+   pooled recall with MCQ, zero hallucinations, 48/50 feature-exact. This
+   corroborates the outline's R2 risk — on a bounded vocabulary rules carry
+   most of the load.
+4. **Mechanism C contributes exactly the residual—and that contribution has
+   two faces.** The hybrid's superiority over rules-only (0 omissions vs 10,
+   pooled recall 1.000 vs 0.922, 26/26 vs 25/26 params) is entirely carried
+   by the two `high`-persona cases, where features exist in the gold spec
+   that *no rule and no alias can see*: mechanism C genuinely extends
+   coverage. But the same two cases produce all 8 hallucinations: the
+   model proposes *every* capability at 0.95, and — this is the important
+   part — the golden suite's partial submatch does not catch the additions,
+   while the precision metric does (`laya_high_decides` enables ten
+   features for an input that names two). Under the design, this is R3's
+   job: 0.95 *raw* confidence must not survive as 0.95 *answer_confidence*
+   where the model is wrong (§5.3).
+
+### 5.3 → R3. Calibration and the auto-accept gate
+
+**Current evidence state: synthetic only, and it does not yet pass the
+gate.** The committed fixture (40-entry, `answer_confidence`+labels in the
+real JSON schema) measures ECE 0.045 < 0.1 (the §3.6 gate) — a unit test of
+the ECE formula and `fit_temperature`, not a model measurement. The
+temperature-fit demo (20-entry set) moves ECE 0.45 → 0.1047, stopping just
+above the gate at best T = 10.0 — the grid-search boundary, and > 5.0, so
+not persistable under the vendor clamp. **This section stays empty of model
+numbers.** The blocking gap is concrete: the vendored `laya` package
+(0.3.20) requires `torch` and an ~800 MB checkpoint download, neither
+available in this environment; the Phase-7 fine-tuning decision is likewise
+unmade. Until held-out `(answer_confidence, label)` pairs exist for the
+`english` checkpoint, R3 cannot be demonstrated, and the 8 hallucinations of
+§5.2 remain *uncalibrated* — they are the expected consequence of the
+vendor's shipped ECE distribution, not a failure of the gate.
+
+### 5.4 End-to-end (secondary)
+
+**Current evidence state: built, no measured deployments.** Composition +
+deployer + the nightly credential-gated e2e tier ship
+(`compiler/generator/`, `compiler/deployer/`, 595-pair matrix on live PG);
+no Supabase account is configured in this environment, so deployment
+success / first-attempt rate / time-to-spec / cost have no measured rows.
+Filling this section requires `SUPABASE_ACCESS_TOKEN` (+ org slug) — a
+credential, not a code gap.
+
+## 6. Discussion
+
+**The MCQ burden is the price of zero omission.** Interpretation alone
+reaches pooled recall 0.496 on these 50 inputs; the clarification loop
+closes the remaining 54% of recall at a cost of ~6.5 questions per input
+(human-answerable). Whether that is the right trade is exactly what the
+coverage-vs-correctness curve R3 must produce should settle: if 0.75
+auto-accept on calibrated confidence covers, say, 80% of decisions at ≥ 99%
+agreement, the marginal questions are the residual ambiguity users actually
+have — versus always-ask, which would pay the burden for decisions the
+system could take. The 2.34-question no-MCQ floor shows the loop is not
+padding: those are genuine undecideds, not noise (§5.2, finding 1).
+
+**Rules win the bounded vocabulary; the model earns its place narrowly.**
+On 48/50 cases rules+aliases alone already reconstruct the spec (0.922
+pooled recall, zero hallucinations). The model's measured contribution is
+real but thin and double-edged: it alone is near-useless (0.093 without
+MCQ), yet the two inputs whose requirements *no rule can see* are only
+resolvable through it, and its over-proposal is what precision metrics must
+catch. This is the honest shape of R2 on this vocabulary: not "the model
+wins", but "the hybrid is the only configuration with zero omission, and the
+model is the only mechanism that can see the long tail — if its confidence
+is calibrated".
+
+**The golden evaluation has a blind spot this setup exposes.** `spec_matches`
+(§18.13) checks that expected values appear in the output; it cannot flag
+output the gold set doesn't name. Eight hallucinated features passed the
+golden suite and were caught only by the experiment tier's precision half.
+Two consequences: (i) golden expectations should gain absence pinning
+(the empty-`features` convention the metrics module implements), and (ii)
+the paper must treat precision and recall as equally first-class — a purely
+recall-driven metric on this corpus would over-credit an over-confident
+model.
+
+**Where the layered design loses.** Rule and alias tables are finite; a
+paraphrase outside both the phrase rules and the ontology vocabulary falls
+to the model, and if the model is below the majority-class baseline (vendor
+benchmarks), fallback is MCQ or silence-flagging. The never-silently-omit
+invariant is preserved structurally (unparsed sentences become
+`clarify_unparsed`), but the *precision* of that guarantee scales with the
+rule tables and the calibrated coverage — never with raw generation. That
+is the paper's central trade, and it is the R1 sub-clause worth stating
+loudest: unsupported requirements are flagged, not guessed.
