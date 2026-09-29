@@ -1,9 +1,12 @@
 """ECE measurement gates (Developer Spec.md §18.17, §3.5; design:
 docs/superpowers/specs/2026-09-25-ece-calibration-design.md).
 
-The dataset is a pinned synthetic stand-in (real `laya` is not installed);
-measured (answer_confidence, label) pairs replace it in the same schema when
-the library is available — the gates do not change.
+`calibration_set.json` holds 500 MEASURED (answer_confidence, label) pairs:
+real `laya` 0.3.20, pinned `english` checkpoint, one pair per golden-case
+feature item (regenerate with
+`python -m tests.experiments.run_calibration`). `miscalibrated_set.json`
+stays synthetic on purpose: it demos the fit mechanics on a set that is
+deliberately wrong, which a well-calibrated real set cannot provide.
 """
 
 import json

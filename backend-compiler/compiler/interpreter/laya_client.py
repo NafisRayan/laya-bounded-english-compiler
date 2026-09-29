@@ -30,9 +30,11 @@ class LayaClient:
         from laya import Router
 
         # No models override — the library default is english ->
-        # ("convaiinnovations/laya", None). LRU caps at 2 loaded models,
-        # irrelevant since we only use english.
-        self.router = Router(device=self.device, preload=True)
+        # ("convaiinnovations/laya", None). Preload is pinned to the english
+        # checkpoint: the checkpoint pin means the other two can never serve
+        # a request here, so downloading them would be dead weight.
+        self.router = Router(device=self.device)
+        self.router.preload([CHECKPOINT])
         self.calibration = load_calibration()
 
     def predict(self, state: str, questions: dict) -> dict:

@@ -41,17 +41,20 @@ the repo, at `../../laya/`.
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored; harness proven against a live model — full sweep quota-blocked** | Provider quota reset; independent ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client); `tests/experiments/baselines.py` (Gemini completer default) |
-| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured (mock personas) — see §5.2 table; real-model runs pending** | Real Laya install (→ R3); fine-grained labels | `tests/experiments/run_ablation.py` + `results/ablation.jsonl`; `compiler/interpreter/pipeline.py` (mech. A/B/C) |
-| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — fit demo not under gate** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
+| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured (mock personas) — see §5.2 table; real-model rerun pending (checkpoint now installed)** | Fine-grained labels; ablation rerun with the real checkpoint | `tests/experiments/run_ablation.py` + `results/ablation.jsonl`; `compiler/interpreter/pipeline.py` (mech. A/B/C) |
+| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | **500 measured pairs** (real `english` checkpoint × golden cases) | **Measured — ECE 0.0951 < 0.1 (gate PASS); fit 0.0425 @ T = 1.40; sweep @ 0.75: 87.8% coverage / 80.0% correctness** | Independent ground-truth annotation; held-out pairs | `tests/experiments/run_calibration.py` + `results/calibration_pairs.jsonl`; `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/calibration_set.json` (measured) |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Measured — 1 real deployment, first-attempt success (39 s, free tier)** | Repeat runs for a rate; real-model interpreter (mock persona used) | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG, `tests/e2e/` |
 
-**Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
-pinned fixture whose per-bin accuracies were *chosen* to land under the 0.1 gate
-(`docs/superpowers/specs/2026-09-25-ece-calibration-design.md`). ECE 0.045 is a
-unit test of the ECE formula and temperature fitter, **not** a measurement of the
-model's calibration. The committed `ontology/versions/v1/calibration.json`
-(0.07 / 0.09, `needs_fit: false`) carries illustrative placeholder values that do
-not match the harness (0.045); reconcile when the real model is measurable.
+**Calibration honesty note:** the §18.17 gate fixture is now 500 measured
+`(answer_confidence, label)` pairs — real `laya` 0.3.20, pinned `english`
+checkpoint, one pair per golden-case feature item, labels derived from the
+engine-pinned gold (`python -m tests.experiments.run_calibration`). ECE
+0.0951 < 0.1 passes the gate **in-sample against the contract-test corpus**;
+it is not independent human annotation and not held out, and the 0.0951
+margin is thin. The deliberately-miscalibrated fit-demo set stays synthetic
+by design. `ontology/versions/v1/calibration.json` remains pass-through
+T = 1.0 per the spec's rule (fit only when the gate fails); the measured
+fit (T = 1.40 → 0.0425) is reported, not shipped.
 
 ---
 
@@ -203,17 +206,18 @@ not match the harness (0.045); reconcile when the real model is measurable.
 - **5.3 → R3. Calibration & auto-accept gate.** ECE before/after temperature
   fit; auto-accept coverage-vs-correctness curve; threshold sweep anchored on
   0.75 (the shipped `CONFIDENCE_AUTO_ACCEPT`).
-  **Current evidence state:** synthetic only, and it does not yet pass the
-  gate. ECE 0.045 < 0.1 (`test_ece_on_shipped_answer_confidence_is_acceptable`,
-  40-entry fixture) passes, but the temperature-fit demo
-  (`test_fit_temperature_improves_miscalibrated_set`) stops at 0.45 → 0.1047
-  (20-entry set) — still above the 0.1 gate, with best T = 10.0 sitting at the
-  grid-search bound (`compiler/interpreter/calibration.py`), not a converged
-  optimum; the vendor further clamps persisted temperatures to [0.5, 5.0], so
-  T = 10.0 is not enforceable. The demo therefore shows the fit *improves* a
-  deliberately miscalibrated set, not that it passes the gate on this fixture.
-  Replace with measured `(answer_confidence, label)` pairs in the same JSON
-  schema (design doc `2026-09-25-ece-calibration-design.md`).
+  **Current evidence state: MEASURED — 2026-09-29.** Real `laya` 0.3.20 +
+  torch 2.14 (CPU) in the venv; pinned `english` checkpoint fetched from the
+  Hub; 50 golden cases × feature items = **500 measured pairs**
+  (`python -m tests.experiments.run_calibration`). Headline: decision
+  accuracy 0.784; **raw ECE 0.0951 < 0.1 — gate PASS** on the shipped
+  `answer_confidence`; temperature fit **0.0951 → 0.0425 @ T = 1.40**
+  (inside the [0.5, 5.0] clamp; not shipped — the spec fits only on gate
+  failure); sweep at 0.75: **87.8% coverage / 80.0% correctness**, peaking
+  at 0.85 (70.6% / 82.4%), non-monotone by 0.95. The §18.17 gate fixture is
+  now the measured pairs (gates unchanged); the fit-demo set stays synthetic
+  on purpose. Honesty: labels are engine-pinned gold, in-sample, not
+  independent annotation; the 0.0951 margin is thin.
 - **5.4 End-to-end (secondary).** Deployment success, idempotency, time-to-spec,
   MCQ burden, cost/latency vs. LLM baseline.
   **Current evidence state: MEASURED — 2026-09-29.** One real deployment,
@@ -251,13 +255,14 @@ not match the harness (0.045); reconcile when the real model is measurable.
   bounded by the hybrid design; claims are scoped accordingly.
 
 ## 8. Conclusion
-- Recap R1–R3 in re-scoped form. Numbers that exist today: ECE 0.045
-  (synthetic fixture) and the temperature-fit demo 0.45 → 0.1047 — the latter
-  still above the 0.1 gate, so R3 is not yet demonstrated; the validation/MCQ
-  system. Two blockers remain before results are claimable: (i) baseline
-  harness runs on the 50-case golden set (with independent annotation; the
-  sweep is provider-quota-blocked mid-run), (ii) real-Laya calibration pairs.
-  Measured end-to-end deployment now exists (n=1, §5.4).
+- Recap R1–R3 in re-scoped form. Numbers that exist today: the mock-persona
+  ablation table (§5.2), measured real-checkpoint calibration — ECE 0.0951
+  < 0.1 in-sample, fit 0.0425 @ T = 1.40 (§5.3) — and a real end-to-end
+  deployment, first-attempt (n=1, §5.4). Remaining before results are fully
+  claimable: (i) the baseline sweep on the 50-case golden set with
+  independent annotation (quota-blocked mid-run), (ii) independent
+  ground-truth annotation + held-out splits, (iii) a real-checkpoint ablation
+  rerun.
 
 ---
 
@@ -268,14 +273,15 @@ not match the harness (0.045); reconcile when the real model is measurable.
 - **R2:** on the bounded vocabulary, rules-only may already carry the load —
   hybrid might not beat it, given the base checkpoint is below the
   majority-class baseline on typed decisions (vendor benchmark); MCQ burden
-  could erode the latency win.
-- **R3:** real held-out Laya ECE on the pinned `english` checkpoint is
-  *expected* to be ≥ 0.1 — the vendor measures 0.175 (typed-decisions,
-  `laya/BENCHMARKS.md`) and ~0.466 mean ECE as shipped — so `needs_fit` is
-  the expected path, not a tail risk. Open questions: can the in-repo fit
-  (temperatures clamped to [0.5, 5.0]) reproduce the vendor's refit
-  0.466 → 0.081 (`laya/README.md`)? The fit routine currently has no
-  production path; auto-accept coverage may collapse at threshold 0.75.
+  could erode the latency win. Partially informed now: the real checkpoint's
+  decision accuracy on golden noul questions is 0.784 (§5.3).
+- **R3:** the measured in-sample ECE (0.0951) passes, but thinly — a
+  held-out, independently annotated rerun could land ≥ 0.1 (vendor measures
+  0.175 on typed decisions), which flips the shipped pass-through to
+  `needs_fit`. Open questions: does the scalar T = 1.40 refit hold out of
+  sample, and does the auto-accept correctness collapse (measured 80.0% at
+  0.75, peak 82.4% at 0.85, non-monotone at 0.95) survive annotation? The
+  fit routine's production path stays unused while the gate passes.
 - **E2E:** the §7 composition engine and §8 generator/deployer have shipped
   (idempotency + 595-pair matrix on live PostgreSQL; remediation harness), and
   one real Supabase deployment succeeded first-attempt (§5.4, n=1). The residual
@@ -298,14 +304,18 @@ not match the harness (0.045); reconcile when the real model is measurable.
 4. ~~Run one real end-to-end deployment through the credential-gated e2e
    tier~~ — **done (2026-09-29)**: first-attempt success on a free-tier org,
    39 s create→verified, 5 live-API drift points fixed (§5.4).
-5. **Real-Laya calibration** (blocked until Laya is installable or Phase-7
-   fine-tuning decision is made); regenerate the fixture in the same schema.
-   This step owns R3's primary endpoint: ECE < 0.1 **and** the auto-accept
-   coverage-vs-correctness curve, plus the 0.75 threshold sweep.
+5. ~~Real-Laya calibration: install the library, measure
+   `(answer_confidence, label)` pairs, ECE, temperature fit, and the 0.75
+   sweep~~ — **done (2026-09-29)**: 500 measured pairs on the pinned
+   `english` checkpoint; ECE 0.0951 < 0.1 (gate PASS), fit 0.0425 @ T = 1.40,
+   sweep measured; §18.17 fixture swapped to the measured pairs. Remaining:
+   independent annotation + held-out rerun for the claim-grade number.
 6. ~~Write §1–§3 now~~ — **done**: `Paper.md` §1–§3 shipped (2026-09-28),
    sourced from spec §1–§6 and `initial idea.md`.
-7. **Write §4–§6 once runs land**; keep the ledger in sync as statuses flip
-   from Pending → Done.
+7. ~~Write §4–§6 once runs land~~ — **done (2026-09-29)**: §4–§6 written and
+   re-synced as each measurement landed (§5.2 ablation, §5.3 calibration,
+   §5.4 deployment, §5.1 quota state). Remaining: §7 conclusion polish once
+   the annotated held-out numbers land.
 
 ## Venue fit
 - Systems/SE (ICSE/FSE) — leads with deterministic compilation, the typed IR,

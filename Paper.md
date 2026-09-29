@@ -292,9 +292,10 @@ meaningful if the confidences it thresholds are honest. The in-repo fitter is
 a single scalar T (clamped to [0.5, 5.0] when persisted, matching the
 vendor's convention); the vendor fits per (question type, option count), and
 whether the scalar refit reproduces their measured 0.47 → 0.08 improvement is
-an open experimental question (§5.3, R3). **Honesty note:** the currently
-committed calibration fixtures are synthetic — they unit-test the ECE formula
-and the fitter, they are not a measurement of the model.
+an open experimental question (§5.3, R3). **Honesty note:** the §18.17 gate
+fixture is now 500 measured pairs (real `english` checkpoint on the golden
+corpus, §5.3); the deliberately-miscalibrated fit-demo set stays synthetic
+on purpose — a well-calibrated real set cannot demo the fit.
 
 ### 3.7 Evidence state
 
@@ -303,11 +304,12 @@ Implemented and tested end to end with mock-model doubles: interpretation
 composition (idempotency + 595-pair matrix on live PostgreSQL), and the
 deployer (§18.15 stale-file cleanup, §18.16 error-injection with project
 reuse). The end-to-end tier has now been run once against a real Supabase
-account, first-attempt success (§5.4), and the baseline harness has been
-exercised against a live LLM through its real code path (§5.1). Not yet
-done: real-model calibration pairs (R3's primary endpoint), the full
-baseline sweep (quota-blocked mid-run), and any comparative measurement
-against external generators — §5.1/§5.3/§5.4 report the status of each.
+account, first-attempt success (§5.4), the baseline harness has been
+exercised against a live LLM through its real code path (§5.1), and R3's
+primary endpoint has been measured on the real pinned checkpoint (§5.3).
+Not yet done: the full baseline sweep (quota-blocked mid-run), and any
+comparative measurement against external generators — §5.1/§5.3/§5.4 report
+the status of each.
 
 ## 4. Experimental Setup
 
@@ -327,10 +329,10 @@ parameters, and, where relevant, roles, entities, buckets, edge functions).
 they were written and then confirmed by running the engine with the mock
 personas, so they are regression truth, not yet independent human
 annotation. Splits (train / golden / held-out) and independent annotation
-are part of the §4.4 protocol but not yet authored. All experiment numbers
-in §5.2 are therefore measurements of the *engine with the contract-test
-model double*, not of the real 421M checkpoint (which remains blocked on
-installation; §5.3).
+are part of the §4.4 protocol but not yet authored. The §5.2 numbers are
+therefore measurements of the *engine with the contract-test model double*;
+the real 421M checkpoint is now installed and measured for calibration
+(§5.3), but the ablation grid has not been re-run with it.
 
 ### 4.2 Baselines
 
@@ -463,20 +465,38 @@ Four findings, each honest to its measurement setting (mock personas):
 
 ### 5.3 → R3. Calibration and the auto-accept gate
 
-**Current evidence state: synthetic only, and it does not yet pass the
-gate.** The committed fixture (40-entry, `answer_confidence`+labels in the
-real JSON schema) measures ECE 0.045 < 0.1 (the §3.6 gate) — a unit test of
-the ECE formula and `fit_temperature`, not a model measurement. The
-temperature-fit demo (20-entry set) moves ECE 0.45 → 0.1047, stopping just
-above the gate at best T = 10.0 — the grid-search boundary, and > 5.0, so
-not persistable under the vendor clamp. **This section stays empty of model
-numbers.** The blocking gap is concrete: the vendored `laya` package
-(0.3.20) requires `torch` and an ~800 MB checkpoint download, neither
-available in this environment; the Phase-7 fine-tuning decision is likewise
-unmade. Until held-out `(answer_confidence, label)` pairs exist for the
-`english` checkpoint, R3 cannot be demonstrated, and the 8 hallucinations of
-§5.2 remain *uncalibrated* — they are the expected consequence of the
-vendor's shipped ECE distribution, not a failure of the gate.
+**Measured (real `english` checkpoint, golden-derived labels).** With the
+vendored `laya` 0.3.20 installed in the venv (torch 2.14 CPU,
+transformers 5.17) and the pinned `english` checkpoint (421M ModernBERT,
+fetched from the Hub), Mechanism C's actual noul questions ran on all 50
+golden cases; each feature-item answer yields one
+`(answer_confidence, label)` pair against the case's gold expectation —
+**500 pairs, decision accuracy 0.784** at the engine's rule (`noul >= 0.5`).
+
+- **Raw ECE = 0.0951 < 0.1 — the §3.6 gate passes** on the shipped
+  `answer_confidence` (the vendor benchmark reports 0.175 for this
+  checkpoint on typed decisions; this task's binary noul questions
+  calibrate better). The committed §18.17 fixture is now these 500 measured
+  pairs, so the gate test measures the model, not a hand-authored set.
+- The temperature fit moves 0.0951 → **0.0425 at T = 1.40** — inside the
+  vendor's [0.5, 5.0] clamp, unlike the earlier synthetic demo's boundary
+  T = 10.0. Per the spec's decision rule (fit only when the gate fails),
+  the shipped `calibration.json` stays at pass-through T = 1.0.
+- **Auto-accept sweep:** at the shipped 0.75 threshold, 87.8% of decisions
+  auto-accept at **80.0% correctness** among them; the curve peaks at 0.85
+  (70.6% coverage, 82.4% correctness) and decays by 0.95 (18.6% coverage,
+  78.5%) — the highest-confidence bin is not the most accurate, so raising
+  the threshold is not monotonically safer. The §6 coverage-vs-correctness
+  question now has a measured curve
+  (`tests/experiments/results/calibration_summary.md`).
+
+**Honesty note.** Labels derive from the engine-pinned golden expectations:
+they measure the model against the contract-test corpus, in-sample — not
+against independent human annotation, and not held out. The §5.2
+hallucinations are no longer *uncalibrated* (the checkpoint's confidence now
+has a measured ECE on this corpus), but the 0.0951 margin to the 0.1 gate is
+thin; the claim-grade R3 number is a re-run on independently annotated
+held-out labels.
 
 ### 5.4 End-to-end (secondary)
 
@@ -510,16 +530,19 @@ mock-based deployer coverage cannot see any of it.
 
 ## 6. Discussion
 
-**The MCQ burden is the price of zero omission.** Interpretation alone
-reaches pooled recall 0.496 on these 50 inputs; the clarification loop
-closes the remaining 54% of recall at a cost of ~6.5 questions per input
-(human-answerable). Whether that is the right trade is exactly what the
-coverage-vs-correctness curve R3 must produce should settle: if 0.75
-auto-accept on calibrated confidence covers, say, 80% of decisions at ≥ 99%
-agreement, the marginal questions are the residual ambiguity users actually
-have — versus always-ask, which would pay the burden for decisions the
-system could take. The 2.34-question no-MCQ floor shows the loop is not
-padding: those are genuine undecideds, not noise (§5.2, finding 1).
+**The MCQ burden is the price of zero omission — and the curve now exists.**
+Interpretation alone reaches pooled recall 0.496 on these 50 inputs; the
+clarification loop closes the remaining 54% of recall at a cost of ~6.5
+questions per input (human-answerable). The measured coverage-vs-correctness
+curve (§5.3) prices the alternative: at the shipped 0.75 auto-accept, 87.8%
+of model decisions skip the question but only 80.0% of them are right —
+one in five auto-accepted decisions is wrong, far from the ≥ 99% agreement
+that would make the marginal questions "residual ambiguity users actually
+have". The measured curve says the opposite: on this checkpoint and corpus,
+auto-accept buys question-removal by selling correctness, and the 2.34
+questions per input of the no-MCQ floor are doing real work. A checkpoint
+refit (T = 1.40 halves ECE to 0.0425) or better annotation may move the
+trade, but the current numbers argue for asking.
 
 **Rules win the bounded vocabulary; the model earns its place narrowly.**
 On 48/50 cases rules+aliases alone already reconstruct the spec (0.922
