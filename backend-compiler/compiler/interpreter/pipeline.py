@@ -43,9 +43,17 @@ def laya_questions(ontology) -> dict:
     }
 
 
-def run_interpreter(text: str, ontology, laya) -> list[Candidate]:
-    """Run mechanisms A (exact), B (phrase+negation), C (Laya) and merge."""
-    a = exact_match(text)
-    b = phrase_match_with_negation(text)
-    c = candidates_from_laya_response(laya.predict(text, laya_questions(ontology)))
+def run_interpreter(text: str, ontology, laya,
+                    mechanisms: str = "ABC") -> list[Candidate]:
+    """Run a subset of mechanisms A (exact), B (phrase+negation), C (Laya).
+
+    `mechanisms` is a string of the letters 'A'/'B'/'C'. The default 'ABC'
+    runs all three; the ablation harness (§5.2) uses 'A', 'B', 'AB' and 'C'
+    to isolate each mechanism's contribution.
+    """
+    a = exact_match(text) if "A" in mechanisms else []
+    b = phrase_match_with_negation(text) if "B" in mechanisms else []
+    c = candidates_from_laya_response(
+        laya.predict(text, laya_questions(ontology))
+    ) if "C" in mechanisms else []
     return merge(a, b, c)
