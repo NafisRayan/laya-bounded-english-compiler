@@ -1,0 +1,328 @@
+"""Baseline adapters (Developer Spec.md §4.2), credential-gated.
+
+Baselines that need an external model/tool self-skip when their credentials
+are absent, mirroring the e2e tier. The two LLM baselines accept an injected
+``complete(system, user) -> str`` so the parse -> BackendSpec -> score path
+is fully testable offline; the real completers (OpenAI / Anthropic) are only
+constructed when the corresponding env key is set.
+
+Baselines:
+  1. End-to-end LLM direct-to-SQL  (artifact-level: table-presence scoring).
+  2. LLM -> BackendSpec JSON -> the SAME fragment composer (isolates the IR).
+  3. Rules-only / Laya-only  -> the ablation runner ('AB' / 'C'), already
+     measured on the golden corpus (see run_ablation.py).
+  4. DbSmash / off-the-shelf Supabase generator  -> external tool surface.
+
+Every run records the raw model output so failures are auditable.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from string import Template
+from typing import Any, Protocol, Sequence
+
+import httpx
+
+from compiler.ontology.loader import Ontology
+from compiler.spec.derive import recompute_spec
+from compiler.spec.models import BackendSpec
+from tests.experiments.metrics import CaseLabels, RunMetrics, score
+
+__all__ = [
+    "BACKEND_SPEC_SYSTEM_PROMPT",
+    "DIRECT_SQL_SYSTEM_PROMPT",
+    "BaselineResult",
+    "BackendSpecBaseline",
+    "DbSmashBaseline",
+    "DirectSqlBaseline",
+    "anthropic_completer",
+    "backend_spec_prompt",
+    "openai_completer",
+    "parse_backend_spec",
+    "table_names_from_sql",
+]
+
+BACKEND_SPEC_SYSTEM_PROMPT = Template("""\
+You are compiling a natural-language backend description into the BackendSpec \
+intermediate representation. Output ONE JSON object with exactly these keys: \
+version ("1.0"), ontology_version (1), features (a dict of feature id -> \
+bool), parameters (a dict of "feature.parameter" -> value), roles (a list of \
+role ids), rls_overrides ({}), entities (list of entity ids), buckets (list \
+of {name, public, rls_pattern, file_size_limit_mb}), edge_functions (list of \
+names), decisions ([]), defaulted ([]), unsupported ([]).
+
+Allowed feature ids: $features
+Allowed entity ids: $entities
+Allowed roles: $roles
+Parameter choices: $param_choices
+
+Only enable a feature if the description supports it; only include entities \
+that the text talks about. Emit nothing but the JSON.\
+""")
+
+DIRECT_SQL_SYSTEM_PROMPT = """\
+You are generating a Supabase SQL migration for a backend described in \
+natural language. Emit only SQL: CREATE TABLE statements, ADD FOREIGN KEY, \
+and RLS policies. Do not write commentary.\
+"""
+
+
+class LlmCompleter(Protocol):
+    def complete(self, system: str, user: str) -> str:
+        """Return the model's completion for a system/user prompt pair."""
+
+
+def openai_completer(model: str = "gpt-4o") -> LlmCompleter | None:
+    key = os.environ.get("OPENAI_API_KEY")
+    if not key:
+        return None
+    url = "https://api.openai.com/v1/chat/completions"
+
+    def complete(system: str, user: str) -> str:
+        resp = httpx.post(
+            url,
+            headers={"Authorization": f"Bearer {key}"},
+            json={"model": model, "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ]},
+            timeout=120.0,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+
+    return complete
+
+
+def anthropic_completer(model: str = "claude-sonnet-4-20250514") -> LlmCompleter | None:
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        return None
+    url = "https://api.anthropic.com/v1/messages"
+
+    def complete(system: str, user: str) -> str:
+        resp = httpx.post(
+            url,
+            headers={
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
+            },
+            json={"model": model, "max_tokens": 4000,
+                  "system": system, "messages": [{"role": "user", "content": [{"type": "text", "text": user}]}]},
+            timeout=120.0,
+        )
+        resp.raise_for_status()
+        return resp.json()["content"][0]["text"]
+
+    return complete
+
+
+@dataclass
+class BaselineResult:
+    baseline: str
+    case: str
+    skipped: bool
+    skip_reason: str | None = None
+    metrics: RunMetrics | None = None
+    extra: dict[str, int] = field(default_factory=dict)
+    raw_output: str = ""
+    spec: BackendSpec | None = None
+
+
+def score_baseline(result: BaselineResult, labels: CaseLabels,
+                   case_name: str) -> BaselineResult:
+    """Attach fidelity metrics to a baseline run against the case's labels."""
+    if result.spec is not None:
+        result.metrics = score(result.spec, labels, case=case_name,
+                               mechanisms=result.baseline, mcq=False)
+    return result
+
+
+def _vocabulary(ontology: Ontology) -> dict[str, str]:
+    param_choices = {
+        f"{fid}.{pid}": ",".join(p.options) if p.options else p.type
+        for fid, fdef in ontology.features.items()
+        for pid, p in fdef.parameters.items()
+    }
+    return {
+        "features": ", ".join(sorted(ontology.features)),
+        "entities": ", ".join(sorted(ontology.entities)),
+        "roles": ", ".join(sorted(ontology.roles)),
+        "param_choices": "; ".join(f"{k} in {{{v}}}" for k, v in sorted(param_choices.items())),
+    }
+
+
+def backend_spec_prompt(input_text: str, ontology: Ontology) -> str:
+    """The one-shot user prompt for the BackendSpec-isolating baseline."""
+    return f"Backend description:\n{input_text}\n\nEmit the BackendSpec JSON."
+
+
+def parse_backend_spec(text: str, ontology: Ontology,
+                       case_name: str = "") -> BackendSpec | None:
+    """Extract a BackendSpec from model output; returns None on parse failure.
+
+    Tolerates fenced JSON and leading prose; fills required bookkeeping
+    fields (decisions/defaulted/unsupported) with empty lists.
+    """
+    cleaned = text.strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", cleaned, re.DOTALL)
+    if fenced:
+        cleaned = fenced.group(1)
+    else:
+        start, end = cleaned.find("{"), cleaned.rfind("}")
+        if start >= 0 and end > start:
+            cleaned = cleaned[start:end + 1]
+    try:
+        data = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict):
+        return None
+    data.setdefault("version", "1.0")
+    data.setdefault("ontology_version", ontology.version)
+    data.setdefault("created_at", datetime.now(timezone.utc).isoformat())
+    data.setdefault("rls_overrides", {})
+    data.setdefault("entities", [])
+    data.setdefault("buckets", [])
+    data.setdefault("edge_functions", [])
+    data.setdefault("decisions", [])
+    data.setdefault("defaulted", [])
+    data.setdefault("unsupported", [])
+    data["features"] = data.get("features") or {}
+    data["parameters"] = data.get("parameters") or {}
+    data["roles"] = data.get("roles") or []
+    try:
+        spec = BackendSpec.model_validate(data)
+    except Exception:
+        return None
+    try:
+        return recompute_spec(spec, ontology)
+    except Exception:
+        return spec
+
+
+def table_names_from_sql(sql: str) -> list[str]:
+    """CREATE TABLE names in generated SQL (artifact-level baseline scoring)."""
+    names = []
+    for m in re.finditer(
+        r"CREATE TABLE(?:\s+IF NOT EXISTS)?\s+(?:\"|`)?([A-Za-z_][A-Za-z0-9_]*)(?:\"|`)?",
+        sql, re.IGNORECASE | re.DOTALL):
+        name = m.group(1)
+        if name not in names:
+            names.append(name)
+    return names
+
+
+class BackendSpecBaseline:
+    """Baseline 2: LLM -> BackendSpec JSON -> same composer (isolates the IR).
+
+    Unless a completer is injected (offline tests / fixtures), construction
+    fails-fast with a null completer that self-reports as unavailable.
+    """
+
+    name = "llm_backend_spec"
+
+    def __init__(self, completer: LlmCompleter | None = None,
+                 ontology: Ontology | None = None):
+        if completer is None:
+            self._completer = openai_completer() or anthropic_completer()
+        else:
+            self._completer = completer
+        self._ontology: Ontology | None = ontology
+
+    def available(self) -> bool:
+        return self._completer is not None and self._ontology is not None
+
+    def run(self, input_text: str, case_name: str = "",
+            ontology: Ontology | None = None) -> BaselineResult:
+        if not self.available():
+            return BaselineResult(
+                baseline=self.name, case=case_name, skipped=True,
+                skip_reason="no LLM credentials (OPENAI_API_KEY / ANTHROPIC_API_KEY)",
+            )
+        ont = ontology or self._ontology
+        assert ont is not None and self._completer is not None
+        system = BACKEND_SPEC_SYSTEM_PROMPT.substitute(**_vocabulary(ont))
+        try:
+            raw = self._completer.complete(system, backend_spec_prompt(input_text, ont))
+        except Exception as exc:  # network / vendor error -> skip, keep raw
+            return BaselineResult(baseline=self.name, case=case_name,
+                                  skipped=True, skip_reason=f"LLM call failed: {exc}")
+        spec = parse_backend_spec(raw, ont, case_name=case_name)
+        return BaselineResult(
+            baseline=self.name, case=case_name, skipped=False,
+            metrics=None, raw_output=raw, spec=spec,
+        )
+
+
+class DirectSqlBaseline:
+    """Baseline 1: end-to-end LLM direct-to-SQL.
+
+    Artifact-level scoring: the gold set pins entity lists per case; we
+    report how many gold entity tables appear as CREATE TABLE in the output.
+    """
+
+    name = "llm_direct_sql"
+
+    def __init__(self, completer: LlmCompleter | None = None):
+        if completer is None:
+            self._completer = openai_completer() or anthropic_completer()
+        else:
+            self._completer = completer
+
+    def available(self) -> bool:
+        return self._completer is not None
+
+    def run(self, input_text: str, case_name: str = "",
+            gold_entities: Sequence[str] | None = None) -> BaselineResult:
+        if not self.available():
+            return BaselineResult(
+                baseline=self.name, case=case_name, skipped=True,
+                skip_reason="no LLM credentials (OPENAI_API_KEY / ANTHROPIC_API_KEY)",
+            )
+        assert self._completer is not None
+        try:
+            raw = self._completer.complete(DIRECT_SQL_SYSTEM_PROMPT, input_text)
+        except Exception as exc:
+            return BaselineResult(baseline=self.name, case=case_name,
+                                  skipped=True, skip_reason=f"LLM call failed: {exc}")
+        tables = set(table_names_from_sql(raw))
+        gold = set(gold_entities or [])
+        return BaselineResult(
+            baseline=self.name, case=case_name, skipped=False,
+            extra={"tables_found": len(tables), "gold_tables": len(gold),
+                   "tables_hit": len(tables & gold)},
+            raw_output=raw,
+        )
+
+
+class DbSmashBaseline:
+    """Baseline 5: off-the-shelf Supabase generator (external tool surface).
+
+    Not installed/configured in this repo; the adapter records the reason so
+    the pipeline degrades gracefully, matching how the e2e tier self-skips.
+    """
+
+    name = "dbsmash"
+
+    def available(self) -> bool:
+        return False
+
+    def run(self, input_text: str, case_name: str = "") -> BaselineResult:
+        return BaselineResult(
+            baseline=self.name, case=case_name, skipped=True,
+            skip_reason="DbSmash is an external tool; not configured in this repo",
+        )
+
+
+def all_baselines(ontology: Ontology) -> list[Any]:
+    return [
+        BackendSpecBaseline(ontology=ontology),
+        DirectSqlBaseline(),
+        DbSmashBaseline(),
+    ]

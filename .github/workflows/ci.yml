@@ -34,9 +34,9 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check compiler tests
       - run: mypy compiler
-      - name: Unit + golden + idempotency + fragment matrix
+      - name: Unit + golden + experiments + idempotency + fragment matrix
         run: |
-          pytest tests/unit tests/golden tests/integration \
+          pytest tests/unit tests/golden tests/experiments tests/integration \
             --cov=compiler --cov-report=xml --cov-fail-under=80 \
             -x -q
         env:
