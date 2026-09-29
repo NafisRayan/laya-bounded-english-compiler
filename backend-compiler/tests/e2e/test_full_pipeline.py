@@ -2,7 +2,7 @@
 import pytest
 import requests
 
-from compiler.deployer.deployer import deploy_spec
+from compiler.deployer.deployer import deploy_spec, link_project
 from compiler.generator.composer import compose
 from compiler.interpreter.pipeline import run_interpreter
 from compiler.mcq.pipeline import run_mcq_loop
@@ -27,10 +27,11 @@ def test_full_pipeline_creates_working_project(
     assert len(compose(spec, ontology)) > 0
 
     ref = temp_supabase_project["ref"]
-    result = deploy_spec(spec, ref, "test-password-1234567890")
+    link_project(ref, temp_supabase_project["db_pass"])
+    result = deploy_spec(spec, ref, temp_supabase_project["db_pass"])
     assert result.success
 
-    tables = requests.get(
+    tables = requests.post(
         f"https://api.supabase.com/v1/projects/{ref}/database/query",
         headers={"Authorization": f"Bearer {temp_supabase_project['token']}"},
         json={"query": "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"},
@@ -38,7 +39,7 @@ def test_full_pipeline_creates_working_project(
     names = {t["tablename"] for t in tables}
     assert {"listings", "bookings", "messages"} <= names
 
-    buckets = requests.get(
+    buckets = requests.post(
         f"https://api.supabase.com/v1/projects/{ref}/database/query",
         headers={"Authorization": f"Bearer {temp_supabase_project['token']}"},
         json={"query": "SELECT id FROM storage.buckets"},

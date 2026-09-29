@@ -18,7 +18,13 @@ from functools import lru_cache
 from pathlib import Path
 
 from compiler.deployer.auth_config import configure_auth
-from compiler.deployer.config import ORG_SLUG, REGION, generate_db_pass, project_name
+from compiler.deployer.config import (
+    ORG_SLUG,
+    REGION,
+    generate_db_pass,
+    project_name,
+    supabase_cli,
+)
 from compiler.deployer.edge_functions import deploy_edge_functions
 from compiler.deployer.errors import (
     MigrationError,
@@ -49,7 +55,7 @@ def link_project(ref: str, db_pass: str) -> None:
     env = os.environ.copy()
     env["SUPABASE_DB_PASSWORD"] = db_pass
     subprocess.run(
-        ["supabase", "link", "--project-ref", ref],
+        supabase_cli("link", "--project-ref", ref),
         check=True, capture_output=True, text=True, env=env,
     )
 
@@ -68,7 +74,7 @@ def apply_migrations(ref: str, db_pass: str, migrations: list[Migration]) -> Non
     env = os.environ.copy()
     env["SUPABASE_DB_PASSWORD"] = db_pass
     result = subprocess.run(
-        ["supabase", "db", "push", "--include-all"],
+        supabase_cli("db", "push", "--include-all"),
         check=False, capture_output=True, text=True, env=env,
     )
     if result.returncode != 0:

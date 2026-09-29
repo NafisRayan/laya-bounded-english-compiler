@@ -40,10 +40,10 @@ the repo, at `../../laya/`.
 
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
-| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored; harness built — LLM runs pending** | LLM API keys; independent ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client); `tests/experiments/baselines.py` |
+| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored; harness proven against a live model — full sweep quota-blocked** | Provider quota reset; independent ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client); `tests/experiments/baselines.py` (Gemini completer default) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured (mock personas) — see §5.2 table; real-model runs pending** | Real Laya install (→ R3); fine-grained labels | `tests/experiments/run_ablation.py` + `results/ablation.jsonl`; `compiler/interpreter/pipeline.py` (mech. A/B/C) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | Pinned fixtures (synthetic) | **Built (synthetic) — fit demo not under gate** / blocked for real | Installable real Laya; held-out `(answer_confidence, label)` pairs | `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/` |
-| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Built — runs pending** (no measured deployments) | Real Supabase credentials/runs | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG |
+| E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Measured — 1 real deployment, first-attempt success (39 s, free tier)** | Repeat runs for a rate; real-model interpreter (mock persona used) | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG, `tests/e2e/` |
 
 **Calibration honesty note:** the ledger's R3 rows rest on a hand-authored
 pinned fixture whose per-bin accuracies were *chosen* to land under the 0.1 gate
@@ -142,16 +142,17 @@ not match the harness (0.045); reconcile when the real model is measurable.
   current feature coverage, and annotation of ground-truth `BackendSpec` per
   input (the case expectations are engine-pinned regression truth, not yet
   independent annotations).
-- **4.2 Baselines** (adapters BUILT 2026-09-29; LLM runs credential-gated):
-  1. End-to-end LLM (e.g. GPT-4o / Claude) direct-to-SQL — `DirectSqlBaseline`.
+- **4.2 Baselines** (adapters BUILT 2026-09-29; Gemini wired as the default
+  completer — full sweep quota-blocked):
+  1. End-to-end LLM (Gemini / GPT-4o / Claude) direct-to-SQL — `DirectSqlBaseline`.
   2. End-to-end LLM → `BackendSpec` → same fragment composer (isolates the IR)
      — `BackendSpecBaseline`, parse → spec → score unit-tested offline.
   3. Rules-only: mechanisms A + B, no Laya — measured (§5.2).
   4. Laya-only: mechanism C, no rules — measured (§5.2, mock persona).
   5. DbSmash / off-the-shelf Supabase generator — adapter only (external tool).
-  Baselines 3 and 4 are free (one pipeline); 1 and 2 need `OPENAI_API_KEY` /
-  `ANTHROPIC_API_KEY` (absent here → self-skip, like the e2e tier); 5 needs the
-  external tool configured.
+  Baselines 3 and 4 are free (one pipeline); 1 and 2 take a live provider key
+  (`GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`, loaded from
+  `.env`) and self-skip without one; 5 needs the external tool configured.
 - **4.3 Metrics** (precise definitions; formulas where cheap):
   - Silent-omission rate = requirements in the NL input absent from the final
     `BackendSpec` ÷ total requirements (golden-annotated).
@@ -181,8 +182,10 @@ not match the harness (0.045); reconcile when the real model is measurable.
 - **5.1 → R1. Spec fidelity vs. baselines.** Silent-omission rate,
   hallucinated-table rate, exact-match, per baseline.
   **Current evidence state:** harness built, golden set fixed (50 engine-pinned
-  regression cases, no independent annotation yet); no measured rows — LLM
-  baselines self-skip without API keys. Composition-side determinism is
+  regression cases, no independent annotation yet); the Gemini completer was
+  driven through the real code path and emitted measured rows, but the full
+  50-case sweep stopped on the provider's free-tier daily quota (persistent
+  `429`; the runner resumes). Composition-side determinism is
   measured (595-pair matrix on live PG, byte-identical recompiles).
 - **5.2 → R2. Ablations.** Rules + Laya vs. rules-only vs. Laya-only;
   MCQ-on vs. MCQ-off; merge-tier with/without the v1.5 negated-tier fix;
@@ -213,8 +216,17 @@ not match the harness (0.045); reconcile when the real model is measurable.
   schema (design doc `2026-09-25-ece-calibration-design.md`).
 - **5.4 End-to-end (secondary).** Deployment success, idempotency, time-to-spec,
   MCQ burden, cost/latency vs. LLM baseline.
-  **Current evidence state:** built (composition + deployer + nightly
-  credential-gated e2e tier) — no measured deployments yet.
+  **Current evidence state: MEASURED — 2026-09-29.** One real deployment,
+  first-attempt success: project created via the Management API (smart-group
+  region), 29 migrations applied with the CLI, auth configured, 2 edge
+  functions deployed server-side (`--use-api`), and the live database
+  verified (`listings`/`bookings`/`messages` tables + `listings` bucket);
+  39 s create→verified, free tier ($0 marginal). Interpreter used the mock
+  persona, so this measures deployment, not model latency. n=1: evidence of
+  deployability, not a first-attempt *rate*. Five live-API drift points found
+  and fixed (region codes, `/health` `services` param + payload shape, npm
+  `.cmd` shim, esm.sh-blocked Docker bundling, POST-only `database/query`) —
+  see Paper §5.4.
 
 ## 6. Discussion
 - **Source:** spec §3.6 coverage check, DoD #6/#11; limitations of negation
@@ -242,10 +254,10 @@ not match the harness (0.045); reconcile when the real model is measurable.
 - Recap R1–R3 in re-scoped form. Numbers that exist today: ECE 0.045
   (synthetic fixture) and the temperature-fit demo 0.45 → 0.1047 — the latter
   still above the 0.1 gate, so R3 is not yet demonstrated; the validation/MCQ
-  system. Three blockers remain before results are claimable: (i) baseline
-  harness runs on the 50-case golden set (with independent annotation), (ii)
-  real-Laya calibration pairs, (iii) measured end-to-end deployments — the
-  engines ship, the numbers do not exist yet.
+  system. Two blockers remain before results are claimable: (i) baseline
+  harness runs on the 50-case golden set (with independent annotation; the
+  sweep is provider-quota-blocked mid-run), (ii) real-Laya calibration pairs.
+  Measured end-to-end deployment now exists (n=1, §5.4).
 
 ---
 
@@ -265,9 +277,11 @@ not match the harness (0.045); reconcile when the real model is measurable.
   0.466 → 0.081 (`laya/README.md`)? The fit routine currently has no
   production path; auto-accept coverage may collapse at threshold 0.75.
 - **E2E:** the §7 composition engine and §8 generator/deployer have shipped
-  (idempotency + 595-pair matrix on live PostgreSQL; remediation harness) —
-  but no deployment *evidence* exists until real Supabase runs happen, so the
-  paper must not imply end-to-end results.
+  (idempotency + 595-pair matrix on live PostgreSQL; remediation harness), and
+  one real Supabase deployment succeeded first-attempt (§5.4, n=1). The residual
+  risk is drift: every break the live API exposed was invisible to mocks, so
+  the paper must scope end-to-end claims to the measured run and not imply a
+  success *rate*.
 
 ## Critical path (evidence-led order)
 1. ~~Author the golden dataset (30–50)~~ — **done**: 50 engine-pinned cases
@@ -279,15 +293,18 @@ not match the harness (0.045); reconcile when the real model is measurable.
    a real-model rerun on the same cases/schema.
 3. ~~Build the baseline harness (LLM e2e, LLM→BackendSpec, DbSmash) on the
    golden set~~ — **done (2026-09-29)**: adapters + offline-scored unit tests;
-   LLM *runs* still gated on `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` (self-skip),
-   DbSmash on the external tool.
-4. **Real-Laya calibration** (blocked until Laya is installable or Phase-7
+   Gemini wired as the default completer. Remaining: the full sweep
+   (provider-quota-blocked mid-run; runner resumes), DbSmash (external tool).
+4. ~~Run one real end-to-end deployment through the credential-gated e2e
+   tier~~ — **done (2026-09-29)**: first-attempt success on a free-tier org,
+   39 s create→verified, 5 live-API drift points fixed (§5.4).
+5. **Real-Laya calibration** (blocked until Laya is installable or Phase-7
    fine-tuning decision is made); regenerate the fixture in the same schema.
    This step owns R3's primary endpoint: ECE < 0.1 **and** the auto-accept
    coverage-vs-correctness curve, plus the 0.75 threshold sweep.
-5. ~~Write §1–§3 now~~ — **done**: `Paper.md` §1–§3 shipped (2026-09-28),
+6. ~~Write §1–§3 now~~ — **done**: `Paper.md` §1–§3 shipped (2026-09-28),
    sourced from spec §1–§6 and `initial idea.md`.
-6. **Write §4–§6 once runs land**; keep the ledger in sync as statuses flip
+7. **Write §4–§6 once runs land**; keep the ledger in sync as statuses flip
    from Pending → Done.
 
 ## Venue fit

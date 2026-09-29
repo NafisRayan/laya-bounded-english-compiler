@@ -20,11 +20,13 @@ from __future__ import annotations
 
 import json
 import os
+import random
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from string import Template
-from typing import Any, Protocol, Sequence
+from typing import Any, Callable, Protocol, Sequence
 
 import httpx
 
@@ -42,6 +44,7 @@ __all__ = [
     "DirectSqlBaseline",
     "anthropic_completer",
     "backend_spec_prompt",
+    "gemini_completer",
     "openai_completer",
     "parse_backend_spec",
     "table_names_from_sql",
@@ -77,6 +80,16 @@ class LlmCompleter(Protocol):
         """Return the model's completion for a system/user prompt pair."""
 
 
+class _FnCompleter:
+    """Expose a plain (system, user) -> str function as an LlmCompleter."""
+
+    def __init__(self, fn: Callable[[str, str], str]) -> None:
+        self._fn = fn
+
+    def complete(self, system: str, user: str) -> str:
+        return self._fn(system, user)
+
+
 def openai_completer(model: str = "gpt-4o") -> LlmCompleter | None:
     key = os.environ.get("OPENAI_API_KEY")
     if not key:
@@ -96,7 +109,7 @@ def openai_completer(model: str = "gpt-4o") -> LlmCompleter | None:
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"]
 
-    return complete
+    return _FnCompleter(complete)
 
 
 def anthropic_completer(model: str = "claude-sonnet-4-20250514") -> LlmCompleter | None:
@@ -119,7 +132,57 @@ def anthropic_completer(model: str = "claude-sonnet-4-20250514") -> LlmCompleter
         resp.raise_for_status()
         return resp.json()["content"][0]["text"]
 
-    return complete
+    return _FnCompleter(complete)
+
+
+def gemini_completer(model: str | None = None) -> LlmCompleter | None:
+    """Google Gemini completer via the REST generateContent endpoint.
+
+    Gated on ``GEMINI_API_KEY`` (falls back to ``GOOGLE_API_KEY``); model
+    defaults to ``gemini-3.5-flash`` (override with ``GEMINI_MODEL``). Uses
+    the public REST API so no SDK dependency is needed. Retries transient
+    failures (429 / 5xx / network) with backoff; ``Retry-After`` (when
+    present) overrides the 429 wait, which otherwise grows per attempt.
+    A fixed inter-request pause can be set with ``GEMINI_PACING_MS``.
+    """
+    key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if not key:
+        return None
+    model = model or os.environ.get("GEMINI_MODEL") or "gemini-3.5-flash"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+    def complete(system: str, user: str) -> str:
+        body = {
+            "system_instruction": {"parts": [{"text": system}]},
+            "contents": [{"role": "user", "parts": [{"text": user}]}],
+        }
+        kwargs: dict[str, Any] = {"params": {"key": key}, "json": body, "timeout": 120.0}
+        pacing_s = int(os.environ.get("GEMINI_PACING_MS", "0")) / 1000.0
+        retry_after_s = [10.0, 30.0, 60.0, 120.0]
+        delay_s = [2.0, 4.0, 8.0, 16.0]
+        last: Exception | None = None
+        for attempt in range(4):
+            if pacing_s and attempt == 0:
+                time.sleep(pacing_s)
+            try:
+                resp = httpx.post(url, **kwargs)
+                if resp.status_code in (408, 429, 500, 502, 503, 504):
+                    wait = retry_after_s[attempt] if resp.status_code == 429 else delay_s[attempt]
+                    header = resp.headers.get("Retry-After")
+                    if header and header.isdigit():
+                        wait = max(wait, float(header))
+                    time.sleep(wait + random.random())
+                    last = RuntimeError(f"HTTP {resp.status_code}")
+                    continue
+                resp.raise_for_status()
+                parts = resp.json()["candidates"][0]["content"]["parts"]
+                return "".join(p.get("text", "") for p in parts)
+            except httpx.HTTPError as exc:
+                time.sleep(delay_s[attempt] + random.random())
+                last = exc
+        raise RuntimeError(f"Gemini call failed after retries: {last}")
+
+    return _FnCompleter(complete)
 
 
 @dataclass
@@ -230,7 +293,7 @@ class BackendSpecBaseline:
     def __init__(self, completer: LlmCompleter | None = None,
                  ontology: Ontology | None = None):
         if completer is None:
-            self._completer = openai_completer() or anthropic_completer()
+            self._completer = gemini_completer() or openai_completer() or anthropic_completer()
         else:
             self._completer = completer
         self._ontology: Ontology | None = ontology
@@ -243,7 +306,8 @@ class BackendSpecBaseline:
         if not self.available():
             return BaselineResult(
                 baseline=self.name, case=case_name, skipped=True,
-                skip_reason="no LLM credentials (OPENAI_API_KEY / ANTHROPIC_API_KEY)",
+                skip_reason=("no LLM credentials "
+                             "(GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY)"),
             )
         ont = ontology or self._ontology
         assert ont is not None and self._completer is not None
@@ -271,7 +335,7 @@ class DirectSqlBaseline:
 
     def __init__(self, completer: LlmCompleter | None = None):
         if completer is None:
-            self._completer = openai_completer() or anthropic_completer()
+            self._completer = gemini_completer() or openai_completer() or anthropic_completer()
         else:
             self._completer = completer
 
@@ -283,7 +347,8 @@ class DirectSqlBaseline:
         if not self.available():
             return BaselineResult(
                 baseline=self.name, case=case_name, skipped=True,
-                skip_reason="no LLM credentials (OPENAI_API_KEY / ANTHROPIC_API_KEY)",
+                skip_reason=("no LLM credentials "
+                             "(GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY)"),
             )
         assert self._completer is not None
         try:

@@ -8,9 +8,12 @@ environment.
 
 from __future__ import annotations
 
+import httpx
+
 from tests.experiments.baselines import (
     BackendSpecBaseline,
     DirectSqlBaseline,
+    gemini_completer,
     parse_backend_spec,
     score_baseline,
     table_names_from_sql,
@@ -104,6 +107,92 @@ def test_direct_sql_baseline_injected_completer_counts_tables():
                           gold_entities=["listings", "bookings", "reviews"])
     assert not result.skipped
     assert result.extra == {"tables_found": 2, "gold_tables": 3, "tables_hit": 2}
+
+
+def test_gemini_completer_absent_key_returns_none(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    assert gemini_completer() is None
+
+
+def test_gemini_completer_prefers_gemini_key(monkeypatch):
+    import tests.experiments.baselines as baselines
+
+    gem, oai, ant = object(), object(), object()
+    monkeypatch.setattr(baselines, "gemini_completer", lambda *a, **k: gem)
+    monkeypatch.setattr(baselines, "openai_completer", lambda *a, **k: oai)
+    monkeypatch.setattr(baselines, "anthropic_completer", lambda *a, **k: ant)
+    assert baselines.BackendSpecBaseline()._completer is gem
+    assert baselines.DirectSqlBaseline()._completer is gem
+
+    monkeypatch.setattr(baselines, "gemini_completer", lambda *a, **k: None)
+    assert baselines.BackendSpecBaseline()._completer is oai
+    monkeypatch.setattr(baselines, "openai_completer", lambda *a, **k: None)
+    assert baselines.DirectSqlBaseline()._completer is ant
+    monkeypatch.setattr(baselines, "anthropic_completer", lambda *a, **k: None)
+    assert baselines.BackendSpecBaseline()._completer is None
+
+
+def test_gemini_completer_posts_to_generate_content_and_parses(monkeypatch):
+    class FakeResp:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        @staticmethod
+        def json():
+            return {"candidates": [
+                {"content": {"parts": [{"text": '{"features": {"bookings": true}}'}]}},
+            ]}
+
+    captured = {}
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return FakeResp()
+
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(httpx, "post", fake_post)
+    completer = gemini_completer()
+    assert completer is not None
+    out = completer.complete("be strict", "a marketplace")
+    assert out == '{"features": {"bookings": true}}'
+    assert "models/gemini-3.5-flash:generateContent" in captured["url"]
+    assert captured["kwargs"]["params"] == {"key": "test-key"}
+    assert captured["kwargs"]["json"]["system_instruction"]["parts"][0]["text"] == "be strict"
+    assert captured["kwargs"]["json"]["contents"][0]["parts"][0]["text"] == "a marketplace"
+
+
+def test_gemini_completer_retries_transient_503(monkeypatch):
+    import tests.experiments.baselines as baselines
+
+    calls = {"n": 0}
+
+    class FlakyResp:
+        def __init__(self) -> None:
+            self.status_code = 503 if calls["n"] == 1 else 200
+            self.headers = {}
+
+        def raise_for_status(self):
+            return None
+
+        @staticmethod
+        def json():
+            return {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]}
+
+    def fake_post(url, **kwargs):
+        calls["n"] += 1
+        return FlakyResp()
+
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(baselines.random, "random", lambda: 0.0)
+    monkeypatch.setattr(httpx, "post", fake_post)
+    completer = gemini_completer()
+    assert completer is not None
+    assert completer.complete("s", "u") == "ok"
+    assert calls["n"] == 2
 
 
 def test_baselines_self_skip_without_credentials(ontology):

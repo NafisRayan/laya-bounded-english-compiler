@@ -18,9 +18,12 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+from tests._dotenv import load_dotenv
 from tests.experiments.baselines import BaselineResult, all_baselines, score_baseline
 from tests.experiments.metrics import extract_labels
 from tests.experiments.runner import iter_cases, load_test_ontology
+
+load_dotenv()
 
 RESULTS_DIR = Path(__file__).parent / "results"
 
@@ -37,30 +40,51 @@ def main(argv: list[str] | None = None) -> int:
     if args.limit:
         cases = cases[: args.limit]
 
-    rows: list[dict] = []
-    by_name: dict[str, dict] = {}
-    for baseline in all_baselines(ontology):
-        by_name[baseline.name] = {"runs": 0, "skipped": 0, "measured": 0}
-        for case_name, data in cases:
-            labels = extract_labels(data.get("expected_spec") or {})
-            if baseline.name == "llm_direct_sql":
-                result: BaselineResult = baseline.run(
-                    str(data["input"]), case_name=case_name,
-                    gold_entities=labels.entities or (),
-                )
-            else:
-                result = baseline.run(str(data["input"]), case_name=case_name)
-            result = score_baseline(result, labels, case_name=case_name)
-            rows.append(asdict(result))
-            by_name[baseline.name]["runs"] += 1
-            key = "skipped" if result.skipped else "measured"
-            by_name[baseline.name][key] += 1
-
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    with out_path.open("w", encoding="utf-8") as fh:
-        for row in rows:
-            fh.write(json.dumps(row, default=str) + "\n")
+
+    def read_rows() -> list[dict]:
+        rows: list[dict] = []
+        if not out_path.exists():
+            return rows
+        for line in out_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue  # partial line from an interrupted run
+        return rows
+
+    done = {(row["baseline"], row["case"]) for row in read_rows()}
+
+    with out_path.open("a", encoding="utf-8") as fh:
+        for baseline in all_baselines(ontology):
+            for case_name, data in cases:
+                if (baseline.name, case_name) in done:
+                    continue
+                labels = extract_labels(data.get("expected_spec") or {})
+                if baseline.name == "llm_direct_sql":
+                    result: BaselineResult = baseline.run(
+                        str(data["input"]), case_name=case_name,
+                        gold_entities=labels.entities or (),
+                    )
+                else:
+                    result = baseline.run(str(data["input"]), case_name=case_name)
+                result = score_baseline(result, labels, case_name=case_name)
+                fh.write(json.dumps(asdict(result), default=str) + "\n")
+                fh.flush()
+                status = "MEASURED" if not result.skipped else "skip"
+                print(f"{baseline.name:16s} {case_name:45s} {status}", flush=True)
+                if result.skip_reason:
+                    print(f"    - {result.skip_reason}", flush=True)
+
+    by_name: dict[str, dict] = {}
+    for row in read_rows():
+        name = row["baseline"]
+        info = by_name.setdefault(name, {"runs": 0, "skipped": 0, "measured": 0})
+        info["runs"] += 1
+        info["skipped" if row["skipped"] else "measured"] += 1
 
     lines = [
         "# Baseline harness report (golden corpus)", "",
@@ -70,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
     for name, info in by_name.items():
         lines.append(
             f"{name} | {info['runs']} | {info['skipped']} | {info['measured']} | "
-            "credential-gated (OPENAI_API_KEY / ANTHROPIC_API_KEY)")
+            "credential-gated (GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY)")
     Path(args.summary).write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
     return 0

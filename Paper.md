@@ -302,11 +302,12 @@ Implemented and tested end to end with mock-model doubles: interpretation
 (mechanisms A/B/C, merge, negation), the MCQ engine, derivation, validation,
 composition (idempotency + 595-pair matrix on live PostgreSQL), and the
 deployer (§18.15 stale-file cleanup, §18.16 error-injection with project
-reuse). The nightly end-to-end tier against real Supabase credentials exists
-and is credential-gated. Not yet done: real-model calibration pairs
-(R3's primary endpoint), baseline runs against LLM backends, and any
-comparative measurement against external generators — §5.1/§5.3/§5.4 report
-the status of each.
+reuse). The end-to-end tier has now been run once against a real Supabase
+account, first-attempt success (§5.4), and the baseline harness has been
+exercised against a live LLM through its real code path (§5.1). Not yet
+done: real-model calibration pairs (R3's primary endpoint), the full
+baseline sweep (quota-blocked mid-run), and any comparative measurement
+against external generators — §5.1/§5.3/§5.4 report the status of each.
 
 ## 4. Experimental Setup
 
@@ -335,19 +336,21 @@ installation; §5.3).
 
 Per §4.3 of the outline, five baselines; their harness states today:
 
-1. **End-to-end LLM direct-to-SQL** — *built, gated.* `DirectSqlBaseline`
-   prompts an OpenAI/Anthropic model (pinned checkpoint ids; §4.4) for a
-   Supabase migration and scores artifact-level CREATE TABLE presence
-   against the case's gold entities. Constructs a real completer only when
-   `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` is set; otherwise self-skips
-   (credentials absent in this environment → no measured rows yet).
-2. **LLM → `BackendSpec` → same composer** — *built, gated.*
-   `BackendSpecBaseline` prompts the model (bounded to the ontology
-   vocabulary) for a `BackendSpec` JSON, parses it, runs it through the
-   *same* `recompute_spec` and fragment composer as Mechanism C's output, and
-   scores with the same fidelity metrics — isolating the contribution of the
-   IR from the generator. Self-skips without keys. The parse → spec → score
-   path is unit-tested offline with injected completers.
+1. **End-to-end LLM direct-to-SQL** — *built, runs against a live model;
+   sweep quota-blocked.* `DirectSqlBaseline` prompts a Gemini / OpenAI /
+   Anthropic model (pinned checkpoint ids; §4.4) for a Supabase migration and
+   scores artifact-level CREATE TABLE presence against the case's gold
+   entities. With a live provider key present, the harness made real calls
+   and emitted measured rows; the full 50-case sweep stopped on the
+   provider's free-tier daily quota (§5.1).
+2. **LLM → `BackendSpec` → same composer** — *built, runs against a live
+   model; sweep quota-blocked.* `BackendSpecBaseline` prompts the model
+   (bounded to the ontology vocabulary) for a `BackendSpec` JSON, parses it,
+   runs it through the *same* `recompute_spec` and fragment composer as
+   Mechanism C's output, and scores with the same fidelity metrics —
+   isolating the contribution of the IR from the generator. Self-skips
+   without keys. The parse → spec → score path is unit-tested offline with
+   injected completers.
 3. **Rules-only** — *measured* (§5.2, mechanisms `A+B`).
 4. **Laya-only** — *measured* (§5.2, mechanism `C`, mock persona).
 5. **DbSmash / off-the-shelf generator** — adapter surface only; the tool is
@@ -394,12 +397,17 @@ measurements replace the persona on the same cases in the same JSON schema
 
 ### 5.1 → R1. Fidelity vs. baselines
 
-**Current evidence state: no measured rows yet.** The harness is built and
-the golden corpus is fixed; every LLM baseline self-skips in this
-environment because no `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` is configured.
-Filling this section requires (i) credentials for §4.2.1/2/5, and (ii)
-independent ground-truth annotation so the golden expectations are not
-author-authored by the engine it measures.
+**Current evidence state: harness proven against a live LLM, full sweep
+quota-blocked.** A Gemini completer (REST, no SDK dependency) is wired as
+the default baseline model, and a smoke run produced genuinely measured
+rows through the same code path the sweep uses. The full 50-case sweep is
+blocked by the provider's free-tier daily quota - persistent `HTTP 429`
+across 71 minutes of paced retries - not by the harness; the runner
+streams and resumes, so the sweep completes when the quota resets. The
+`llm_dbsmash` baseline self-skips (the external binary is not installed
+here). Completing 4.2.1/2/5 still additionally requires independent
+ground-truth annotation so the golden expectations are not author-authored
+by the engine they measure.
 
 What *is* measurable today is the composition side of R1: the delivered
 `BackendSpec` compiles to SQL that applies cleanly twice across the 595-pair
@@ -472,13 +480,33 @@ vendor's shipped ECE distribution, not a failure of the gate.
 
 ### 5.4 End-to-end (secondary)
 
-**Current evidence state: built, no measured deployments.** Composition +
-deployer + the nightly credential-gated e2e tier ship
-(`compiler/generator/`, `compiler/deployer/`, 595-pair matrix on live PG);
-no Supabase account is configured in this environment, so deployment
-success / first-attempt rate / time-to-spec / cost have no measured rows.
-Filling this section requires `SUPABASE_ACCESS_TOKEN` (+ org slug) — a
-credential, not a code gap.
+**Measured: one real deployment, first-attempt success.** With a real
+organization configured (`SUPABASE_ACCESS_TOKEN` + org slug, loaded from
+`.env`), the e2e tier created a project through the Management API, applied
+29 generated migrations with the CLI, configured auth, deployed two edge
+functions, and then verified the live database directly: the
+`listings`/`bookings`/`messages` tables and the `listings` storage bucket
+exist, and the project is torn down afterwards. Wall clock from project
+creation to verified tables was **39 s** (n=1). The interpreter ran against
+the mock Laya persona, so this measures deployment, not model latency; the
+organization is free-tier, so the marginal monetary cost is $0. n=1 supports
+"the pipeline deploys what it composes", not a first-attempt *rate*.
+
+**Deployment is API-drift sensitive.** First contact with the live API
+surfaced five breaks that no mock could have caught, each fixed in the
+deployer or the e2e tier: (1) `region_selection.code` now accepts only smart
+groups (`americas` | `emea` | `apac`), not city codes such as
+`ap-southeast-1`; (2) `/health` reports nothing unless its repeated
+`services` parameter is supplied, and answers with an error object rather
+than a list when it is missing, so the poller now shape-checks its payload;
+(3) `npm install -g supabase` exposes only a `.cmd` shim, which Windows'
+`CreateProcess` cannot execute, so every CLI call now goes through a
+resolver that prefers a real executable; (4) `functions deploy` bundles with
+Deno inside Docker and must reach `esm.sh`, which restricted networks block,
+so functions deploy with `--use-api` (server-side bundling); (5) the
+`database/query` endpoint is POST-only. Deployment claims that have not been
+executed against a live account should be read as untested in this respect -
+mock-based deployer coverage cannot see any of it.
 
 ## 6. Discussion
 

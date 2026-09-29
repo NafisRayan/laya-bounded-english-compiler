@@ -12,6 +12,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from compiler.deployer.config import supabase_cli
 from compiler.spec.models import BackendSpec
 
 __all__ = ["deploy_edge_functions", "scaffold_edge_functions"]
@@ -49,6 +50,11 @@ def deploy_edge_functions(ref: str, spec: BackendSpec) -> None:
     env["SUPABASE_DB_PASSWORD"] = os.environ.get("SUPABASE_DB_PASSWORD", "")
     for fn_name in spec.edge_functions:
         subprocess.run(
-            ["supabase", "functions", "deploy", fn_name, "--project-ref", ref],
+            # --use-api bundles server-side: the default path needs a local
+            # Docker toolchain and must reach esm.sh to resolve the
+            # supabase-js import, which restricted networks block.
+            supabase_cli(
+                "functions", "deploy", fn_name, "--project-ref", ref, "--use-api"
+            ),
             check=True, capture_output=True, text=True, env=env,
         )

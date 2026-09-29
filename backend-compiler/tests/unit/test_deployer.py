@@ -35,6 +35,7 @@ def test_apply_migrations_writes_and_clears_stale_files(
         return _FakeCompleted()
 
     monkeypatch.setattr(deployer.subprocess, "run", fake_run)
+    monkeypatch.setattr(deployer, "supabase_cli", lambda *a: ["supabase", *a])
 
     migrations = compose(marketplace_spec, ontology)
     apply_migrations("ref", "db-pass", migrations)
@@ -64,6 +65,7 @@ def test_link_project_passes_db_password(monkeypatch):
         return _FakeCompleted()
 
     monkeypatch.setattr(deployer.subprocess, "run", fake_run)
+    monkeypatch.setattr(deployer, "supabase_cli", lambda *a: ["supabase", *a])
 
     link_project("ref-9", "secret")
 

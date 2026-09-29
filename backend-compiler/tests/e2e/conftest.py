@@ -14,8 +14,15 @@ import requests
 
 from compiler.deployer.config import DEFAULT_REGION
 from compiler.deployer.supabase_api import create_project, wait_for_healthy
+from tests._dotenv import load_dotenv
+
+load_dotenv()
 
 API_BASE = "https://api.supabase.com/v1"
+
+#: The project is created with this password, so the deployment must use the
+#: very same one (the CLI authenticates with it when applying migrations).
+E2E_DB_PASS = "e2e-test-password-1234567890"
 
 
 @pytest.fixture(scope="session")
@@ -32,11 +39,11 @@ def temp_supabase_project():
         name=f"laya-e2e-{uuid.uuid4().hex[:8]}",
         region=os.environ.get("SUPABASE_REGION", DEFAULT_REGION),
         org_slug=org,
-        db_pass="e2e-test-password-1234567890",
+        db_pass=E2E_DB_PASS,
     )
     try:
         wait_for_healthy(ref)
-        yield {"ref": ref, "token": token}
+        yield {"ref": ref, "token": token, "db_pass": E2E_DB_PASS}
     finally:
         requests.delete(
             f"{API_BASE}/projects/{ref}",

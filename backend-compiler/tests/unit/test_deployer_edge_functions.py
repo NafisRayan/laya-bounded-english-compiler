@@ -10,6 +10,11 @@ from compiler.deployer.edge_functions import (
 )
 
 
+class _FakeCompleted:
+    returncode = 0
+    stderr = ""
+
+
 def test_managed_function_names_are_the_three_templates():
     assert _managed_function_names() == {
         "stripe_webhook",
@@ -61,3 +66,23 @@ def test_deploy_is_noop_without_edge_functions(monkeypatch, marketplace_spec):
     monkeypatch.setattr(edge_functions.subprocess, "run", boom)
     spec = marketplace_spec.model_copy(update={"edge_functions": []})
     deploy_edge_functions("ref", spec)
+
+
+def test_deploy_bundles_server_side_per_function(monkeypatch, marketplace_spec, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    runs = []
+
+    def fake_run(cmd, **kwargs):
+        runs.append(cmd)
+        return _FakeCompleted()
+
+    monkeypatch.setattr(edge_functions.subprocess, "run", fake_run)
+    monkeypatch.setattr(edge_functions, "supabase_cli", lambda *a: ["supabase", *a])
+
+    spec = marketplace_spec.model_copy(update={"edge_functions": ["stripe_webhook"]})
+    deploy_edge_functions("ref-3", spec)
+
+    assert runs == [[
+        "supabase", "functions", "deploy", "stripe_webhook",
+        "--project-ref", "ref-3", "--use-api",
+    ]]

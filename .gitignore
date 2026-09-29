@@ -1,9 +1,15 @@
 __pycache__/
 *.py[cod]
 .venv/
+.env
+.env.*
+!.env.example
 .pytest_cache/
 .coverage
 coverage.xml
 *.egg-info/
 .mypy_cache/
 .ruff_cache/
+
+# Generated per-deployment by the compiler/CLI (migrations, functions, link state)
+backend-compiler/supabase/
