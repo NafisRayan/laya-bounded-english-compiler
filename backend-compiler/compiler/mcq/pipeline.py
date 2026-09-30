@@ -69,7 +69,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
     """
     result = FoldResult(spec=spec or PartialSpec())
     seeded_roles = spec is not None and spec.is_decided("roles")
-    feature_values: dict[str, list[tuple[Any, float]]] = {}
+    feature_values: dict[str, list[tuple[Any, float, str]]] = {}
     param_values: dict[str, list[tuple[Any, float]]] = {}
     roles: list[str] = []
 
@@ -115,14 +115,14 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
             # asks. Rules keep deciding off (negation detection is theirs).
             result.spec.decide_feature(fid, enabled=False)
 
-    for key, proposals in param_values.items():
+    for key, param_proposals in param_values.items():
         if key in result.spec.decided_parameters:
             continue
-        best = max(proposals, key=lambda p: p[1])
-        if best[1] >= AUTO_ACCEPT:
+        param_best = max(param_proposals, key=lambda p: p[1])
+        if param_best[1] >= AUTO_ACCEPT:
             fid = key.partition(".")[0]
             if result.spec.is_enabled(fid):
-                result.spec.decide_parameter(key, value=best[0])
+                result.spec.decide_parameter(key, value=param_best[0])
 
     if roles and not seeded_roles:
         if not result.spec.is_decided("roles"):

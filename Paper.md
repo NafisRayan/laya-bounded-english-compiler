@@ -627,3 +627,40 @@ invariant is preserved structurally (unparsed sentences become
 rule tables and the calibrated coverage — never with raw generation. That
 is the paper's central trade, and it is the R1 sub-clause worth stating
 loudest: unsupported requirements are flagged, not guessed.
+
+## 7. Conclusion
+
+The layered compiler ships and is measured end to end: natural language in,
+a typed BackendSpec, and a deployed Supabase project out. What the
+evidence now supports, claim by claim:
+
+**R2 (architecture).** The mechanism ablation is measured twice. With the
+contract-test personas the hybrid is the only zero-omission configuration;
+with the real english checkpoint the same harness exposed two genuine
+defects — merge grouped 
+eeds_X and X.enabled as different targets, and
+a confident model negative could decide features off — both fixed and
+re-measured. Post-fix, hybrid+MCQ reaches rules-parity (0.922 pooled recall,
+10 omissions) and the model adds no-MCQ coverage (0.419 → 0.481) at the
+cost of 9 hallucinations. The architecture is sound; today's checkpoint
+breaks even.
+
+**R3 (calibration).** On 500 measured pairs from the real checkpoint, the
+shipped nswer_confidence passes the ECE < 0.1 gate in-sample (0.0951),
+a scalar temperature refit reaches 0.0425 at an enforceable T = 1.40, and
+the auto-accept sweep prices the 0.75 threshold at 87.8% coverage for
+80.0% correctness — the measured argument for asking over guessing.
+
+**R1 (baselines) and deployment.** The baseline harness is proven against a
+live LLM; the sweep itself awaits the provider's quota reset and, more
+fundamentally, independent annotation (protocol shipped; held-out split
+fixed). Deployment is real: three measured deployments in the final tier —
+marketplace, minimal, and an idempotent re-deploy — first-attempt success,
+39 s create-to-verified on first contact, with five live-API drift points
+found and fixed by actually running it.
+
+The honest headline: every layer of the stack now has at least one measured
+number, every number carries its setting, and the remaining gaps —
+independent annotation, a baseline sweep, a checkpoint that pays for its
+slot — are concrete, owned, and resolvable by protocol rather than by
+prose.
