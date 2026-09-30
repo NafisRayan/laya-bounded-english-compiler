@@ -305,11 +305,11 @@ composition (idempotency + 595-pair matrix on live PostgreSQL), and the
 deployer (§18.15 stale-file cleanup, §18.16 error-injection with project
 reuse). The end-to-end tier has now been run once against a real Supabase
 account, first-attempt success (§5.4), the baseline harness has been
-exercised against a live LLM through its real code path (§5.1), and R3's
-primary endpoint has been measured on the real pinned checkpoint (§5.3).
-Not yet done: the full baseline sweep (quota-blocked mid-run), and any
-comparative measurement against external generators — §5.1/§5.3/§5.4 report
-the status of each.
+exercised against a live LLM through its real code path (§5.1), and the real
+pinned checkpoint has been measured two ways: calibration (§5.3) and the
+full ablation grid (§5.2). Not yet done: the full baseline sweep
+(quota-blocked mid-run), and any comparative measurement against external
+generators — §5.1/§5.3/§5.4 report the status of each.
 
 ## 4. Experimental Setup
 
@@ -329,10 +329,10 @@ parameters, and, where relevant, roles, entities, buckets, edge functions).
 they were written and then confirmed by running the engine with the mock
 personas, so they are regression truth, not yet independent human
 annotation. Splits (train / golden / held-out) and independent annotation
-are part of the §4.4 protocol but not yet authored. The §5.2 numbers are
-therefore measurements of the *engine with the contract-test model double*;
-the real 421M checkpoint is now installed and measured for calibration
-(§5.3), but the ablation grid has not been re-run with it.
+are part of the §4.4 protocol but not yet authored. §5.2 is measured twice —
+mock personas (the pinned setting) and the real 421M checkpoint through the
+same harness — and §5.3 measures that checkpoint's calibration on the same
+corpus; all of it remains in-sample against engine-pinned gold.
 
 ### 4.2 Baselines
 
@@ -418,10 +418,11 @@ fragment matrix on live PostgreSQL 15, byte-identically for identical input
 
 ### 5.2 → R2. Ablations (mechanism subset × MCQ on/off)
 
-Measurements on the 50 golden cases with the mock personas
-(`python -m tests.experiments.run_ablation`; full detail in
-`tests/experiments/results/ablation_summary.md`):
-
+Two measurement settings, one corpus: the mock personas first (the
+contract-test setting the golden suite pins), then the real checkpoint
+(`python -m tests.experiments.run_ablation --real-laya`; summaries in
+`tests/experiments/results/ablation_summary.md` and
+`ablation_real_summary.md`). Mock-persona table:
 | Config | macro R / P | pooled R / P | omissions | hallucinations | feature-exact | params (pinned) | MCQ count (mean) | ms (mean) |
 |---|---|---|---|---|---|---|---|---|
 | A only + MCQ | 0.702 / 0.960 | 0.550 / 1.000 | 58 | 0 | 21/50 | 16/26 | 6.58 | 0.3 |
@@ -462,6 +463,41 @@ Four findings, each honest to its measurement setting (mock personas):
    features for an input that names two). Under the design, this is R3's
    job: 0.95 *raw* confidence must not survive as 0.95 *answer_confidence*
    where the model is wrong (§5.3).
+
+**Real-checkpoint rerun: same corpus, same gold, the real `english` model**
+(`python -m tests.experiments.run_ablation --real-laya`; rows in
+`tests/experiments/results/ablation_real_summary.md`). The rule-only rows
+reproduce the table above byte-identically — they never touch the model —
+which isolates exactly what changes when the persona becomes the checkpoint:
+
+| Config | macro R / P | pooled R / P | omissions | hallucinations | feature-exact | params (pinned) | MCQ count (mean) |
+|---|---|---|---|---|---|---|---|
+| C only (Laya) + MCQ | 0.730 / 0.858 | 0.651 / 0.903 | 45 | 9 | 20/50 | 13/26 | 2.36 |
+| C only (Laya) (no MCQ) | 0.174 / 0.313 | 0.163 / 0.700 | 108 | 9 | 2/50 | 0/26 | 1.02 |
+| **A+B+C hybrid + MCQ** | 0.794 / 0.858 | 0.721 / 0.912 | **36** | **9** | **27/50** | **21/26** | 2.90 |
+| A+B+C hybrid (no MCQ) | 0.239 / 0.433 | 0.233 / 0.769 | 99 | 9 | 2/50 | 5/26 | 1.70 |
+
+5. **The persona headline does not transfer to the real checkpoint — the
+   hybrid loses to rules-only.** With the real model, hybrid + MCQ drops from
+   0 omissions / pooled recall 1.000 to 36 omissions / 0.721, while rules + MCQ
+   stays at 10 omissions / 0.922 (P 1.000 vs 0.912). On this corpus and this
+   checkpoint, mechanism C *subtracts* net value: 26 extra omissions and 9
+   hallucinations against the residual coverage the personas gave it.
+6. **The mechanism is measured, not speculative: confident wrong negatives
+   pre-empt questions.** Merge tiers (§3.3) protect rule candidates — a laya
+   proposal is consulted only where no rule fires — but in `fold_candidates`
+   a laya "no" with `answer_confidence >= 0.75` *decides the feature off*,
+   which suppresses the very clarification question that would have caught
+   the omission. The question burden shows it: 6.54 → 2.90 MCQs per input.
+   The model converts askable ambiguity into silent omission — the inverse
+   of the never-silently-omit intent — and §5.3's sweep prices it precisely:
+   at 0.75 auto-accept, 20% of auto-accepted decisions are wrong.
+7. **Concrete fix implied, not implemented (measurement scope).** The gate
+   should not decide *off* at the threshold it decides *on*: either a
+   higher (or infinite) threshold for laya-sourced negatives — ask whenever
+   rules are silent — or model-negative decisions treated as undecided.
+   The 0.85 sweep point (82.4% correctness at 70.6% coverage) suggests where
+   such an asymmetric gate would sit.
 
 ### 5.3 → R3. Calibration and the auto-accept gate
 
@@ -544,16 +580,19 @@ questions per input of the no-MCQ floor are doing real work. A checkpoint
 refit (T = 1.40 halves ECE to 0.0425) or better annotation may move the
 trade, but the current numbers argue for asking.
 
-**Rules win the bounded vocabulary; the model earns its place narrowly.**
-On 48/50 cases rules+aliases alone already reconstruct the spec (0.922
-pooled recall, zero hallucinations). The model's measured contribution is
-real but thin and double-edged: it alone is near-useless (0.093 without
-MCQ), yet the two inputs whose requirements *no rule can see* are only
-resolvable through it, and its over-proposal is what precision metrics must
-catch. This is the honest shape of R2 on this vocabulary: not "the model
-wins", but "the hybrid is the only configuration with zero omission, and the
-model is the only mechanism that can see the long tail — if its confidence
-is calibrated".
+**Rules win the bounded vocabulary; the real checkpoint has not yet earned
+its place.** On 48/50 cases rules+aliases alone already reconstruct the spec
+(0.922 pooled recall, zero hallucinations). The persona ablation showed the
+model *could* carry the residual (§5.2, findings 4) — but the measured
+checkpoint (§5.2, findings 5–6) currently subtracts value: confident wrong
+negatives pre-empt the clarifying questions, and hybrid+MCQ lands at 0.721
+recall / 0.912 precision against rules-only's 0.922 / 1.000. This is the
+honest shape of R2: the architecture gives the model a narrow, protected
+slot (merge tiers, MCQ backstop), and today's checkpoint does not fill it
+well enough for auto-accept — the failure is quantified, located in the
+negative decisions, and paired with a concrete asymmetric-gate fix. Until a
+refit or fine-tune passes that bar, rules-plus-MCQ is the configuration the
+measurements support.
 
 **The golden evaluation has a blind spot this setup exposes.** `spec_matches`
 (§18.13) checks that expected values appear in the output; it cannot flag

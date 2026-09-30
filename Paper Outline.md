@@ -41,7 +41,7 @@ the repo, at `../../laya/`.
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored; harness proven against a live model — full sweep quota-blocked** | Provider quota reset; independent ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client); `tests/experiments/baselines.py` (Gemini completer default) |
-| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured (mock personas) — see §5.2 table; real-model rerun pending (checkpoint now installed)** | Fine-grained labels; ablation rerun with the real checkpoint | `tests/experiments/run_ablation.py` + `results/ablation.jsonl`; `compiler/interpreter/pipeline.py` (mech. A/B/C) |
+| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured twice — mock personas (hybrid+MCQ R 1.000/P 0.942, 0 omissions) AND the real english checkpoint (hybrid+MCQ R 0.721/P 0.912, 36 omissions — rules-only dominates)** | Independent annotation; asymmetric negative gate (§5.2 finding 7) | `tests/experiments/run_ablation.py` (`--real-laya`) + `results/ablation.jsonl` + `results/ablation_real.jsonl`; `compiler/interpreter/pipeline.py` (mech. A/B/C) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | **500 measured pairs** (real `english` checkpoint × golden cases) | **Measured — ECE 0.0951 < 0.1 (gate PASS); fit 0.0425 @ T = 1.40; sweep @ 0.75: 87.8% coverage / 80.0% correctness** | Independent ground-truth annotation; held-out pairs | `tests/experiments/run_calibration.py` + `results/calibration_pairs.jsonl`; `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/calibration_set.json` (measured) |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Measured — 1 real deployment, first-attempt success (39 s, free tier)** | Repeat runs for a rate; real-model interpreter (mock persona used) | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG, `tests/e2e/` |
 
@@ -201,8 +201,15 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   no-MCQ 0.093; MCQ-on is the completeness driver (hybrid omissions 65 → 0).
   All 8 hallucinations confined to the two `high`-persona cases and invisible
   to the golden partial submatch — caught by experiment-tier precision.
-  Open items: real-checkpoint runs (replaces the persona in the same schema),
-  vocab sweep, v1.5-tier-to-space vetting for the merge abscissa.
+  **Real-checkpoint rerun — 2026-09-29** (`--real-laya`,
+  `results/ablation_real_summary.md`): rule rows reproduce identically; the
+  real `english` checkpoint *loses to rules-only* — hybrid+MCQ pooled
+  0.721/0.912 with 36 omissions and 9 hallucinations vs rules+MCQ
+  0.922/1.000 with 10. Mechanism: confident laya negatives (conf ≥ 0.75)
+  decide features off and pre-empt the clarifying question (MCQ burden
+  6.54 → 2.90). Fix implied (asymmetric negative gate), not implemented.
+  Open items: independent annotation, asymmetric-gate implementation +
+  remeasure, vocab sweep, v1.5-tier-to-space vetting for the merge abscissa.
 - **5.3 → R3. Calibration & auto-accept gate.** ECE before/after temperature
   fit; auto-accept coverage-vs-correctness curve; threshold sweep anchored on
   0.75 (the shipped `CONFIDENCE_AUTO_ACCEPT`).
@@ -255,14 +262,16 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   bounded by the hybrid design; claims are scoped accordingly.
 
 ## 8. Conclusion
-- Recap R1–R3 in re-scoped form. Numbers that exist today: the mock-persona
-  ablation table (§5.2), measured real-checkpoint calibration — ECE 0.0951
-  < 0.1 in-sample, fit 0.0425 @ T = 1.40 (§5.3) — and a real end-to-end
-  deployment, first-attempt (n=1, §5.4). Remaining before results are fully
-  claimable: (i) the baseline sweep on the 50-case golden set with
-  independent annotation (quota-blocked mid-run), (ii) independent
-  ground-truth annotation + held-out splits, (iii) a real-checkpoint ablation
-  rerun.
+- Recap R1–R3 in re-scoped form. Numbers that exist today: the ablation grid
+  measured twice (mock personas: hybrid+MCQ 0 omissions; real checkpoint:
+  hybrid+MCQ 36 omissions and a *loss* to rules-only — §5.2), measured
+  real-checkpoint calibration — ECE 0.0951 < 0.1 in-sample, fit 0.0425 @
+  T = 1.40 (§5.3) — and a real end-to-end deployment, first-attempt (n=1,
+  §5.4). Remaining before results are fully claimable: (i) the baseline sweep
+  on the 50-case golden set with independent annotation (quota-blocked
+  mid-run), (ii) independent ground-truth annotation + held-out splits,
+  (iii) the asymmetric negative gate the real-checkpoint ablation implies,
+  then remeasure.
 
 ---
 
@@ -271,10 +280,13 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   conventions); baseline variance at N=30–50; task too narrow once bounded by
   the explicit vocabulary.
 - **R2:** on the bounded vocabulary, rules-only may already carry the load —
-  hybrid might not beat it, given the base checkpoint is below the
-  majority-class baseline on typed decisions (vendor benchmark); MCQ burden
-  could erode the latency win. Partially informed now: the real checkpoint's
-  decision accuracy on golden noul questions is 0.784 (§5.3).
+  **now measured: it does.** With the real checkpoint, rules+MCQ beats
+  hybrid+MCQ on this corpus (0.922/1.000, 10 omissions vs 0.721/0.912,
+  36); the persona advantage was an artifact of the contract double. The
+  claim survives only re-scoped: the architecture supports the model's slot,
+  the current checkpoint fails to earn it, and the asymmetric negative gate
+  is the measured path to fixing it. MCQ burden could still erode the
+  latency win.
 - **R3:** the measured in-sample ECE (0.0951) passes, but thinly — a
   held-out, independently annotated rerun could land ≥ 0.1 (vendor measures
   0.175 on typed decisions), which flips the shipped pass-through to
@@ -295,8 +307,11 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
    splits before §5.1 runs.
 2. ~~Run the free three-mechanism ablation (rules/Laya/hybrid) plus MCQ-on/off
    on the 50 golden cases~~ — **done**: full 9-config table measured with mock
-   personas (2026-09-29), results committed. Remaining: fine-grained labels and
-   a real-model rerun on the same cases/schema.
+   personas (2026-09-29), results committed; **re-measured with the real
+   english checkpoint the same day** (`--real-laya`) — rules-only dominates
+   the current checkpoint; asymmetric negative gate identified as the fix.
+   Remaining: independent annotation, gate implementation + remeasure, vocab
+   sweep.
 3. ~~Build the baseline harness (LLM e2e, LLM→BackendSpec, DbSmash) on the
    golden set~~ — **done (2026-09-29)**: adapters + offline-scored unit tests;
    Gemini wired as the default completer. Remaining: the full sweep

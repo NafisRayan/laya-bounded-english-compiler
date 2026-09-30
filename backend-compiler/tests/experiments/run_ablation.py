@@ -69,10 +69,11 @@ def summarize(rows: list[dict]) -> dict:
     return out
 
 
-def render_markdown(summary: dict) -> str:
+def render_markdown(summary: dict, title: str,
+                    persona_note: str) -> str:
     order = ["A", "B", "AB", "C", "ABC"]
     lines = [
-        "# Ablation results (50 golden cases, mock Laya personas)",
+        f"# {title}",
         "",
         "Config | n | macro recall | macro precision | pooled recall | "
         "pooled precision | omissions | hallucinations | feature-exact | "
@@ -81,8 +82,9 @@ def render_markdown(summary: dict) -> str:
     ]
     for mech in order:
         for mcq in (True, False):
-            key = f"{mech}|{mcq}"
-            s = summary[key]
+            s = summary.get(f"{mech}|{mcq}")
+            if s is None:
+                continue  # partial run (--mechanisms/--mcq subsets)
             p = f"{s['params_match']}/{s['params_pinned']}"
             lines.append(
                 f"{s['label']} | {s['n']} | {s['feature_recall_mean']:.3f} | "
@@ -93,7 +95,7 @@ def render_markdown(summary: dict) -> str:
                 f"{s['feature_exact']} | {s['all_match']} | {p} | "
                 f"{s['mcq_count_mean']:.2f} | {s['ms_mean']:.1f}")
     lines.append("")
-    lines.append("Personas used: **none** (43), **default** (5), **high** (2).")
+    lines.append(persona_note)
     lines.append(
         "MCQ-off 'MCQ count' is the full residual question burden "
         "(untruncated): what the clarification loop would put to the user.")
@@ -102,34 +104,71 @@ def render_markdown(summary: dict) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", default=str(RESULTS_DIR / "ablation.jsonl"))
-    parser.add_argument("--summary", default=str(RESULTS_DIR / "ablation_summary.md"))
+    parser.add_argument("--out", default=None,
+                        help="default: ablation.jsonl, or ablation_real.jsonl "
+                             "with --real-laya")
+    parser.add_argument("--summary", default=None,
+                        help="default: ablation_summary.md, or "
+                             "ablation_real_summary.md with --real-laya")
     parser.add_argument("--mechanisms", default="A,B,AB,C,ABC")
     parser.add_argument("--mcq", default="on,off")
+    parser.add_argument("--real-laya", action="store_true",
+                        help="run mechanism C with the real pinned english "
+                             "checkpoint (LayaClient) instead of mock "
+                             "personas; needs the laya package + weights")
+    parser.add_argument("--device", default=None,
+                        help="torch device for --real-laya (default "
+                             "LAYA_DEVICE or cpu)")
+    parser.add_argument("--limit", type=int, default=None,
+                        help="only the first N cases")
     args = parser.parse_args(argv)
 
     mechs = [m.strip() for m in args.mechanisms.split(",") if m.strip()]
     mcq_modes = [m.strip() == "on" for m in args.mcq.split(",") if m.strip()]
 
+    real = args.real_laya
+    out_path = Path(args.out or RESULTS_DIR /
+                    ("ablation_real.jsonl" if real else "ablation.jsonl"))
+    summary_path = Path(args.summary or RESULTS_DIR /
+                        ("ablation_real_summary.md" if real
+                         else "ablation_summary.md"))
+
     ontology = load_test_ontology()
     cases = iter_cases()
+    if args.limit:
+        cases = cases[: args.limit]
+
+    client = None
+    if real:
+        from compiler.interpreter.laya_client import LayaClient
+
+        client = LayaClient(device=args.device)
 
     rows = []
     for case_name, data in cases:
         for mech in mechs:
             for mcq_on in mcq_modes:
-                metrics = run_case(case_name, data, ontology, mech, mcq_on)
+                metrics = run_case(case_name, data, ontology, mech, mcq_on,
+                                   laya_client=client,
+                                   persona_label="real-english" if real else None)
                 rows.append(asdict(metrics))
 
-    out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", encoding="utf-8") as fh:
         for row in rows:
             fh.write(json.dumps(row) + "\n")
 
     summary = summarize(rows)
-    summary_path = Path(args.summary)
-    summary_path.write_text(render_markdown(summary), encoding="utf-8")
+    if real:
+        title = "Ablation results (50 golden cases, real english checkpoint)"
+        persona_note = ("Laya source: **real** pinned `english` checkpoint "
+                        "(convaiinnovations/laya), shared LayaClient, same "
+                        "engine-pinned gold as the persona runs.")
+    else:
+        title = "Ablation results (50 golden cases, mock Laya personas)"
+        persona_note = "Personas used: **none** (43), **default** (5), **high** (2)."
+    summary_path.write_text(render_markdown(summary, title, persona_note),
+                            encoding="utf-8")
 
     print(f"wrote {len(rows)} rows -> {out_path}")
     print(summary_path.read_text(encoding="utf-8"))

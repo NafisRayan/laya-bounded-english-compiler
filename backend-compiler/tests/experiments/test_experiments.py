@@ -103,3 +103,27 @@ def test_persona_builder_contract():
     none = build_persona("none")
     resp = none.predict("x", {})
     assert resp["answers"] == {}
+
+def test_run_case_uses_an_injected_laya_client(ontology):
+    """--real-laya plumbing: the injected client replaces the persona and is
+    named in the metrics row, so real-checkpoint runs are distinguishable."""
+
+    class RecordingClient(MockLayaClient):
+        def predict(self, state, questions):
+            self.calls.append((state, questions))
+            return self._envelope({})
+
+    client = RecordingClient()
+    name, data = iter_cases()[0]
+
+    metrics = run_case(name, data, ontology, "C", mcq_on=False,
+                       laya_client=client, persona_label="real-english")
+
+    assert client.calls, "injected client must be used for mechanism C"
+    assert metrics.persona == "real-english"
+
+
+def test_run_case_default_still_uses_the_case_persona(ontology):
+    name, data = iter_cases()[0]
+    metrics = run_case(name, data, ontology, "AB", mcq_on=False)
+    assert metrics.persona == str(data.get("laya", "default"))

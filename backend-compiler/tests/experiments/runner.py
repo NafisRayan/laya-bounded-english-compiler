@@ -37,7 +37,6 @@ __all__ = [
     "iter_cases",
     "run_case",
 ]
-
 CASES_DIR = Path(__file__).parent.parent / "golden" / "cases"
 ONTOLOGY_FIXTURE = Path(__file__).parent.parent / "fixtures" / "ontology.yaml"
 
@@ -63,9 +62,17 @@ def iter_cases() -> list[tuple[str, dict[str, Any]]]:
 
 
 def run_case(case_name: str, data: dict[str, Any], ontology: Ontology,
-             mechanisms: str, mcq_on: bool) -> RunMetrics:
-    persona_name = str(data.get("laya", "default"))
-    persona = build_persona(persona_name)
+             mechanisms: str, mcq_on: bool, laya_client=None,
+             persona_label: str | None = None) -> RunMetrics:
+    """Run one case/mechanism/MCQ configuration and score it.
+
+    ``laya_client`` overrides the case's mock persona with a live model
+    wrapper (e.g. the real ``LayaClient``); ``persona_label`` then names the
+    substitute in the metrics rows so real-checkpoint runs are distinguishable
+    from persona runs.
+    """
+    persona_name = persona_label or str(data.get("laya", "default"))
+    persona = laya_client if laya_client is not None else build_persona(persona_name)
     labels = extract_labels(data.get("expected_spec") or {})
 
     candidates = run_interpreter(str(data["input"]), ontology, laya=persona,
