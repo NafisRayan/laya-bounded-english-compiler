@@ -439,14 +439,17 @@ class DbSmashBaseline:
     """Baseline 5: off-the-shelf generator CLI (npm ``dbsmash``).
 
     Discovered contract (dbsmash 1.0.7): the app description goes in on
-    stdin, the tool scaffolds into its CWD, and generation shells out to
-    OpenRouter, so ``OPENROUTER_API_KEY`` must be in the environment.
-    Scoring is artifact-level like :class:`DirectSqlBaseline`: every
-    CREATE TABLE in the scaffolded ``*.sql`` counts, and we report gold
-    hits. ``DBSMASH_CMD`` overrides the executable; otherwise the CLI is
-    resolved from PATH (npm installs a Windows shim, which is routed
-    through ``cmd`` — same treatment as the Supabase CLI in
-    :mod:`compiler.deployer.config`).
+    stdin; intent generation shells out to OpenRouter (its env var is
+    ``OPEN_ROUTER_MISTRAL`` — ours, ``OPENROUTER_API_KEY``, is mapped
+    through) and the schema agent calls Gemini directly
+    (``GEMINI_API_KEY``). The tool persists a Mermaid ER diagram (and
+    sometimes SQL) under ``src/`` and prints the schema to stdout; scoring
+    therefore parses CREATE TABLE statements from SQL files and stdout, plus
+    entity blocks from Mermaid (case-insensitively — the tool emits
+    PascalCase, the gold pins lowercase). ``DBSMASH_CMD`` overrides the
+    executable; otherwise the CLI is resolved from PATH (npm installs a
+    Windows shim, routed through ``cmd`` — same treatment as the Supabase
+    CLI in :mod:`compiler.deployer.config`).
     """
 
     name = "dbsmash"
@@ -464,7 +467,15 @@ class DbSmashBaseline:
         return [exe]
 
     def available(self) -> bool:
-        return self._cmd() is not None and bool(os.environ.get("OPENROUTER_API_KEY"))
+        return (self._cmd() is not None
+                and bool(os.environ.get("OPENROUTER_API_KEY"))
+                and bool(os.environ.get("GEMINI_API_KEY")))
+
+    @staticmethod
+    def _mermaid_entities(text: str) -> set[str]:
+        """Entity names from an erDiagram body (`Entity {` blocks)."""
+        return {m.group(1).lower() for m in
+                re.finditer(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\{", text, re.M)}
 
     def run(self, input_text: str, case_name: str = "",
             gold_entities: Sequence[str] | None = None) -> BaselineResult:
@@ -473,7 +484,9 @@ class DbSmashBaseline:
         if cmd is None:
             missing.append("the dbsmash CLI on PATH (npm install -g dbsmash)")
         if not os.environ.get("OPENROUTER_API_KEY"):
-            missing.append("OPENROUTER_API_KEY (the tool calls OpenRouter)")
+            missing.append("OPENROUTER_API_KEY (the tool's intent agent calls OpenRouter)")
+        if not os.environ.get("GEMINI_API_KEY"):
+            missing.append("GEMINI_API_KEY (the tool's schema agent calls Gemini)")
         if missing:
             return BaselineResult(
                 baseline=self.name, case=case_name, skipped=True,
@@ -481,12 +494,17 @@ class DbSmashBaseline:
             )
 
         env = os.environ.copy()
+        # the tool's OpenRouter path reads its own variable name
+        env["OPEN_ROUTER_MISTRAL"] = env["OPENROUTER_API_KEY"]
         with tempfile.TemporaryDirectory(prefix="dbsmash-") as tmp:
             try:
                 completed = subprocess.run(
                     cmd,
-                    input=input_text, cwd=tmp, env=env,
-                    capture_output=True, text=True, timeout=600,
+                    # the description prompt is line-terminated: without the
+                    # trailing newline the CLI reads EOF and exits silently
+                    input=input_text + "\n", cwd=tmp, env=env,
+                    capture_output=True, text=True, encoding="utf-8",
+                    errors="replace", timeout=600,
                 )
             except (OSError, subprocess.TimeoutExpired) as exc:
                 return BaselineResult(baseline=self.name, case=case_name,
@@ -497,17 +515,21 @@ class DbSmashBaseline:
                     skip_reason=f"dbsmash exited {completed.returncode}: "
                                 f"{(completed.stderr or '')[-300:]}",
                 )
-            sql_files = sorted(Path(tmp).rglob("*.sql"))
-            raw = "\n".join(p.read_text(encoding="utf-8", errors="replace")
-                            for p in sql_files)
+            parts = [completed.stdout or ""]
+            for pattern in ("*.sql", "*.mmd"):
+                for p in sorted(Path(tmp).rglob(pattern)):
+                    parts.append(p.read_text(encoding="utf-8", errors="replace"))
+            raw = "\n".join(parts)
 
-        tables = set(table_names_from_sql(raw))
-        gold = set(gold_entities or [])
+        tables = {t.lower() for t in table_names_from_sql(raw)}
+        for mmd in re.finditer(r"erDiagram(.*?)(?:\Z)", raw, re.S):
+            tables |= self._mermaid_entities(mmd.group(1))
+        gold = {g.lower() for g in (gold_entities or [])}
         return BaselineResult(
             baseline=self.name, case=case_name, skipped=False,
             extra={"tables_found": len(tables), "gold_tables": len(gold),
                    "tables_hit": len(tables & gold)},
-            raw_output=raw,
+            raw_output=raw[-5000:],
         )
 
 
