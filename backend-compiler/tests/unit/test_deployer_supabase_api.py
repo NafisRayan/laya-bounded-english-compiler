@@ -161,3 +161,4 @@ def test_generate_db_pass_is_urlsafe_and_fresh():
     first, second = generate_db_pass(), generate_db_pass()
     assert first != second
     assert len(first) >= 20
+

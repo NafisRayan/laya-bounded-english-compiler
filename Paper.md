@@ -522,15 +522,19 @@ Three states were measured:
    **hybrid+MCQ recovers to rules-parity: 0.922 pooled recall, 10 omissions**
    (from 36), and the model's yes-side still lifts no-MCQ recall
    0.419 → 0.481.
-7. **Honest residual: the model now breaks even, it does not yet pay.**
-   Post-fix hybrid matches rules exactly on recall and omissions but adds 9
-   hallucinations (precision 0.930 vs 1.000, feature-exact 39/50 vs 48/50)
-   at equal question burden. The persona run's zero-omission headline
-   remains un-transferred: the two rule-invisible features the personas
-   covered are not covered by this checkpoint's yes-side at 0.75. The
-   measured paths forward are the same calibration levers as §5.3 — a
-   temperature refit (T = 1.40 halves ECE) or a fine-tuned checkpoint —
-   re-measured through this harness.
+7. **The calibration refit closes most of the remaining gap — measured.**
+   Two wiring fixes let the §5.3 fit reach the fold: `candidates_from_laya_response`
+   now consumes the client's *calibrated* confidence (the ECE-gated
+   quantity), and the client honors a run-scoped `LAYA_TEMPERATURE`
+   override (shipped behavior stays pass-through T = 1.0 per the gate).
+   With the fitted T = 1.40: hybrid+MCQ hallucinations **9 → 4**, precision
+   **0.930 → 0.967**, feature-exact **39/50 → 44/50**, at unchanged recall
+   and omissions (`results/ablation_real_fit_summary.md`). Softening
+   over-confident yes-answers below the 0.75 auto-accept bar converts them
+   back into questions — the MCQ backstop absorbing exactly the decisions
+   calibration does not trust. The persona run's residual (0 omissions)
+   remains unmet, but the measured path from parity to near-parity-plus is
+   calibration, not model changes.
 
 ### 5.3 → R3. Calibration and the auto-accept gate
 
@@ -550,7 +554,10 @@ golden cases; each feature-item answer yields one
 - The temperature fit moves 0.0951 → **0.0425 at T = 1.40** — inside the
   vendor's [0.5, 5.0] clamp, unlike the earlier synthetic demo's boundary
   T = 10.0. Per the spec's decision rule (fit only when the gate fails),
-  the shipped `calibration.json` stays at pass-through T = 1.0.
+  the shipped `calibration.json` stays at pass-through T = 1.0 — and the
+  refit's *downstream* value is now measured too: with T = 1.40 applied,
+  hybrid+MCQ hallucinations halve (9 → 4) at unchanged recall (§5.2,
+  finding 7).
 - **Auto-accept sweep:** at the shipped 0.75 threshold, 87.8% of decisions
   auto-accept at **80.0% correctness** among them; the curve peaks at 0.85
   (70.6% coverage, 82.4% correctness) and decays by 0.95 (18.6% coverage,
@@ -613,18 +620,18 @@ questions per input of the no-MCQ floor are doing real work. A checkpoint
 refit (T = 1.40 halves ECE to 0.0425) or better annotation may move the
 trade, but the current numbers argue for asking.
 
-**Rules win the bounded vocabulary; the fixed harness lets the model break
-even.** On 48/50 cases rules+aliases alone reconstruct the spec (0.922
+**Rules win the bounded vocabulary; calibration is what makes the model
+pay.** On 48/50 cases rules+aliases alone reconstruct the spec (0.922
 pooled recall, zero hallucinations). The checkpoint rerun (§5.2, findings
 5–7) first falsified the persona headline — then traced the loss to two
-harness defects (merge twinning, symmetric negative gate), both fixed and
-re-measured: hybrid+MCQ now matches rules on recall and omissions while the
-model contributes no-MCQ coverage (0.419 → 0.481). What the checkpoint still
-does not do is *pay*: it adds 9 hallucinations at equal recall and burden.
-The architecture's promise — a protected model slot with an MCQ backstop —
-is intact and now measured; today's checkpoint fills it to parity, not
-advantage, and the calibration levers (§5.3 refit, fine-tuning) are the
-measured route from parity to gain.
+harness defects (merge twinning, symmetric negative gate), both fixed;
+the model reached parity. The final measured step is calibration: with the
+§5.3 refit applied, hybrid+MCQ holds rules-parity on recall while
+hallucinations halve (9 → 4, precision 0.967). The architecture's promise —
+a protected model slot, an MCQ backstop, and ECE-gated confidence gating
+the slot — is now measured end to end: calibration converts the checkpoint
+from break-even to a small, real net gain, and the remaining route
+(fine-tuning) is scoped by the same harness.
 
 **The golden evaluation has a blind spot this setup exposes.** `spec_matches`
 (§18.13) checks that expected values appear in the output; it cannot flag

@@ -15,7 +15,11 @@ Verifies:
 """
 import pytest
 
-from compiler.interpreter.laya_client import CHECKPOINT, LayaClient
+from compiler.interpreter.laya_client import (
+    CHECKPOINT,
+    LayaClient,
+    effective_temperature,
+)
 from tests.conftest import MockLayaClient, _first_choice, _make_laya_answer
 
 
@@ -189,3 +193,16 @@ def test_calibrated_confidence_applies_fitted_temperature():
     assert client.calibrated_confidence({"answer_confidence": raw}) == pytest.approx(
         apply_temperature(raw, 2.0)
     )
+
+
+def test_effective_temperature_defaults_to_calibration():
+    assert effective_temperature({"english": {"temperature": 1.0}}, None) == 1.0
+
+
+def test_effective_temperature_env_override_wins():
+    assert effective_temperature({"english": {"temperature": 1.0}}, "1.40") == pytest.approx(1.40)
+
+
+def test_effective_temperature_rejects_garbage():
+    with pytest.raises(ValueError):
+        effective_temperature({"english": {"temperature": 1.0}}, "hot")

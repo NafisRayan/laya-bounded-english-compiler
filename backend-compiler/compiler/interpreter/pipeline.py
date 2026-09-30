@@ -10,11 +10,13 @@ from compiler.spec.models import Candidate
 __all__ = ["candidates_from_laya_response", "laya_questions", "run_interpreter"]
 
 
-def candidates_from_laya_response(response: dict) -> list[Candidate]:
+def candidates_from_laya_response(response: dict, laya=None) -> list[Candidate]:
     """Convert a Laya envelope's answers into Laya-sourced candidates.
 
-    Candidate confidence comes from `answer_confidence` (the
-    ECE-calibrated quantity), never from the bare `noul`/`choice` value.
+    Candidate confidence comes from the client's *calibrated* confidence
+    (the ECE-gated quantity, §3.5) when the client supplies one, and from
+    the envelope's `answer_confidence` otherwise — never from the bare
+    `noul`/`choice` value.
     """
     candidates: list[Candidate] = []
     for qid, answer in response.get("answers", {}).items():
@@ -22,10 +24,14 @@ def candidates_from_laya_response(response: dict) -> list[Candidate]:
             value = bool(answer["noul"] >= 0.5)
         else:
             value = answer.get("choice")
+        if laya is not None and hasattr(laya, "calibrated_confidence"):
+            confidence = laya.calibrated_confidence(answer)
+        else:
+            confidence = answer["answer_confidence"]
         candidates.append(Candidate(
             capability_id=qid,
             value=value,
-            confidence=answer["answer_confidence"],
+            confidence=confidence,
             source="laya",
             evidence=None,
         ))
@@ -54,6 +60,6 @@ def run_interpreter(text: str, ontology, laya,
     a = exact_match(text) if "A" in mechanisms else []
     b = phrase_match_with_negation(text) if "B" in mechanisms else []
     c = candidates_from_laya_response(
-        laya.predict(text, laya_questions(ontology))
+        laya.predict(text, laya_questions(ontology)), laya=laya,
     ) if "C" in mechanisms else []
     return merge(a, b, c)

@@ -11,9 +11,19 @@ import os
 
 from compiler.interpreter.calibration import apply_temperature, load_calibration
 
-__all__ = ["CHECKPOINT", "LayaClient"]
+__all__ = ["CHECKPOINT", "LayaClient", "effective_temperature"]
 
 CHECKPOINT = "english"    # pinned; do not auto-route
+
+
+def effective_temperature(calibration: dict, override: str | None) -> float:
+    """The temperature to apply: the persisted calibration value, or a
+    run-scoped ``LAYA_TEMPERATURE`` override for what-if experiments. The
+    override never persists — the spec ships pass-through unless the measured
+    ECE gate fails."""
+    if override is not None:
+        return float(override)
+    return float(calibration[CHECKPOINT]["temperature"])
 
 
 class LayaClient:
@@ -71,10 +81,11 @@ class LayaClient:
         Return the calibrated confidence for an answer.
 
         Laya already calibrates via answer_confidence. We only apply
-        an extra temperature if ECE measured >= 0.1 on the golden set.
+        an extra temperature if ECE measured >= 0.1 on the golden set
+        (or a LAYA_TEMPERATURE override is set for an experiment run).
         """
         raw = answer["answer_confidence"]
-        T = self.calibration[CHECKPOINT]["temperature"]
+        T = effective_temperature(self.calibration, os.environ.get("LAYA_TEMPERATURE"))
         if T == 1.0:
             return raw
         return apply_temperature(raw, T)

@@ -63,3 +63,23 @@ def test_run_interpreter_uses_all_three_mechanisms(ontology):
     assert "needs_messaging" not in ids
     # laya candidates survive only where no rule fires
     assert "needs_authentication" in ids
+
+def test_candidates_use_the_clients_calibrated_confidence():
+    """Production wiring: the interpreter must consume the client's
+    calibrated confidence (the ECE-gated quantity), not the raw envelope
+    value - otherwise a fitted temperature could never reach the fold."""
+    from compiler.interpreter.pipeline import candidates_from_laya_response
+
+    class Calibrating:
+        def calibrated_confidence(self, answer):
+            return round(answer["answer_confidence"] * 0.5, 4)
+
+    envelope = {"answers": {"needs_auth": {
+        "type": "noul", "noul": 0.9, "answer_confidence": 0.9,
+    }}}
+    cands = candidates_from_laya_response(envelope, laya=Calibrating())
+    assert cands[0].confidence == 0.45
+
+    # no calibrated_confidence (plain dict client / envelope) -> raw value
+    cands = candidates_from_laya_response(envelope)
+    assert cands[0].confidence == 0.9

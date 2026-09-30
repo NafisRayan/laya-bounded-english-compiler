@@ -41,8 +41,8 @@ the repo, at `../../laya/`.
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Measured — 100/100 LLM rows via OpenAI-compatible gateway: spec baseline R 0.503/P 0.685 (45/50 parse), direct-SQL table recall 0.36/precision 0.271; compiler rules+MCQ 0.922/1.000 wins** | Independent ground-truth annotation; gateway model provenance; OpenRouter key for dbsmash | `tests/golden/cases/` (50 cases); `tests/experiments/baselines.py` + `results/baselines.jsonl` (100 measured rows) |
-| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured twice + fixed — real checkpoint rerun exposed 2 harness defects (merge twinning, symmetric negative gate); post-fix hybrid+MCQ = rules-parity (0.922/0.930, 10 omissions) with 9 hallucinations; mock table unchanged** | Independent annotation; checkpoint that pays (refit/fine-tune) | `tests/experiments/run_ablation.py` (`--real-laya`) + `results/ablation.jsonl` + `results/ablation_real.jsonl`; `compiler/interpreter/merge.py` (feature-target grouping); `compiler/mcq/pipeline.py` (asymmetric gate) |
-| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | **500 measured pairs** (real `english` checkpoint × golden cases) | **Measured — ECE 0.0951 < 0.1 (gate PASS); fit 0.0425 @ T = 1.40; sweep @ 0.75: 87.8% coverage / 80.0% correctness** | Independent ground-truth annotation; held-out pairs | `tests/experiments/run_calibration.py` + `results/calibration_pairs.jsonl`; `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/calibration_set.json` (measured) |
+| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured twice + fixed — post-fix hybrid+MCQ = rules-parity (0.922/0.930, 10 omissions); with the §5.3 refit (T = 1.40) hallucinations 9 → 4, precision 0.967, feature-exact 44/50** | Independent annotation | `tests/experiments/run_ablation.py` (`--real-laya`) + `results/ablation_real*.jsonl`; `compiler/interpreter/merge.py`; `compiler/mcq/pipeline.py`; `compiler/interpreter/pipeline.py` (calibrated wiring) |
+| R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | **500 measured pairs** (real `english` checkpoint × golden cases) | **Measured — ECE 0.0951 < 0.1 (gate PASS); fit 0.0425 @ T = 1.40; refit applied downstream halves hybrid hallucinations 9 → 4 (§5.2 finding 7)** | Independent ground-truth annotation; held-out pairs | `tests/experiments/run_calibration.py` + `results/calibration_pairs*.jsonl`; `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/calibration_set.json` (measured) |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Measured — 1 real deployment, first-attempt success (39 s, free tier)** | Repeat runs for a rate; real-model interpreter (mock persona used) | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG, `tests/e2e/` |
 
 **Calibration honesty note:** the §18.17 gate fixture is now 500 measured
@@ -277,8 +277,8 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   and three real end-to-end deployments, first-attempt (§5.4). Remaining
   before results are fully claimable: (i) independent ground-truth
   annotation + held-out splits, (ii) the dbsmash row (OpenRouter key),
-  (iii) a checkpoint that pays — refit or fine-tune re-measured through the
-  harness.
+  (iii) held-out confirmation of the refit's downstream gain (T = 1.40
+  halves hybrid hallucinations in-sample; §5.2 finding 7).
 
 ---
 
@@ -317,7 +317,8 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
    with mock personas (2026-09-29); re-measured with the real checkpoint the
    same day, which exposed and fixed two harness defects (merge
    feature-target grouping, asymmetric negative gate); post-fix hybrid+MCQ =
-   rules-parity. Remaining: independent annotation, a checkpoint that pays.
+   rules-parity; refit takes hallucinations to 4. Remaining: independent
+   annotation.
 3. ~~Build the baseline harness (LLM e2e, LLM→BackendSpec, DbSmash) on the
    golden set~~ — **done (2026-09-29)**: adapters + offline-scored unit tests;
    full sweep MEASURED 2026-09-30 via the gateway (100/100 rows); remaining:
