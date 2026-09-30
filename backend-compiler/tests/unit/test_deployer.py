@@ -51,6 +51,7 @@ def test_apply_migrations_raises_on_failure(monkeypatch, tmp_path, marketplace_s
     monkeypatch.setattr(
         deployer.subprocess, "run", lambda *a, **k: _FakeCompleted(returncode=1, stderr="boom")
     )
+    monkeypatch.setattr(deployer, "supabase_cli", lambda *a: ["supabase", *a])
     migrations = compose(marketplace_spec, ontology)
     with pytest.raises(MigrationError, match="boom"):
         apply_migrations("ref", "pw", migrations)
