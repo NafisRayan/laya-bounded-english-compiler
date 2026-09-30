@@ -1,0 +1,11 @@
+# Annotation worksheet — empty_spec_junk_text (held_out set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: empty_spec_junk_text
+input: 'Hello there.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

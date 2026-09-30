@@ -1,0 +1,11 @@
+# Annotation worksheet — alias_and_phrase_decide (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: alias_and_phrase_decide
+input: 'Use stripe for payments and email password for login'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

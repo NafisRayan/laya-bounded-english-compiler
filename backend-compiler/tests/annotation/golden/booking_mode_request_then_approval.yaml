@@ -1,0 +1,11 @@
+# Annotation worksheet — booking_mode_request_then_approval (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: booking_mode_request_then_approval
+input: 'Renters can request a booking and the owner approves first.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

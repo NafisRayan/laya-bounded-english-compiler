@@ -1,0 +1,11 @@
+# Annotation worksheet — reviews_and_favorites (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: reviews_and_favorites
+input: 'Guests can leave a review after their stay and save a favorite listing for later.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

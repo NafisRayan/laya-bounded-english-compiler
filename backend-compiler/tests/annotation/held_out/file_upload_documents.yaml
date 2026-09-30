@@ -1,0 +1,11 @@
+# Annotation worksheet — file_upload_documents (held_out set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: file_upload_documents
+input: 'Users can upload documents to their profiles.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

@@ -1,0 +1,11 @@
+# Annotation worksheet — contact_owners_messaging (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: contact_owners_messaging
+input: 'Buyers can contact owners about each listing.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

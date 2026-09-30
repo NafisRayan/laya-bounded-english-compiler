@@ -1,0 +1,11 @@
+# Annotation worksheet — duplicate_phrase_single_decision (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: duplicate_phrase_single_decision
+input: 'Renters book items. Owners list equipment for rent.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

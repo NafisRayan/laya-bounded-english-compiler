@@ -1,0 +1,11 @@
+# Annotation worksheet — kitchen_sink_marketplace (held_out set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: kitchen_sink_marketplace
+input: 'A marketplace where owners list equipment, renters book items, both parties chat with each other, payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify government id before anyone can favorite a listing.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""
