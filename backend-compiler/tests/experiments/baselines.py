@@ -22,9 +22,13 @@ import json
 import os
 import random
 import re
+import shutil
+import subprocess
+import tempfile
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from string import Template
 from typing import Any, Callable, Protocol, Sequence
 
@@ -367,21 +371,78 @@ class DirectSqlBaseline:
 
 
 class DbSmashBaseline:
-    """Baseline 5: off-the-shelf Supabase generator (external tool surface).
+    """Baseline 5: off-the-shelf generator CLI (npm ``dbsmash``).
 
-    Not installed/configured in this repo; the adapter records the reason so
-    the pipeline degrades gracefully, matching how the e2e tier self-skips.
+    Discovered contract (dbsmash 1.0.7): the app description goes in on
+    stdin, the tool scaffolds into its CWD, and generation shells out to
+    OpenRouter, so ``OPENROUTER_API_KEY`` must be in the environment.
+    Scoring is artifact-level like :class:`DirectSqlBaseline`: every
+    CREATE TABLE in the scaffolded ``*.sql`` counts, and we report gold
+    hits. ``DBSMASH_CMD`` overrides the executable; otherwise the CLI is
+    resolved from PATH (npm installs a Windows shim, which is routed
+    through ``cmd`` — same treatment as the Supabase CLI in
+    :mod:`compiler.deployer.config`).
     """
 
     name = "dbsmash"
 
-    def available(self) -> bool:
-        return False
+    @staticmethod
+    def _cmd() -> list[str] | None:
+        override = os.environ.get("DBSMASH_CMD")
+        if override:
+            return [override]
+        exe = shutil.which("dbsmash.exe") or shutil.which("dbsmash")
+        if exe is None:
+            return None
+        if os.name == "nt" and not exe.lower().endswith(".exe"):
+            return ["cmd", "/c", exe]
+        return [exe]
 
-    def run(self, input_text: str, case_name: str = "") -> BaselineResult:
+    def available(self) -> bool:
+        return self._cmd() is not None and bool(os.environ.get("OPENROUTER_API_KEY"))
+
+    def run(self, input_text: str, case_name: str = "",
+            gold_entities: Sequence[str] | None = None) -> BaselineResult:
+        cmd = self._cmd()
+        missing = []
+        if cmd is None:
+            missing.append("the dbsmash CLI on PATH (npm install -g dbsmash)")
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            missing.append("OPENROUTER_API_KEY (the tool calls OpenRouter)")
+        if missing:
+            return BaselineResult(
+                baseline=self.name, case=case_name, skipped=True,
+                skip_reason="; ".join(missing),
+            )
+
+        env = os.environ.copy()
+        with tempfile.TemporaryDirectory(prefix="dbsmash-") as tmp:
+            try:
+                completed = subprocess.run(
+                    cmd,
+                    input=input_text, cwd=tmp, env=env,
+                    capture_output=True, text=True, timeout=600,
+                )
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                return BaselineResult(baseline=self.name, case=case_name,
+                                      skipped=True, skip_reason=f"dbsmash failed: {exc}")
+            if completed.returncode != 0:
+                return BaselineResult(
+                    baseline=self.name, case=case_name, skipped=True,
+                    skip_reason=f"dbsmash exited {completed.returncode}: "
+                                f"{(completed.stderr or '')[-300:]}",
+                )
+            sql_files = sorted(Path(tmp).rglob("*.sql"))
+            raw = "\n".join(p.read_text(encoding="utf-8", errors="replace")
+                            for p in sql_files)
+
+        tables = set(table_names_from_sql(raw))
+        gold = set(gold_entities or [])
         return BaselineResult(
-            baseline=self.name, case=case_name, skipped=True,
-            skip_reason="DbSmash is an external tool; not configured in this repo",
+            baseline=self.name, case=case_name, skipped=False,
+            extra={"tables_found": len(tables), "gold_tables": len(gold),
+                   "tables_hit": len(tables & gold)},
+            raw_output=raw,
         )
 
 
