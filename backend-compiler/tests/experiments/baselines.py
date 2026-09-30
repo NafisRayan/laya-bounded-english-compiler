@@ -48,7 +48,9 @@ __all__ = [
     "DirectSqlBaseline",
     "anthropic_completer",
     "backend_spec_prompt",
+    "default_completer",
     "gemini_completer",
+    "openai_compat_completer",
     "openai_completer",
     "parse_backend_spec",
     "table_names_from_sql",
@@ -114,6 +116,67 @@ def openai_completer(model: str = "gpt-4o") -> LlmCompleter | None:
         return resp.json()["choices"][0]["message"]["content"]
 
     return _FnCompleter(complete)
+
+
+def openai_compat_completer(model: str | None = None) -> LlmCompleter | None:
+    """Completer for ANY OpenAI-compatible gateway (OpenRouter, proxy
+    gateways, Gemini's own ``/v1beta/openai`` shim, vLLM, ...).
+
+    Gated on ``OPENAI_BASE_URL`` + ``OPENAI_API_KEY``; the model defaults to
+    ``OPENAI_MODEL``, then ``GEMINI_MODEL`` (the common case: serving a
+    Gemini model through a compatible endpoint), then ``gemini-2.5-flash``.
+    The base URL follows the OpenAI SDK convention: it is the full prefix,
+    so ``{base}/chat/completions`` is the endpoint. Retries transient
+    failures (429 / 5xx / 408) like :func:`gemini_completer`.
+    """
+    base = os.environ.get("OPENAI_BASE_URL")
+    key = os.environ.get("OPENAI_API_KEY")
+    if not base or not key:
+        return None
+    model = model or os.environ.get("OPENAI_MODEL") or os.environ.get("GEMINI_MODEL") \
+        or "gemini-2.5-flash"
+    url = base.rstrip("/") + "/chat/completions"
+
+    def complete(system: str, user: str) -> str:
+        body = {"model": model, "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ]}
+        retry_after_s = [10.0, 30.0, 60.0, 120.0]
+        delay_s = [2.0, 4.0, 8.0, 16.0]
+        last: Exception | None = None
+        for attempt in range(4):
+            try:
+                resp = httpx.post(
+                    url,
+                    headers={"Authorization": f"Bearer {key}"},
+                    json=body, timeout=120.0,
+                )
+                if resp.status_code in (408, 429, 500, 502, 503, 504):
+                    wait = retry_after_s[attempt] if resp.status_code == 429 \
+                        else delay_s[attempt]
+                    header = resp.headers.get("Retry-After")
+                    if header and header.isdigit():
+                        wait = max(wait, float(header))
+                    time.sleep(wait + random.random())
+                    last = RuntimeError(f"HTTP {resp.status_code}")
+                    continue
+                resp.raise_for_status()
+                return resp.json()["choices"][0]["message"]["content"]
+            except httpx.HTTPError as exc:
+                time.sleep(delay_s[attempt] + random.random())
+                last = exc
+        raise RuntimeError(f"OpenAI-compatible call failed after retries: {last}")
+
+    return _FnCompleter(complete)
+
+
+def default_completer() -> LlmCompleter | None:
+    """Precedence for an LLM completer: an OpenAI-compatible gateway first
+    (a provided base_url exists precisely to bypass a primary key's quota),
+    then the native Gemini REST path, then OpenAI, then Anthropic."""
+    return (openai_compat_completer() or gemini_completer()
+            or openai_completer() or anthropic_completer())
 
 
 def anthropic_completer(model: str = "claude-sonnet-4-20250514") -> LlmCompleter | None:
@@ -297,7 +360,7 @@ class BackendSpecBaseline:
     def __init__(self, completer: LlmCompleter | None = None,
                  ontology: Ontology | None = None):
         if completer is None:
-            self._completer = gemini_completer() or openai_completer() or anthropic_completer()
+            self._completer = default_completer()
         else:
             self._completer = completer
         self._ontology: Ontology | None = ontology
@@ -310,8 +373,9 @@ class BackendSpecBaseline:
         if not self.available():
             return BaselineResult(
                 baseline=self.name, case=case_name, skipped=True,
-                skip_reason=("no LLM credentials "
-                             "(GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY)"),
+            skip_reason=("no LLM credentials "
+                         "(OPENAI_BASE_URL+OPENAI_API_KEY / GEMINI_API_KEY / "
+                         "OPENAI_API_KEY / ANTHROPIC_API_KEY)"),
             )
         ont = ontology or self._ontology
         assert ont is not None and self._completer is not None
@@ -339,7 +403,7 @@ class DirectSqlBaseline:
 
     def __init__(self, completer: LlmCompleter | None = None):
         if completer is None:
-            self._completer = gemini_completer() or openai_completer() or anthropic_completer()
+            self._completer = default_completer()
         else:
             self._completer = completer
 
@@ -351,8 +415,9 @@ class DirectSqlBaseline:
         if not self.available():
             return BaselineResult(
                 baseline=self.name, case=case_name, skipped=True,
-                skip_reason=("no LLM credentials "
-                             "(GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY)"),
+            skip_reason=("no LLM credentials "
+                         "(OPENAI_BASE_URL+OPENAI_API_KEY / GEMINI_API_KEY / "
+                         "OPENAI_API_KEY / ANTHROPIC_API_KEY)"),
             )
         assert self._completer is not None
         try:

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import httpx
 
+from tests.experiments import baselines
 from tests.experiments.baselines import (
     BackendSpecBaseline,
     DirectSqlBaseline,
@@ -204,3 +205,88 @@ def test_baselines_self_skip_without_credentials(ontology):
     assert result.skipped and "credentials" in (result.skip_reason or "")
     direct = DirectSqlBaseline()
     assert not direct.available()
+
+class CompatResp:
+    ok_status = 200
+
+    def __init__(self, status_code, payload):
+        self.status_code = status_code
+        self._payload = payload
+        self.headers = {}
+
+    def json(self):
+        return self._payload
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(f'HTTP {self.status_code}')
+
+
+def test_openai_compat_posts_chat_completions_and_parses(monkeypatch):
+    calls = {}
+
+    def fake_post(url, **kwargs):
+        calls.update(url=url, **kwargs)
+        return CompatResp(200, {
+            'choices': [{'message': {'content': 'spec json here'}}],
+        })
+
+    monkeypatch.setenv('OPENAI_BASE_URL', 'https://gw.example.com/v1beta/openai')
+    monkeypatch.setenv('OPENAI_API_KEY', 'sk-test')
+    monkeypatch.delenv('OPENAI_MODEL', raising=False)
+    monkeypatch.setenv('GEMINI_MODEL', 'gemini-3.5-flash')
+    monkeypatch.setattr(baselines.httpx, 'post', fake_post)
+
+    completer = baselines.openai_compat_completer()
+    assert completer is not None
+    out = completer.complete('sys prompt', 'user prompt')
+
+    assert out == 'spec json here'
+    assert calls['url'] == 'https://gw.example.com/v1beta/openai/chat/completions'
+    assert calls['headers']['Authorization'] == 'Bearer sk-test'
+    body = calls['json']
+    assert body['model'] == 'gemini-3.5-flash'
+    assert body['messages'][0] == {'role': 'system', 'content': 'sys prompt'}
+    assert body['messages'][1] == {'role': 'user', 'content': 'user prompt'}
+
+
+def test_openai_compat_requires_base_url_and_key(monkeypatch):
+    monkeypatch.delenv('OPENAI_BASE_URL', raising=False)
+    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
+    assert baselines.openai_compat_completer() is None
+    monkeypatch.setenv('OPENAI_BASE_URL', 'https://gw.example.com/v1')
+    assert baselines.openai_compat_completer() is None
+    monkeypatch.setenv('OPENAI_API_KEY', 'sk-test')
+    assert baselines.openai_compat_completer() is not None
+
+
+def test_openai_compat_retries_transient_then_succeeds(monkeypatch):
+    calls = {'n': 0}
+
+    def fake_post(url, **kwargs):
+        calls['n'] += 1
+        if calls['n'] == 1:
+            return CompatResp(503, {})
+        return CompatResp(200, {'choices': [{'message': {'content': 'ok'}}]})
+
+    monkeypatch.setenv('OPENAI_BASE_URL', 'https://gw.example.com/v1')
+    monkeypatch.setenv('OPENAI_API_KEY', 'sk-test')
+    monkeypatch.setattr(baselines.httpx, 'post', fake_post)
+    monkeypatch.setattr(baselines.time, 'sleep', lambda s: None)
+
+    completer = baselines.openai_compat_completer()
+    assert completer.complete('s', 'u') == 'ok'
+    assert calls['n'] == 2
+
+
+def test_default_completer_prefers_openai_compat(monkeypatch):
+    """The compat gateway is tried before the native Gemini REST path, so a
+    provided base_url outranks the primary key's daily quota."""
+    sentinel = baselines._FnCompleter(lambda s, u: 'compat')
+
+    monkeypatch.setenv('OPENAI_BASE_URL', 'https://gw.example.com/v1')
+    monkeypatch.setenv('OPENAI_API_KEY', 'sk-test')
+    monkeypatch.setattr(baselines, 'openai_compat_completer', lambda: sentinel)
+    monkeypatch.setattr(baselines, 'gemini_completer', lambda: None)
+    from tests.experiments.baselines import default_completer
+    assert default_completer() is sentinel
