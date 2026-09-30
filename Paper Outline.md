@@ -40,7 +40,7 @@ the repo, at `../../laya/`.
 
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
-| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Measured — 100/100 LLM rows via OpenAI-compatible gateway: spec baseline R 0.503/P 0.685 (45/50 parse), direct-SQL table recall 0.36/precision 0.271; compiler rules+MCQ 0.922/1.000 wins** | Independent ground-truth annotation; gateway model provenance; OpenRouter key for dbsmash | `tests/golden/cases/` (50 cases); `tests/experiments/baselines.py` + `results/baselines.jsonl` (100 measured rows) |
+| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Measured — all 150 rows: spec baseline R 0.503/P 0.685 (45/50 parse); direct-SQL recall 0.36/precision 0.271; dbsmash schema in 15/50 cases, recall 0.02; compiler rules+MCQ 0.922/1.000 wins** | Independent ground-truth annotation; gateway model provenance | `tests/golden/cases/` (50 cases); `tests/experiments/baselines.py` + `results/baselines.jsonl` (150 measured rows) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured twice + fixed — post-fix hybrid+MCQ = rules-parity (0.922/0.930, 10 omissions); with the §5.3 refit (T = 1.40) hallucinations 9 → 4, precision 0.967, feature-exact 44/50** | Independent annotation | `tests/experiments/run_ablation.py` (`--real-laya`) + `results/ablation_real*.jsonl`; `compiler/interpreter/merge.py`; `compiler/mcq/pipeline.py`; `compiler/interpreter/pipeline.py` (calibrated wiring) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | **500 measured pairs** (real `english` checkpoint × golden cases) | **Measured — ECE 0.0951 < 0.1 (gate PASS); fit 0.0425 @ T = 1.40; refit applied downstream halves hybrid hallucinations 9 → 4 (§5.2 finding 7)** | Independent ground-truth annotation; held-out pairs | `tests/experiments/run_calibration.py` + `results/calibration_pairs*.jsonl`; `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/calibration_set.json` (measured) |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Measured — 1 real deployment, first-attempt success (39 s, free tier)** | Repeat runs for a rate; real-model interpreter (mock persona used) | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG, `tests/e2e/` |
@@ -145,8 +145,8 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   current feature coverage, and annotation of ground-truth `BackendSpec` per
   input (the case expectations are engine-pinned regression truth, not yet
   independent annotations).
-- **4.2 Baselines** (MEASURED 2026-09-30 — 100/100 LLM rows via an
-  OpenAI-compatible gateway; dbsmash awaits an OpenRouter key):
+- **4.2 Baselines** (MEASURED 2026-09-30 — all 150
+  rows: 100 LLM via the gateway + 50 dbsmash via OpenRouter/Gemini):
   1. End-to-end LLM (Gemini / GPT-4o / Claude) direct-to-SQL — `DirectSqlBaseline`.
   2. End-to-end LLM → `BackendSpec` → same fragment composer (isolates the IR)
      — `BackendSpecBaseline`, parse → spec → score unit-tested offline.
@@ -276,8 +276,7 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   calibration — ECE 0.0951 < 0.1 in-sample, fit 0.0425 @ T = 1.40 (§5.3) —
   and three real end-to-end deployments, first-attempt (§5.4). Remaining
   before results are fully claimable: (i) independent ground-truth
-  annotation + held-out splits, (ii) the dbsmash row (OpenRouter key),
-  (iii) held-out confirmation of the refit's downstream gain (T = 1.40
+  annotation + held-out splits, (ii) held-out confirmation of the refit's downstream gain (T = 1.40
   halves hybrid hallucinations in-sample; §5.2 finding 7).
 
 ---
@@ -321,8 +320,8 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
    annotation.
 3. ~~Build the baseline harness (LLM e2e, LLM→BackendSpec, DbSmash) on the
    golden set~~ — **done (2026-09-29)**: adapters + offline-scored unit tests;
-   full sweep MEASURED 2026-09-30 via the gateway (100/100 rows); remaining:
-   dbsmash (OpenRouter key) and independent annotation.
+   full sweep MEASURED 2026-09-30 (150/150 rows); remaining: independent
+   annotation.
 4. ~~Run one real end-to-end deployment through the credential-gated e2e
    tier~~ — **done (2026-09-29)**: first-attempt success on a free-tier org,
    39 s create→verified, 5 live-API drift points fixed (§5.4).

@@ -477,6 +477,18 @@ class DbSmashBaseline:
         return {m.group(1).lower() for m in
                 re.finditer(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\{", text, re.M)}
 
+    @staticmethod
+    def score_generator_tables(raw: str, gold_entities: Sequence[str]) -> dict[str, int]:
+        """Artifact-level counts from mixed generator output: CREATE TABLE
+        statements in SQL/stdout plus entity blocks in Mermaid diagrams,
+        matched case-insensitively against the gold entities."""
+        tables = {t.lower() for t in table_names_from_sql(raw)}
+        for mmd in re.finditer(r"erDiagram(.*?)(?:\Z)", raw, re.S):
+            tables |= DbSmashBaseline._mermaid_entities(mmd.group(1))
+        gold = {g.lower() for g in gold_entities}
+        return {"tables_found": len(tables), "gold_tables": len(gold),
+                "tables_hit": len(tables & gold)}
+
     def run(self, input_text: str, case_name: str = "",
             gold_entities: Sequence[str] | None = None) -> BaselineResult:
         cmd = self._cmd()
@@ -521,14 +533,10 @@ class DbSmashBaseline:
                     parts.append(p.read_text(encoding="utf-8", errors="replace"))
             raw = "\n".join(parts)
 
-        tables = {t.lower() for t in table_names_from_sql(raw)}
-        for mmd in re.finditer(r"erDiagram(.*?)(?:\Z)", raw, re.S):
-            tables |= self._mermaid_entities(mmd.group(1))
-        gold = {g.lower() for g in (gold_entities or [])}
+        tables = DbSmashBaseline.score_generator_tables(raw, gold_entities or [])
         return BaselineResult(
             baseline=self.name, case=case_name, skipped=False,
-            extra={"tables_found": len(tables), "gold_tables": len(gold),
-                   "tables_hit": len(tables & gold)},
+            extra=tables,
             raw_output=raw[-5000:],
         )
 

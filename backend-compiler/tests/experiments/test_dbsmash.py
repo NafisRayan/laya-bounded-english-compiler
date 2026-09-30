@@ -93,7 +93,7 @@ def test_dbsmash_runs_cli_and_scores_generated_sql(monkeypatch, tmp_path):
                    case_name="blog_case", gold_entities=["posts", "comments", "users"])
 
     assert not result.skipped
-    assert calls["input"] == "A blog where users can comment on posts"
+    assert calls["input"] == "A blog where users can comment on posts\n"
     assert any("dbsmash" in part.lower() for part in calls["cmd"])
     assert calls["env"]["OPENROUTER_API_KEY"] == "k"
     assert result.extra["tables_found"] == 2

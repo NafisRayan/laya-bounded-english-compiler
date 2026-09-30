@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
                 if (baseline.name, case_name) in done:
                     continue
                 labels = extract_labels(data.get("expected_spec") or {})
-                if baseline.name == "llm_direct_sql":
+                if baseline.name in ("llm_direct_sql", "dbsmash"):
                     result: BaselineResult = baseline.run(
                         str(data["input"]), case_name=case_name,
                         gold_entities=labels.entities or (),

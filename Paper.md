@@ -307,9 +307,8 @@ reuse). The end-to-end tier has now been run once against a real Supabase
 account, first-attempt success (§5.4), the baseline harness has been
 exercised against a live LLM through its real code path (§5.1), and the real
 pinned checkpoint has been measured two ways: calibration (§5.3) and the
-full ablation grid (§5.2). The full baseline sweep is now measured through
-an OpenAI-compatible gateway (§5.1). Not yet done: the off-the-shelf
-generator baseline (awaiting an OpenRouter key), and annotation-grade
+full ablation grid (§5.2). The full baseline sweep — including the
+off-the-shelf generator — is measured (§5.1). Not yet done: annotation-grade
 ground truth — §5.1/§5.3/§5.4 report the status of each.
 
 ## 4. Experimental Setup
@@ -413,18 +412,26 @@ should tighten). `dbsmash` self-skips for lack of an `OPENROUTER_API_KEY`
 | | hallucinations (50 cases) | 21 |
 | LLM → direct SQL | gold tables hit (pooled) | 36/100 (0.36) |
 | | tables generated / spurious | 133 (precision 0.271) |
+| dbsmash (off-the-shelf CLI) | schema produced at all | 15/50 cases |
+| | gold tables hit (pooled) | 2/100 (0.02) |
+| | tables generated / spurious | 45 (precision 0.044) |
 | Compiler, rules+MCQ (§5.2) | pooled recall / precision | 0.922 / 1.000 |
 | Compiler, hybrid+MCQ (§5.2) | pooled recall / precision | 0.922 / 0.930 |
 
-The compiler's fidelity claim holds against both baselines on this corpus:
-the spec-space baseline omits more than twice as much as rules+MCQ (57 vs
-10 omissions) and hallucinates 21 features where the compiler's real
-checkpoint run hallucinates 9 and rules alone hallucinate 0; the direct-SQL
+The compiler's fidelity claim holds against all three baselines on this
+corpus: the spec-space baseline omits more than twice as much as rules+MCQ
+(57 vs 10 omissions) and hallucinates 21 features where the compiler's real
+checkpoint run hallucinates 4-9 and rules alone hallucinate 0; the direct-SQL
 baseline over-generates (133 tables for 100 gold) while missing 64% of gold
-tables. Two honest caveats: the baselines ran with zero-shot prompts and no
+tables; and the off-the-shelf generator produced any schema in only 15 of 50
+cases, hitting 2 of 100 gold tables (its intent agent rejects most of the
+one-shot descriptions, and its interactive flow never reaches SQL export
+under piped stdin — scored from its Mermaid/schema output instead). Three
+honest caveats: the LLM baselines ran with zero-shot prompts and no
 clarifying questions (that is the baseline's definition — end-to-end, no
-interaction), and the model serving both is a gateway-tiered Gemini whose
-exact provenance is outside our pinning control.
+interaction); the model serving them is a gateway-tiered Gemini whose exact
+provenance is outside our pinning control; and dbsmash was measured through
+its non-interactive path, which is weaker than a human driving its wizard.
 
 What *is* measurable today is the composition side of R1: the delivered
 `BackendSpec` compiles to SQL that applies cleanly twice across the 595-pair
