@@ -45,6 +45,13 @@ class FlakyClient:
         self.calls = 0
         self.failed = False
 
+    def calibrated_confidence(self, answer):
+        # Pass through WITHOUT counting: only inference (predict) is a
+        # counted laya call. The fold now reads the client's calibrated
+        # confidence per answer, and that must not consume the failure
+        # index or every request would 500 one call early.
+        return self._inner.calibrated_confidence(answer)
+
     def __getattr__(self, name):
         attr = getattr(self._inner, name)
         if not callable(attr):
