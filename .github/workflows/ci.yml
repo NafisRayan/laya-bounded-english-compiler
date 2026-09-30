@@ -62,6 +62,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e ".[dev]"
+      - name: Install the Supabase CLI (deploy_spec shells out to it)
+        run: npm install -g supabase
       - run: pytest tests/e2e -q
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
