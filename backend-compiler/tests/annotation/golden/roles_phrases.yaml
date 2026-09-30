@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: roles_phrases
 input: 'An admin can manage the platform.'
-features: {}
-parameters: {}
-roles: []
+features:
+  authentication: true
+  roles: true
+parameters:
+  roles.role_names: [admin]
+roles: [admin]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Same sentence as another case in the corpus and annotated identically. Admin is an assigned role so the roles feature is on; nothing else is concrete enough to enable."

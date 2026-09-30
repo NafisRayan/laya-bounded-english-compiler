@@ -25,7 +25,8 @@ from tests.annotation.generate_worksheets import ANNOTATION_DIR
 from tests.experiments.metrics import extract_labels
 from tests.experiments.runner import iter_cases, load_test_ontology
 
-__all__ = ["load_worksheets", "check_worksheet", "score_worksheets"]
+__all__ = ["bucket_key", "check_worksheet", "legal_buckets",
+           "legal_edge_functions", "load_worksheets", "score_worksheets"]
 
 KNOWN_KEYS = {"case", "input", "features", "parameters", "roles",
               "buckets", "edge_functions", "notes"}
@@ -36,6 +37,47 @@ def load_worksheets(root: Path, set_name: str) -> dict[str, dict]:
     for path in sorted((root / set_name).glob("*.yaml")):
         out[path.stem] = yaml.safe_load(path.read_text(encoding="utf-8"))
     return out
+
+
+def bucket_key(entry) -> str:
+    """Identity of a bucket label, whichever form it was written in.
+
+    Worksheets use the bare purpose (``buckets: [listings]``, per the
+    protocol); the engine's specs carry full ``BucketSpec`` mappings. Both
+    reduce to the same comparable key.
+    """
+    if isinstance(entry, dict):
+        return str(entry.get("purpose") or entry.get("name"))
+    return str(entry)
+
+
+def param_items(params: dict | None) -> set[tuple[str, object]]:
+    """Parameter pairs made hashable, so the two label sets can be diffed.
+
+    ``roles.role_names`` and ``realtime.channels`` are list-typed; their
+    values canonicalize to sorted tuples, since neither carries meaning in
+    its order and an order-only difference is not a disagreement.
+    """
+    out: set[tuple[str, object]] = set()
+    for key, value in (params or {}).items():
+        if isinstance(value, (list, tuple)):
+            value = tuple(sorted(str(v) for v in value))
+        elif isinstance(value, dict):
+            value = tuple(sorted((k, str(v)) for k, v in value.items()))
+        out.add((key, value))
+    return out
+
+
+def legal_buckets(ontology) -> set[str]:
+    """Bucket vocabulary: the ``file_storage.bucket_purpose`` options."""
+    feature = ontology.features.get("file_storage")
+    purpose = feature.parameters.get("bucket_purpose") if feature else None
+    return set(purpose.options) if purpose else set()
+
+
+def legal_edge_functions(ontology) -> set[str]:
+    return {fn for feature in ontology.features.values()
+            for fn in feature.activates_edge_functions}
 
 
 def check_worksheet(case: str, data: dict, ontology, errors: list[str]) -> None:
@@ -60,9 +102,15 @@ def check_worksheet(case: str, data: dict, ontology, errors: list[str]) -> None:
     for name in (data.get("roles") or []):
         if name not in ontology.roles:
             errors.append(f"{case}: unknown role {name!r}")
-    for name in (data.get("buckets") or []):
-        if name not in ontology.buckets:
-            errors.append(f"{case}: unknown bucket {name!r}")
+    buckets = legal_buckets(ontology)
+    for entry in (data.get("buckets") or []):
+        name = bucket_key(entry)
+        if name not in buckets:
+            errors.append(f"{case}: unknown bucket {name!r} not in {sorted(buckets)}")
+    edges = legal_edge_functions(ontology)
+    for name in (data.get("edge_functions") or []):
+        if name not in edges:
+            errors.append(f"{case}: unknown edge function {name!r} not in {sorted(edges)}")
 
 
 def score_worksheets(root: Path, set_name: str) -> dict:
@@ -82,18 +130,16 @@ def score_worksheets(root: Path, set_name: str) -> dict:
         theirs = extract_labels(gold_by_case[case].get("expected_spec") or {})
         comparable = {
             "features": {f for f, enabled in (mine.feature_map or {}).items() if enabled},
-            "parameters": set((mine.parameters or {}).items()),
+            "parameters": param_items(mine.parameters),
             "roles": set(mine.roles or ()),
-            "entities": set(mine.entities or ()),
-            "buckets": {b.get("purpose") or b.get("name") for b in (mine.buckets or [])},
+            "buckets": {bucket_key(b) for b in (mine.buckets or [])},
             "edge_functions": set(mine.edge_functions or ()),
         }
         gold_comparable = {
             "features": {f for f, enabled in (theirs.feature_map or {}).items() if enabled},
-            "parameters": set((theirs.parameters or {}).items()),
+            "parameters": param_items(theirs.parameters),
             "roles": set(theirs.roles or ()),
-            "entities": set(theirs.entities or ()),
-            "buckets": {b.get("purpose") or b.get("name") for b in (theirs.buckets or [])},
+            "buckets": {bucket_key(b) for b in (theirs.buckets or [])},
             "edge_functions": set(theirs.edge_functions or ()),
         }
         for kind, a in comparable.items():

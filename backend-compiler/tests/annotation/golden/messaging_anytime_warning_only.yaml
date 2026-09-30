@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: messaging_anytime_warning_only
 input: 'Users message each other whenever they want.'
-features: {}
-parameters: {}
+features:
+  authentication: true
+  messaging: true
+parameters:
+  messaging.trigger_event: anytime
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Whenever they want pins the anytime trigger. Users is the generic actor, not a named role. No bookings are implied: anytime messaging is precisely the case that does not hang off a booking."

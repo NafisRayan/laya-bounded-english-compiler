@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: role_staff_and_admin_dedupe
 input: 'Staff and admins keep the platform safe.'
-features: {}
-parameters: {}
-roles: []
+features:
+  authentication: true
+  roles: true
+parameters:
+  roles.role_names: [staff, admin]
+roles: [admin]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Two role words are named, so role_names keeps both as written. The ontology has no staff role and staff keeping the platform safe is the same privilege as admin, so the roles list collapses to the single admin role. Keep the platform safe names no concrete moderation capability."

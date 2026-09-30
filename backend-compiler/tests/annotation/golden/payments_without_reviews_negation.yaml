@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: payments_without_reviews_negation
 input: 'Vendors can charge for their services. There will be no review system.'
-features: {}
+features:
+  authentication: true
+  payments: true
+  reviews: false
 parameters: {}
-roles: []
+roles: [owner]
 buckets: []
-edge_functions: []
-notes: ""
+edge_functions: [stripe_webhook]
+notes: "Charging is payments; the review system is explicitly refused. Vendors own what they sell, so owner. Bookings are never mentioned, and since reviews are off nothing forces bookings on through the dependency rules. No provider named."

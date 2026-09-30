@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: unparsed_sentence_resolved_feature
 input: 'We want to book each item. Also our logo is a blue heron.'
-features: {}
+features:
+  authentication: true
+  bookings: true
 parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "First sentence asks for bookings. The second is branding and carries no backend requirement; a logo is not file storage the product offers to users. No actor class is named beyond we, so roles stays empty."

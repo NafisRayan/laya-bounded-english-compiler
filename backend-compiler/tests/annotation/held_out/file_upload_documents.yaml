@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: file_upload_documents
 input: 'Users can upload documents to their profiles.'
-features: {}
-parameters: {}
+features:
+  authentication: true
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: documents
 roles: []
-buckets: []
+buckets: [documents]
 edge_functions: []
-notes: ""
+notes: "Documents is stated literally, so the bucket purpose is documents and not avatars, even though the files hang off profiles. Users is the generic actor, not a named role, so roles stays empty. Nothing here implies verification: the documents have no review step."

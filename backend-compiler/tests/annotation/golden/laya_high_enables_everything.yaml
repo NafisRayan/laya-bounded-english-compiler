@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: laya_high_enables_everything
 input: 'Start simple: a place where renters book each item.'
-features: {}
+features:
+  authentication: true
+  bookings: true
 parameters: {}
-roles: []
+roles: [renter]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Only bookings is asked for. Start simple is an explicit instruction not to add anything beyond it, which reinforces leaving every other feature unset rather than merely omitting it."

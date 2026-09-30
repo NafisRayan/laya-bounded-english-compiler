@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: laya_high_decides
 input: 'Use stripe for payments and email password for login'
-features: {}
-parameters: {}
+features:
+  authentication: true
+  payments: true
+parameters:
+  payments.provider: stripe
+  authentication.method: email_password
 roles: []
 buckets: []
-edge_functions: []
-notes: ""
+edge_functions: [stripe_webhook]
+notes: "Identical input to another case in the corpus and annotated identically. Both features and both parameter values are explicit; no actor class named."

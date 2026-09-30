@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: feedback_word_reviews
 input: 'Customers give feedback after each rental.'
-features: {}
+features:
+  authentication: true
+  bookings: true
+  reviews: true
 parameters: {}
-roles: []
+roles: [renter]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Feedback after a rental is the reviews feature; rental is the booking it attaches to. bookings is also forced by the ontology constraint that reviews require bookings. Customers are the renting side, so renter. No rating scale or booking mode is pinned."

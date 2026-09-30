@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: bucket_purpose_listings
 input: 'Sellers upload photos of their property listings.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
+features:
+  authentication: true
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: listings
+roles: [owner]
+buckets: [listings]
 edge_functions: []
-notes: ""
+notes: "Uploading photos is file storage; the photos belong to listings, so the purpose is listings rather than avatars. authentication is enabled because file_storage requires it in the ontology and because sellers own their listings. Sellers maps to the derived owner role. Silent on bookings, payments and everything else."

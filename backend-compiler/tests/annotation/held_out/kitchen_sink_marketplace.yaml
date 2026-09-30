@@ -3,9 +3,22 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: kitchen_sink_marketplace
 input: 'A marketplace where owners list equipment, renters book items, both parties chat with each other, payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify government id before anyone can favorite a listing.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  roles: true
+  bookings: true
+  messaging: true
+  payments: true
+  reviews: true
+  file_storage: true
+  verification: true
+  favorites: true
+parameters:
+  payments.provider: stripe
+  verification.method: government_id_and_admin
+  file_storage.bucket_purpose: mixed
+  roles.role_names: [admin]
+roles: [owner, renter, admin]
+buckets: [listings, documents]
+edge_functions: [stripe_webhook, verification_webhook]
+notes: "Every clause names a feature outright. Admins verifying government id is the combined government_id_and_admin method: both the document type and the human approver are stated. Two kinds of file live here, listing photos and id documents, so the purpose is mixed. Only admin needs the roles feature; owner and renter are derived. Realtime is never mentioned, so no live channels. Booking mode and messaging trigger are unpinned. The clause before anyone can favorite a listing is an ordering requirement the schema cannot express; I read it as both features being present, not as a gate."

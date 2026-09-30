@@ -8,4 +8,4 @@ parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "A greeting. No requirement of any kind is expressed, so every dimension is empty, including authentication."

@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: alias_and_phrase_decide
 input: 'Use stripe for payments and email password for login'
-features: {}
-parameters: {}
+features:
+  authentication: true
+  payments: true
+parameters:
+  payments.provider: stripe
+  authentication.method: email_password
 roles: []
 buckets: []
-edge_functions: []
-notes: ""
+edge_functions: [stripe_webhook]
+notes: "Both features and both parameter values are stated outright. No actor class is named, so roles stays empty. stripe_webhook follows from payments activating it in the ontology."

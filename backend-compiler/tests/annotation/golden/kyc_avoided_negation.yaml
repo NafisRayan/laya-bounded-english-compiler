@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: kyc_avoided_negation
 input: 'We avoid KYC to keep onboarding fast.'
-features: {}
+features:
+  verification: false
 parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "KYC is identity verification and it is explicitly refused. Onboarding hints that users sign up, but the sentence is about what is not being built, so authentication is not enabled on that hint alone. Nothing else stated."

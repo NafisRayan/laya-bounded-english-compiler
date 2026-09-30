@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: reviews_and_favorites
 input: 'Guests can leave a review after their stay and save a favorite listing for later.'
-features: {}
+features:
+  authentication: true
+  bookings: true
+  reviews: true
+  favorites: true
 parameters: {}
-roles: []
+roles: [renter]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Reviews and favorites are both named. bookings comes from the ontology rules that both require it, and a stay is a booking in any case. Guests here means lodgers, not the unauthenticated guest role, so I map it to renter: leaving reviews and saving favorites both need an identity."

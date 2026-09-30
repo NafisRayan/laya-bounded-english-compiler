@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: rent_without_item_needs_clarify
 input: 'The site shows available equipment to renters.'
-features: {}
+features:
+  authentication: true
 parameters: {}
-roles: []
+roles: [renter]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Ambiguous. Showing available equipment implies listings exist and hints at renting, but no booking action is stated, so I do not enable bookings. Available could also just mean a browsable catalogue. Renters are named as the audience and the ontology renter role is authenticated, hence authentication, though a public read-only catalogue for guests is a defensible alternative reading. Needs clarification."

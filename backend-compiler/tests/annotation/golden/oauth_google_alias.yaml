@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: oauth_google_alias
 input: 'Sign in with Google auth.'
-features: {}
-parameters: {}
+features:
+  authentication: true
+parameters:
+  authentication.method: oauth_google
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Google auth pins the oauth_google method. Nothing else in the sentence."

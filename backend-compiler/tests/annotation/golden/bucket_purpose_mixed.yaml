@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: bucket_purpose_mixed
 input: 'The app stores avatars, listing photos, and personal documents.'
-features: {}
-parameters: {}
+features:
+  authentication: true
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: mixed
 roles: []
-buckets: []
+buckets: [avatars, listings, documents]
 edge_functions: []
-notes: ""
+notes: "Three storage kinds are enumerated, so the single purpose choice has to be mixed while the bucket list keeps the three concrete kinds named. Storing personal documents does not by itself mean verification: no review or approval step is mentioned. No actor class named."

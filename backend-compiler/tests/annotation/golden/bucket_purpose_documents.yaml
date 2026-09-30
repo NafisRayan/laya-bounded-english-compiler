@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: bucket_purpose_documents
 input: 'Renters upload their id document during verification.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  file_storage: true
+  verification: true
+parameters:
+  file_storage.bucket_purpose: documents
+roles: [renter]
+buckets: [documents]
+edge_functions: [verification_webhook]
+notes: "Verification is named outright but no method is: an id document is the artifact, and the input says nothing about it being government-issued or about who approves it, so verification.method is left unset rather than guessed at government_id."

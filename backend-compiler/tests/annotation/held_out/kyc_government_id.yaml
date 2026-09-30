@@ -3,9 +3,14 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: kyc_government_id
 input: 'Sellers must verify their identity with government id before listing.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  file_storage: true
+  verification: true
+parameters:
+  verification.method: government_id
+  file_storage.bucket_purpose: documents
+roles: [owner]
+buckets: [documents]
+edge_functions: [verification_webhook]
+notes: "Government id pins the government_id method; no human approver is named, so not government_id_and_admin. file_storage is forced by the ontology constraint that verification needs document storage, and the documents purpose follows from the id document itself. Sellers are the listing side, so owner. Before listing is an ordering requirement, not a separate feature."

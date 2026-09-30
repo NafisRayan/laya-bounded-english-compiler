@@ -3,9 +3,15 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: role_names_two_roles
 input: 'A senior team checks every id document.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  roles: true
+  file_storage: true
+  verification: true
+parameters:
+  verification.method: admin_approval
+  file_storage.bucket_purpose: documents
+roles: [verifier]
+buckets: [documents]
+edge_functions: [verification_webhook]
+notes: "A team checking every id document is human review, so admin_approval rather than government_id: the document is called an id document but never government-issued, and it is the checking that is pinned. The checking team is an assigned role, mapped to verifier. role_names is left unset because a senior team is a description, not a role name the input actually gives. file_storage and the documents purpose follow from verification needing document storage."

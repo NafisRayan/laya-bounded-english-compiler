@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: contradiction_surfaced
 input: 'Admins can manage the platform'
-features: {}
-parameters: {}
-roles: []
+features:
+  authentication: true
+  roles: true
+parameters:
+  roles.role_names: [admin]
+roles: [admin]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Same sentence as two other cases in the corpus, annotated identically: admin is an assigned role so the roles feature is on, and manage the platform is too vague to enable anything else. I see no contradiction in the input itself."

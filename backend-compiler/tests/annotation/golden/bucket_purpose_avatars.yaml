@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: bucket_purpose_avatars
 input: 'Hosts upload a profile photo when they sign up.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
+features:
+  authentication: true
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: avatars
+roles: [owner]
+buckets: [avatars]
 edge_functions: []
-notes: ""
+notes: "A profile photo is an avatar, so the purpose is avatars rather than listings. Sign up states authentication directly, though no method is named. Hosts are the listing side, so owner."

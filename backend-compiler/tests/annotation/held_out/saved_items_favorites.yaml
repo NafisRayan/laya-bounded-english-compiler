@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: saved_items_favorites
 input: 'Shoppers keep saved items on their profile.'
-features: {}
+features:
+  authentication: true
+  bookings: true
+  favorites: true
 parameters: {}
-roles: []
+roles: [renter]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Saved items is the favorites feature. bookings comes only from the ontology constraint that favorites requires bookings via listings, not from the text, which never mentions booking anything. Shoppers are the consuming side, so renter. On their profile is where the list lives, not file storage."

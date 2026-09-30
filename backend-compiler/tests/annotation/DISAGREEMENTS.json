@@ -1,0 +1,546 @@
+{
+  "n": 35,
+  "problems": [],
+  "disagreements": [
+    {
+      "case": "alias_and_phrase_decide",
+      "kind": "edge_functions",
+      "item": "stripe_webhook",
+      "side": "annotation-only"
+    },
+    {
+      "case": "booking_mode_request_then_approval",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "booking_mode_request_then_approval",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "bucket_purpose_avatars",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "bucket_purpose_documents",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "bucket_purpose_documents",
+      "kind": "buckets",
+      "item": "verification",
+      "side": "engine-only"
+    },
+    {
+      "case": "contact_owners_messaging",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "contact_owners_messaging",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "contradiction_avoided_owner_approval",
+      "kind": "features",
+      "item": "bookings",
+      "side": "engine-only"
+    },
+    {
+      "case": "contradiction_avoided_owner_approval",
+      "kind": "parameters",
+      "item": [
+        "bookings.mode",
+        "owner_approval"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "contradiction_surfaced",
+      "kind": "features",
+      "item": "roles",
+      "side": "annotation-only"
+    },
+    {
+      "case": "contradiction_surfaced",
+      "kind": "features",
+      "item": "bookings",
+      "side": "engine-only"
+    },
+    {
+      "case": "contradiction_surfaced",
+      "kind": "parameters",
+      "item": [
+        "roles.role_names",
+        [
+          "admin"
+        ]
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "contradiction_surfaced",
+      "kind": "parameters",
+      "item": [
+        "bookings.mode",
+        "instant"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "contradiction_surfaced",
+      "kind": "roles",
+      "item": "admin",
+      "side": "annotation-only"
+    },
+    {
+      "case": "dep_pruning",
+      "kind": "features",
+      "item": "bookings",
+      "side": "annotation-only"
+    },
+    {
+      "case": "dep_pruning",
+      "kind": "features",
+      "item": "messaging",
+      "side": "annotation-only"
+    },
+    {
+      "case": "duplicate_phrase_single_decision",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "duplicate_phrase_single_decision",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "features",
+      "item": "roles",
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "file_storage.bucket_purpose",
+        "mixed"
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "authentication.method",
+        "email_password"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "bookings.mode",
+        "owner_approval"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "file_storage.bucket_purpose",
+        "listings"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "messaging.trigger_event",
+        "after_request"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "realtime.channels",
+        [
+          "bookings"
+        ]
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "roles.role_names",
+        [
+          "admin"
+        ]
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "parameters",
+      "item": [
+        "verification.method",
+        "admin_approval"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "roles",
+      "item": "admin",
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "buckets",
+      "item": "documents",
+      "side": "annotation-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "buckets",
+      "item": "listings",
+      "side": "engine-only"
+    },
+    {
+      "case": "fully_answered_no_questions",
+      "kind": "buckets",
+      "item": "verification",
+      "side": "engine-only"
+    },
+    {
+      "case": "id_check_verification",
+      "kind": "parameters",
+      "item": [
+        "file_storage.bucket_purpose",
+        "documents"
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "id_check_verification",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "id_check_verification",
+      "kind": "buckets",
+      "item": "documents",
+      "side": "annotation-only"
+    },
+    {
+      "case": "id_check_verification",
+      "kind": "edge_functions",
+      "item": "verification_webhook",
+      "side": "annotation-only"
+    },
+    {
+      "case": "kyc_avoided_negation",
+      "kind": "features",
+      "item": "authentication",
+      "side": "engine-only"
+    },
+    {
+      "case": "kyc_avoided_negation",
+      "kind": "features",
+      "item": "file_storage",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_default_asks",
+      "kind": "features",
+      "item": "authentication",
+      "side": "annotation-only"
+    },
+    {
+      "case": "laya_default_asks",
+      "kind": "features",
+      "item": "bookings",
+      "side": "annotation-only"
+    },
+    {
+      "case": "laya_default_asks",
+      "kind": "features",
+      "item": "messaging",
+      "side": "annotation-only"
+    },
+    {
+      "case": "laya_high_decides",
+      "kind": "edge_functions",
+      "item": "stripe_webhook",
+      "side": "annotation-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "favorites",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "file_storage",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "messaging",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "payments",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "realtime",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "reviews",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "roles",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "features",
+      "item": "verification",
+      "side": "engine-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "laya_high_enables_everything",
+      "kind": "edge_functions",
+      "item": "verification_webhook",
+      "side": "engine-only"
+    },
+    {
+      "case": "marketplace_airbnb_equipment",
+      "kind": "parameters",
+      "item": [
+        "file_storage.bucket_purpose",
+        "mixed"
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "marketplace_airbnb_equipment",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "marketplace_airbnb_equipment",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "marketplace_airbnb_equipment",
+      "kind": "buckets",
+      "item": "documents",
+      "side": "annotation-only"
+    },
+    {
+      "case": "marketplace_airbnb_equipment",
+      "kind": "buckets",
+      "item": "listings",
+      "side": "annotation-only"
+    },
+    {
+      "case": "negation_no_reviews",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "payments_and_uploads",
+      "kind": "parameters",
+      "item": [
+        "file_storage.bucket_purpose",
+        "listings"
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "payments_and_uploads",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "payments_and_uploads",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "payments_and_uploads",
+      "kind": "buckets",
+      "item": "listings",
+      "side": "annotation-only"
+    },
+    {
+      "case": "payments_and_uploads",
+      "kind": "edge_functions",
+      "item": "stripe_webhook",
+      "side": "annotation-only"
+    },
+    {
+      "case": "payments_without_reviews_negation",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "payments_without_reviews_negation",
+      "kind": "edge_functions",
+      "item": "stripe_webhook",
+      "side": "annotation-only"
+    },
+    {
+      "case": "rent_without_item_needs_clarify",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "reviews_and_favorites",
+      "kind": "roles",
+      "item": "renter",
+      "side": "annotation-only"
+    },
+    {
+      "case": "role_staff_and_admin_dedupe",
+      "kind": "parameters",
+      "item": [
+        "roles.role_names",
+        [
+          "admin",
+          "staff"
+        ]
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "role_staff_and_admin_dedupe",
+      "kind": "parameters",
+      "item": [
+        "roles.role_names",
+        [
+          "admin"
+        ]
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "staff_role",
+      "kind": "parameters",
+      "item": [
+        "roles.role_names",
+        [
+          "staff"
+        ]
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "staff_role",
+      "kind": "parameters",
+      "item": [
+        "roles.role_names",
+        [
+          "admin"
+        ]
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "unparsed_coverage_resolved",
+      "kind": "roles",
+      "item": "owner",
+      "side": "annotation-only"
+    },
+    {
+      "case": "verification_admin_approval",
+      "kind": "parameters",
+      "item": [
+        "file_storage.bucket_purpose",
+        "documents"
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "verification_admin_approval",
+      "kind": "parameters",
+      "item": [
+        "verification.method",
+        "government_id_and_admin"
+      ],
+      "side": "annotation-only"
+    },
+    {
+      "case": "verification_admin_approval",
+      "kind": "parameters",
+      "item": [
+        "verification.method",
+        "admin_approval"
+      ],
+      "side": "engine-only"
+    },
+    {
+      "case": "verification_admin_approval",
+      "kind": "buckets",
+      "item": "documents",
+      "side": "annotation-only"
+    }
+  ]
+}

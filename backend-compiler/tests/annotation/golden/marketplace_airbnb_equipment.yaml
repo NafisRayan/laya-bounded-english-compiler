@@ -3,9 +3,17 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: marketplace_airbnb_equipment
 input: 'Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners need verification, users can message each other, payments use Stripe. Owners upload photos of their gear.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  bookings: true
+  messaging: true
+  payments: true
+  file_storage: true
+  verification: true
+parameters:
+  payments.provider: stripe
+  file_storage.bucket_purpose: mixed
+roles: [owner, renter]
+buckets: [listings, documents]
+edge_functions: [stripe_webhook, verification_webhook]
+notes: "Four features are named outright and verification brings file storage with it. Photos of their gear are listing photos, and verification adds id documents, so two kinds of file exist and the purpose is mixed. Owners need verification says nothing about the method, so it is left unset. Reviews, favorites and realtime are never mentioned despite the Airbnb comparison, and I did not infer them from it. Booking mode and messaging trigger unpinned."

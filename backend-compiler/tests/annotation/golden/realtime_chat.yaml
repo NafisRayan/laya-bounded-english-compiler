@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: realtime_chat
 input: 'Users chat with each other in real time.'
-features: {}
-parameters: {}
+features:
+  authentication: true
+  messaging: true
+  realtime: true
+parameters:
+  realtime.channels: [messages]
 roles: []
 buckets: []
-edge_functions: []
-notes: ""
+edge_functions: [notification_dispatch]
+notes: "Chat is messaging and in real time is the realtime feature on the messages channel only; booking and notification channels are not mentioned. Messaging trigger is unpinned. Users is generic."

@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: duplicate_phrase_single_decision
 input: 'Renters book items. Owners list equipment for rent.'
-features: {}
+features:
+  authentication: true
+  bookings: true
 parameters: {}
-roles: []
+roles: [renter, owner]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Two sentences describe the two sides of the same bookings feature, so it is one decision, not two. Listing equipment for rent is the listings side of bookings, not a separate feature. Both roles are derived."

@@ -3,9 +3,16 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: verification_admin_approval
 input: 'An admin verifies each government id document by hand.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  roles: true
+  file_storage: true
+  verification: true
+parameters:
+  verification.method: government_id_and_admin
+  file_storage.bucket_purpose: documents
+  roles.role_names: [admin]
+roles: [admin]
+buckets: [documents]
+edge_functions: [verification_webhook]
+notes: "Both halves are stated: a government id document and an admin checking it by hand, so the combined government_id_and_admin method rather than either alone. Admin is a named assigned role, so the roles feature is on. file_storage and the documents purpose follow from verification needing document storage."

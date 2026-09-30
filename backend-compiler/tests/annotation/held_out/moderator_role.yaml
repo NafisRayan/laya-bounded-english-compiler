@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: moderator_role
 input: 'A moderator can suspend listings.'
-features: {}
-parameters: {}
-roles: []
+features:
+  authentication: true
+  roles: true
+parameters:
+  roles.role_names: [moderator]
+roles: [admin]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Moderator is a named, assigned role, so the roles feature is on and role_names keeps the word the input used. The ontology has no moderator role, so the roles list maps it to admin, the only role with platform-wide powers. Suspending listings implies listings exist but names no bookings, payments or storage."

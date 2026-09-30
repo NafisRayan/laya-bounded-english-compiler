@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: realtime_booking_updates
 input: 'Renters book items and get live updates the moment their booking status changes.'
-features: {}
-parameters: {}
-roles: []
+features:
+  authentication: true
+  bookings: true
+  realtime: true
+parameters:
+  realtime.channels: [bookings]
+roles: [renter]
 buckets: []
-edge_functions: []
-notes: ""
+edge_functions: [notification_dispatch]
+notes: "Live updates on booking status is realtime scoped to the bookings channel only; messages and notifications are never mentioned. notification_dispatch is listed because realtime activates it in the ontology. Booking mode is unpinned."

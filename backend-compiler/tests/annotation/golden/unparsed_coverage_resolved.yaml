@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: unparsed_coverage_resolved
 input: 'Owners can reject bad actors.'
-features: {}
+features:
+  authentication: true
 parameters: {}
-roles: []
+roles: [owner]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Same sentence as another case in the corpus and annotated identically. Ambiguous between owners rejecting booking requests, which would be bookings with owner approval, and owners blocking abusive users, which this ontology cannot express. Conservative reading enables only authentication. Owner is derived, so the roles feature is not needed."

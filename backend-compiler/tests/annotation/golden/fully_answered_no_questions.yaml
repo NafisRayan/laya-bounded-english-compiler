@@ -3,9 +3,20 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: fully_answered_no_questions
 input: 'A site where renters book each item, chat with each other, pay through stripe, leave a review, upload a photo, complete an id check, get live updates, and keep a favorite list.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  bookings: true
+  messaging: true
+  payments: true
+  reviews: true
+  file_storage: true
+  verification: true
+  realtime: true
+  favorites: true
+parameters:
+  payments.provider: stripe
+  file_storage.bucket_purpose: mixed
+roles: [renter]
+buckets: [documents]
+edge_functions: [stripe_webhook, verification_webhook, notification_dispatch]
+notes: "Every clause names one feature; stripe is the only parameter value stated. Two upload kinds exist, an unspecified photo and the id check document, so the purpose is mixed, but the bucket list only carries documents because a photo does not say whether it is an avatar or a listing photo. An id check gives no method and live updates give no channels, so both parameters are left unset. Only renters are named."

@@ -3,9 +3,14 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: payments_and_uploads
 input: 'Renters pay owners to rent each item, and upload photos of it.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  bookings: true
+  payments: true
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: listings
+roles: [renter, owner]
+buckets: [listings]
+edge_functions: [stripe_webhook]
+notes: "Paying to rent each item is payments plus bookings. Photos of it are photos of the rented item, so the listings purpose rather than avatars. No provider named, so payments.provider is left unset."

@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: dep_pruning
 input: 'We need bookings and messaging'
-features: {}
+features:
+  authentication: true
+  bookings: true
+  messaging: true
 parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Both features named by name, nothing else. authentication comes from the ontology requirement that both depend on it. No mode, trigger or actor class given."

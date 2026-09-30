@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: booking_mode_request_then_approval
 input: 'Renters can request a booking and the owner approves first.'
-features: {}
-parameters: {}
-roles: []
+features:
+  authentication: true
+  bookings: true
+parameters:
+  bookings.mode: request_then_approval
+roles: [renter, owner]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Request followed by owner approval is exactly request_then_approval, not plain owner_approval: both halves of the sequence are stated. Both actor classes are named and both are derived roles, so the roles feature is not needed."

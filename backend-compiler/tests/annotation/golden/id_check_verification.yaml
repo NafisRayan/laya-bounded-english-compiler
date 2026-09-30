@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: id_check_verification
 input: 'We run an id check on every renter before approval.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
-edge_functions: []
-notes: ""
+features:
+  authentication: true
+  file_storage: true
+  verification: true
+parameters:
+  file_storage.bucket_purpose: documents
+roles: [renter]
+buckets: [documents]
+edge_functions: [verification_webhook]
+notes: "An id check is verification, but the method is ambiguous: government_id fits the artifact while admin_approval fits before approval, and the input does not settle which, so it is left unset. Before approval could also mean bookings with owner approval; that is too speculative to enable bookings. file_storage and the documents purpose come from verification needing document storage."

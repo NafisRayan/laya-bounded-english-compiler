@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: laya_default_asks
 input: 'We need bookings and messaging'
-features: {}
+features:
+  authentication: true
+  bookings: true
+  messaging: true
 parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Identical input to another case in the corpus and annotated identically. Both features named, authentication from their ontology requirement, no parameters pinned."

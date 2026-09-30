@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: max_mcqs_cap
 input: 'Owners can reject bad actors.'
-features: {}
+features:
+  authentication: true
 parameters: {}
-roles: []
+roles: [owner]
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Genuinely ambiguous. Reading one: owners reject booking requests, which would be bookings with owner_approval. Reading two: owners block or report abusive users, which is moderation and has no feature in this ontology. Nothing in the sentence picks between them, so I take the conservative option and enable only authentication, which owners as an identified actor class require. Owner is the derived role, so the roles feature is not needed."
