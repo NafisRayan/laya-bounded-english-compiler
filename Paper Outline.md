@@ -40,7 +40,7 @@ the repo, at `../../laya/`.
 
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
-| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored; harness proven against a live model — full sweep quota-blocked** | Provider quota reset; independent ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client); `tests/experiments/baselines.py` (Gemini completer default) |
+| R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Measured — 100/100 LLM rows via OpenAI-compatible gateway: spec baseline R 0.503/P 0.685 (45/50 parse), direct-SQL table recall 0.36/precision 0.271; compiler rules+MCQ 0.922/1.000 wins** | Independent ground-truth annotation; gateway model provenance; OpenRouter key for dbsmash | `tests/golden/cases/` (50 cases); `tests/experiments/baselines.py` + `results/baselines.jsonl` (100 measured rows) |
 | R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured twice + fixed — real checkpoint rerun exposed 2 harness defects (merge twinning, symmetric negative gate); post-fix hybrid+MCQ = rules-parity (0.922/0.930, 10 omissions) with 9 hallucinations; mock table unchanged** | Independent annotation; checkpoint that pays (refit/fine-tune) | `tests/experiments/run_ablation.py` (`--real-laya`) + `results/ablation.jsonl` + `results/ablation_real.jsonl`; `compiler/interpreter/merge.py` (feature-target grouping); `compiler/mcq/pipeline.py` (asymmetric gate) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | **500 measured pairs** (real `english` checkpoint × golden cases) | **Measured — ECE 0.0951 < 0.1 (gate PASS); fit 0.0425 @ T = 1.40; sweep @ 0.75: 87.8% coverage / 80.0% correctness** | Independent ground-truth annotation; held-out pairs | `tests/experiments/run_calibration.py` + `results/calibration_pairs.jsonl`; `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/calibration_set.json` (measured) |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Measured — 1 real deployment, first-attempt success (39 s, free tier)** | Repeat runs for a rate; real-model interpreter (mock persona used) | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG, `tests/e2e/` |
@@ -145,8 +145,8 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   current feature coverage, and annotation of ground-truth `BackendSpec` per
   input (the case expectations are engine-pinned regression truth, not yet
   independent annotations).
-- **4.2 Baselines** (adapters BUILT 2026-09-29; Gemini wired as the default
-  completer — full sweep quota-blocked):
+- **4.2 Baselines** (MEASURED 2026-09-30 — 100/100 LLM rows via an
+  OpenAI-compatible gateway; dbsmash awaits an OpenRouter key):
   1. End-to-end LLM (Gemini / GPT-4o / Claude) direct-to-SQL — `DirectSqlBaseline`.
   2. End-to-end LLM → `BackendSpec` → same fragment composer (isolates the IR)
      — `BackendSpecBaseline`, parse → spec → score unit-tested offline.
@@ -184,12 +184,16 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
 ## 5. Results
 - **5.1 → R1. Spec fidelity vs. baselines.** Silent-omission rate,
   hallucinated-table rate, exact-match, per baseline.
-  **Current evidence state:** harness built, golden set fixed (50 engine-pinned
-  regression cases, no independent annotation yet); the Gemini completer was
-  driven through the real code path and emitted measured rows, but the full
-  50-case sweep stopped on the provider's free-tier daily quota (persistent
-  `429`; the runner resumes). Composition-side determinism is
-  measured (595-pair matrix on live PG, byte-identical recompiles).
+  **Current evidence state: MEASURED — 2026-09-30.** Full 50-case sweep
+  through an OpenAI-compatible gateway (`antigravity/gemini-3.8-flash-tiered`):
+  100/100 LLM rows measured. Spec baseline: 45/50 parseable, mean recall
+  0.503 / precision 0.685, 57 omissions / 21 hallucinations. Direct-SQL
+  baseline: pooled table recall 0.36 (36/100), 133 tables generated
+  (precision 0.271). Compiler rules+MCQ (0.922/1.000, 10 omissions)
+  dominates both. Honest caveats: zero-shot baselines by definition, and the
+  gateway model's provenance is outside our pinning. Composition-side
+  determinism is measured (595-pair matrix on live PG, byte-identical
+  recompiles).
 - **5.2 → R2. Ablations.** Rules + Laya vs. rules-only vs. Laya-only;
   MCQ-on vs. MCQ-off; merge-tier with/without the v1.5 negated-tier fix;
   ontology size sweep.
@@ -266,14 +270,15 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
 ## 8. Conclusion
 - Recap R1–R3 in re-scoped form. Numbers that exist today: the ablation grid
   measured twice (mock personas: hybrid+MCQ 0 omissions; real checkpoint:
-  hybrid+MCQ 36 omissions and a *loss* to rules-only — §5.2), measured
-  real-checkpoint calibration — ECE 0.0951 < 0.1 in-sample, fit 0.0425 @
-  T = 1.40 (§5.3) — and a real end-to-end deployment, first-attempt (n=1,
-  §5.4). Remaining before results are fully claimable: (i) the baseline sweep
-  on the 50-case golden set with independent annotation (quota-blocked
-  mid-run), (ii) independent ground-truth annotation + held-out splits,
+  hybrid+MCQ at rules-parity after two harness fixes — §5.2), the full
+  baseline sweep (compiler rules+MCQ 0.922/1.000 vs spec baseline 0.503/0.685
+  and direct-SQL 0.36 table recall — §5.1), measured real-checkpoint
+  calibration — ECE 0.0951 < 0.1 in-sample, fit 0.0425 @ T = 1.40 (§5.3) —
+  and three real end-to-end deployments, first-attempt (§5.4). Remaining
+  before results are fully claimable: (i) independent ground-truth
+  annotation + held-out splits, (ii) the dbsmash row (OpenRouter key),
   (iii) a checkpoint that pays — refit or fine-tune re-measured through the
-  harness (the two defects the rerun exposed are fixed; hybrid is at parity).
+  harness.
 
 ---
 
@@ -315,8 +320,8 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
    rules-parity. Remaining: independent annotation, a checkpoint that pays.
 3. ~~Build the baseline harness (LLM e2e, LLM→BackendSpec, DbSmash) on the
    golden set~~ — **done (2026-09-29)**: adapters + offline-scored unit tests;
-   Gemini wired as the default completer. Remaining: the full sweep
-   (provider-quota-blocked mid-run; runner resumes), DbSmash (external tool).
+   full sweep MEASURED 2026-09-30 via the gateway (100/100 rows); remaining:
+   dbsmash (OpenRouter key) and independent annotation.
 4. ~~Run one real end-to-end deployment through the credential-gated e2e
    tier~~ — **done (2026-09-29)**: first-attempt success on a free-tier org,
    39 s create→verified, 5 live-API drift points fixed (§5.4).

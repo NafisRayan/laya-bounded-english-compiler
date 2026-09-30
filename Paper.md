@@ -307,9 +307,10 @@ reuse). The end-to-end tier has now been run once against a real Supabase
 account, first-attempt success (§5.4), the baseline harness has been
 exercised against a live LLM through its real code path (§5.1), and the real
 pinned checkpoint has been measured two ways: calibration (§5.3) and the
-full ablation grid (§5.2). Not yet done: the full baseline sweep
-(quota-blocked mid-run), and any comparative measurement against external
-generators — §5.1/§5.3/§5.4 report the status of each.
+full ablation grid (§5.2). The full baseline sweep is now measured through
+an OpenAI-compatible gateway (§5.1). Not yet done: the off-the-shelf
+generator baseline (awaiting an OpenRouter key), and annotation-grade
+ground truth — §5.1/§5.3/§5.4 report the status of each.
 
 ## 4. Experimental Setup
 
@@ -338,21 +339,19 @@ corpus; all of it remains in-sample against engine-pinned gold.
 
 Per §4.3 of the outline, five baselines; their harness states today:
 
-1. **End-to-end LLM direct-to-SQL** — *built, runs against a live model;
-   sweep quota-blocked.* `DirectSqlBaseline` prompts a Gemini / OpenAI /
-   Anthropic model (pinned checkpoint ids; §4.4) for a Supabase migration and
+1. **End-to-end LLM direct-to-SQL** — *measured.* `DirectSqlBaseline`
+   prompts a Gemini / OpenAI / Anthropic model (or any OpenAI-compatible
+   gateway; §4.4) for a Supabase migration and
    scores artifact-level CREATE TABLE presence against the case's gold
-   entities. With a live provider key present, the harness made real calls
-   and emitted measured rows; the full 50-case sweep stopped on the
-   provider's free-tier daily quota (§5.1).
-2. **LLM → `BackendSpec` → same composer** — *built, runs against a live
-   model; sweep quota-blocked.* `BackendSpecBaseline` prompts the model
+   entities. Measured 50/50 (§5.1) through an OpenAI-compatible gateway.
+2. **LLM → `BackendSpec` → same composer** — *measured.*
+   `BackendSpecBaseline` prompts the model
    (bounded to the ontology vocabulary) for a `BackendSpec` JSON, parses it,
    runs it through the *same* `recompute_spec` and fragment composer as
    Mechanism C's output, and scores with the same fidelity metrics —
-   isolating the contribution of the IR from the generator. Self-skips
-   without keys. The parse → spec → score path is unit-tested offline with
-   injected completers.
+   isolating the contribution of the IR from the generator. Measured 50/50,
+   45 parseable (§5.1). The parse → spec → score
+   path is unit-tested offline with injected completers.
 3. **Rules-only** — *measured* (§5.2, mechanisms `A+B`).
 4. **Laya-only** — *measured* (§5.2, mechanism `C`, mock persona).
 5. **DbSmash / off-the-shelf generator** — adapter surface only; the tool is
@@ -399,22 +398,41 @@ measurements replace the persona on the same cases in the same JSON schema
 
 ### 5.1 → R1. Fidelity vs. baselines
 
-**Current evidence state: harness proven against a live LLM, full sweep
-quota-blocked.** A Gemini completer (REST, no SDK dependency) is wired as
-the default baseline model, and a smoke run produced genuinely measured
-rows through the same code path the sweep uses. The full 50-case sweep is
-blocked by the provider's free-tier daily quota - persistent `HTTP 429`
-across 71 minutes of paced retries - not by the harness; the runner
-streams and resumes, so the sweep completes when the quota resets. The
-`llm_dbsmash` baseline self-skips (the external binary is not installed
-here). Completing 4.2.1/2/5 still additionally requires independent
-ground-truth annotation so the golden expectations are not author-authored
-by the engine they measure.
+**Measured (full 50-case sweep, 2026-09-30).** Both LLM baselines ran
+end-to-end through an OpenAI-compatible gateway serving
+`antigravity/gemini-3.8-flash-tiered` (100/100 measured rows; the model id
+is the gateway's, not a pinned public checkpoint — a caveat the protocol
+should tighten). `dbsmash` self-skips for lack of an `OPENROUTER_API_KEY`
+(the tool calls OpenRouter); its adapter ships and reports that reason.
+
+| Baseline | Fidelity metric | Result |
+|---|---|---|
+| LLM → `BackendSpec` → same composer | spec parsed | 45/50 |
+| | mean recall / precision | 0.503 / 0.685 |
+| | omissions (50 cases) | 57 |
+| | hallucinations (50 cases) | 21 |
+| LLM → direct SQL | gold tables hit (pooled) | 36/100 (0.36) |
+| | tables generated / spurious | 133 (precision 0.271) |
+| Compiler, rules+MCQ (§5.2) | pooled recall / precision | 0.922 / 1.000 |
+| Compiler, hybrid+MCQ (§5.2) | pooled recall / precision | 0.922 / 0.930 |
+
+The compiler's fidelity claim holds against both baselines on this corpus:
+the spec-space baseline omits more than twice as much as rules+MCQ (57 vs
+10 omissions) and hallucinates 21 features where the compiler's real
+checkpoint run hallucinates 9 and rules alone hallucinate 0; the direct-SQL
+baseline over-generates (133 tables for 100 gold) while missing 64% of gold
+tables. Two honest caveats: the baselines ran with zero-shot prompts and no
+clarifying questions (that is the baseline's definition — end-to-end, no
+interaction), and the model serving both is a gateway-tiered Gemini whose
+exact provenance is outside our pinning control.
 
 What *is* measurable today is the composition side of R1: the delivered
 `BackendSpec` compiles to SQL that applies cleanly twice across the 595-pair
 fragment matrix on live PostgreSQL 15, byte-identically for identical input
-(§3.5), giving the claim's determinism half a firm basis.
+(§3.5), giving the claim's determinism half a firm basis. Completing 4.2.5
+needs an `OPENROUTER_API_KEY`; claim-grade R1 additionally needs independent
+ground-truth annotation so the golden expectations are not author-authored
+by the engine they measure.
 
 ### 5.2 → R2. Ablations (mechanism subset × MCQ on/off)
 
