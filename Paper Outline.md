@@ -41,7 +41,7 @@ the repo, at `../../laya/`.
 | Claim | Experiment (§) | Metric(s) | Dataset | Status | Blocking gap | Repo artifact |
 |---|---|---|---|---|---|---|
 | R1 | Fidelity vs baselines (§5.1) | Silent-omission rate; hallucinated-table rate; exact-match on `BackendSpec` | Golden set: **50 engine-pinned cases** (`tests/golden/cases/`) | **Dataset authored; harness proven against a live model — full sweep quota-blocked** | Provider quota reset; independent ground-truth annotation + splits | `tests/golden/cases/` (50 cases, mock client); `tests/experiments/baselines.py` (Gemini completer default) |
-| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured twice — mock personas (hybrid+MCQ R 1.000/P 0.942, 0 omissions) AND the real english checkpoint (hybrid+MCQ R 0.721/P 0.912, 36 omissions — rules-only dominates)** | Independent annotation; asymmetric negative gate (§5.2 finding 7) | `tests/experiments/run_ablation.py` (`--real-laya`) + `results/ablation.jsonl` + `results/ablation_real.jsonl`; `compiler/interpreter/pipeline.py` (mech. A/B/C) |
+| R2 | Three-mechanism ablation (§5.2) | Interpretation accuracy; MCQ count; latency/cost | Golden set | **Measured twice + fixed — real checkpoint rerun exposed 2 harness defects (merge twinning, symmetric negative gate); post-fix hybrid+MCQ = rules-parity (0.922/0.930, 10 omissions) with 9 hallucinations; mock table unchanged** | Independent annotation; checkpoint that pays (refit/fine-tune) | `tests/experiments/run_ablation.py` (`--real-laya`) + `results/ablation.jsonl` + `results/ablation_real.jsonl`; `compiler/interpreter/merge.py` (feature-target grouping); `compiler/mcq/pipeline.py` (asymmetric gate) |
 | R3 | Calibration gate (§5.3) | ECE (10-bin); auto-accept coverage vs. correctness; threshold sweep | **500 measured pairs** (real `english` checkpoint × golden cases) | **Measured — ECE 0.0951 < 0.1 (gate PASS); fit 0.0425 @ T = 1.40; sweep @ 0.75: 87.8% coverage / 80.0% correctness** | Independent ground-truth annotation; held-out pairs | `tests/experiments/run_calibration.py` + `results/calibration_pairs.jsonl`; `tests/integration/test_ece_measurement.py`; `tests/fixtures/golden_calibration/calibration_set.json` (measured) |
 | E2E | End-to-end secondary (§5.4) | Deployment success; idempotency; time-to-spec; cost | Golden set | **Measured — 1 real deployment, first-attempt success (39 s, free tier)** | Repeat runs for a rate; real-model interpreter (mock persona used) | `compiler/generator/` (§7) + `compiler/deployer/` (§8), 595-pair matrix on live PG, `tests/e2e/` |
 
@@ -201,15 +201,17 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   no-MCQ 0.093; MCQ-on is the completeness driver (hybrid omissions 65 → 0).
   All 8 hallucinations confined to the two `high`-persona cases and invisible
   to the golden partial submatch — caught by experiment-tier precision.
-  **Real-checkpoint rerun — 2026-09-29** (`--real-laya`,
-  `results/ablation_real_summary.md`): rule rows reproduce identically; the
-  real `english` checkpoint *loses to rules-only* — hybrid+MCQ pooled
-  0.721/0.912 with 36 omissions and 9 hallucinations vs rules+MCQ
-  0.922/1.000 with 10. Mechanism: confident laya negatives (conf ≥ 0.75)
-  decide features off and pre-empt the clarifying question (MCQ burden
-  6.54 → 2.90). Fix implied (asymmetric negative gate), not implemented.
-  Open items: independent annotation, asymmetric-gate implementation +
-  remeasure, vocab sweep, v1.5-tier-to-space vetting for the merge abscissa.
+  **Real-checkpoint rerun — 2026-09-29, fixed same day** (`--real-laya`):
+  the raw swap dropped hybrid+MCQ to 36 omissions and exposed two real
+  defects — merge grouped `needs_X` and `X.enabled` as different targets
+  (laya twins triggered spurious negations; tier protection was not real at
+  feature level), and the symmetric negative gate let confident laya "no"s
+  decide features off. Both fixed (merge feature-target grouping;
+  laya-sourced negatives never auto-decide off). Post-fix: hybrid+MCQ
+  **0.922/0.930, 10 omissions (rules-parity), 9 hallucinations**; no-MCQ
+  recall 0.419 → 0.481. Mock table byte-identical after the fixes.
+  Open items: independent annotation, a checkpoint that pays (refit or
+  fine-tune), vocab sweep.
 - **5.3 → R3. Calibration & auto-accept gate.** ECE before/after temperature
   fit; auto-accept coverage-vs-correctness curve; threshold sweep anchored on
   0.75 (the shipped `CONFIDENCE_AUTO_ACCEPT`).
@@ -270,8 +272,8 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   §5.4). Remaining before results are fully claimable: (i) the baseline sweep
   on the 50-case golden set with independent annotation (quota-blocked
   mid-run), (ii) independent ground-truth annotation + held-out splits,
-  (iii) the asymmetric negative gate the real-checkpoint ablation implies,
-  then remeasure.
+  (iii) a checkpoint that pays — refit or fine-tune re-measured through the
+  harness (the two defects the rerun exposed are fixed; hybrid is at parity).
 
 ---
 
@@ -280,13 +282,13 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
   conventions); baseline variance at N=30–50; task too narrow once bounded by
   the explicit vocabulary.
 - **R2:** on the bounded vocabulary, rules-only may already carry the load —
-  **now measured: it does.** With the real checkpoint, rules+MCQ beats
-  hybrid+MCQ on this corpus (0.922/1.000, 10 omissions vs 0.721/0.912,
-  36); the persona advantage was an artifact of the contract double. The
-  claim survives only re-scoped: the architecture supports the model's slot,
-  the current checkpoint fails to earn it, and the asymmetric negative gate
-  is the measured path to fixing it. MCQ burden could still erode the
-  latency win.
+  **measured: it does, and post-fix the model breaks even.** The rerun first
+  showed rules+MCQ dominating the raw checkpoint swap (36 vs 10 omissions),
+  but the excess traced to two harness defects, now fixed; hybrid+MCQ
+  recovered to rules-parity with 9 hallucinations as the residual cost. The
+  honest claim: the architecture protects the model slot; today's checkpoint
+  fills it to parity, not advantage. Refit (T = 1.40) or fine-tune are the
+  measured routes to advantage.
 - **R3:** the measured in-sample ECE (0.0951) passes, but thinly — a
   held-out, independently annotated rerun could land ≥ 0.1 (vendor measures
   0.175 on typed decisions), which flips the shipped pass-through to
@@ -306,12 +308,11 @@ fit (T = 1.40 → 0.0425) is reported, not shipped.
    shipped (2026-09-28). Remaining: independent ground-truth annotation and
    splits before §5.1 runs.
 2. ~~Run the free three-mechanism ablation (rules/Laya/hybrid) plus MCQ-on/off
-   on the 50 golden cases~~ — **done**: full 9-config table measured with mock
-   personas (2026-09-29), results committed; **re-measured with the real
-   english checkpoint the same day** (`--real-laya`) — rules-only dominates
-   the current checkpoint; asymmetric negative gate identified as the fix.
-   Remaining: independent annotation, gate implementation + remeasure, vocab
-   sweep.
+   on the 50 golden cases~~ — **done + fixed**: full 9-config table measured
+   with mock personas (2026-09-29); re-measured with the real checkpoint the
+   same day, which exposed and fixed two harness defects (merge
+   feature-target grouping, asymmetric negative gate); post-fix hybrid+MCQ =
+   rules-parity. Remaining: independent annotation, a checkpoint that pays.
 3. ~~Build the baseline harness (LLM e2e, LLM→BackendSpec, DbSmash) on the
    golden set~~ — **done (2026-09-29)**: adapters + offline-scored unit tests;
    Gemini wired as the default completer. Remaining: the full sweep

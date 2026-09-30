@@ -398,3 +398,31 @@ def test_run_mcq_loop_surfaces_contradiction_without_answers(ontology):
     spec2, mcqs2 = run_mcq_loop(cands, ontology,
                                 user_answers={"parameters.bookings.mode": "owner_approval"})
     assert not [q for q in mcqs2 if q.type == "resolve_contradiction"]
+
+
+def test_fold_laya_negative_never_decides_off(ontology):
+    """Paper 5.2 finding 7: a confident model 'no' must not decide a feature
+    off - it stays undecided so the clarification loop asks. Rules keep
+    deciding off; the asymmetry is laya-sourced negatives only."""
+    cands = [Candidate("needs_payments", False, 0.99, "laya", None)]
+    result = fold_candidates(cands, ontology)
+    assert not result.spec.is_decided("payments")
+    assert result.feature_confidence.get("payments") == 0.99
+
+
+def test_fold_rule_negative_still_decides_off(ontology):
+    cands = [Candidate("payments.enabled", False, 0.9, "phrase_negated", "no pay")]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.is_decided("payments")
+    assert not result.spec.is_enabled("payments")
+
+
+def test_fold_laya_negative_does_not_shadow_rule_positive(ontology):
+    """Merge would drop the laya twin of a rule candidate anyway, but if both
+    reach the fold with the same value the rule must still carry it."""
+    cands = [
+        Candidate("payments.enabled", True, 0.8, "phrase", "pay"),
+        Candidate("payments.enabled", True, 0.99, "laya", None),
+    ]
+    result = fold_candidates(cands, ontology)
+    assert result.spec.is_enabled("payments")

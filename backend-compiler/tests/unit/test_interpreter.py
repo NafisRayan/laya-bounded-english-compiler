@@ -57,4 +57,9 @@ def test_run_interpreter_uses_all_three_mechanisms(ontology):
     ids = {c.capability_id for c in candidates}
     assert "messaging.enabled" in ids
     assert "payments.provider" in ids
-    assert "needs_messaging" in ids
+    # merge groups needs_messaging with messaging.enabled into one target;
+    # the rule tier wins, so the laya twin is dropped (otherwise fold sees
+    # conflicting values and fires a spurious negation).
+    assert "needs_messaging" not in ids
+    # laya candidates survive only where no rule fires
+    assert "needs_authentication" in ids

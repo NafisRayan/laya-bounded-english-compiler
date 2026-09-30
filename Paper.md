@@ -468,36 +468,51 @@ Four findings, each honest to its measurement setting (mock personas):
 (`python -m tests.experiments.run_ablation --real-laya`; rows in
 `tests/experiments/results/ablation_real_summary.md`). The rule-only rows
 reproduce the table above byte-identically — they never touch the model —
-which isolates exactly what changes when the persona becomes the checkpoint:
+which isolates exactly what changes when the persona becomes the checkpoint.
+Three states were measured:
 
-| Config | macro R / P | pooled R / P | omissions | hallucinations | feature-exact | params (pinned) | MCQ count (mean) |
-|---|---|---|---|---|---|---|---|
-| C only (Laya) + MCQ | 0.730 / 0.858 | 0.651 / 0.903 | 45 | 9 | 20/50 | 13/26 | 2.36 |
-| C only (Laya) (no MCQ) | 0.174 / 0.313 | 0.163 / 0.700 | 108 | 9 | 2/50 | 0/26 | 1.02 |
-| **A+B+C hybrid + MCQ** | 0.794 / 0.858 | 0.721 / 0.912 | **36** | **9** | **27/50** | **21/26** | 2.90 |
-| A+B+C hybrid (no MCQ) | 0.239 / 0.433 | 0.233 / 0.769 | 99 | 9 | 2/50 | 5/26 | 1.70 |
+*Unfixed (checkpoint swapped in, harness as shipped):*
 
-5. **The persona headline does not transfer to the real checkpoint — the
-   hybrid loses to rules-only.** With the real model, hybrid + MCQ drops from
-   0 omissions / pooled recall 1.000 to 36 omissions / 0.721, while rules + MCQ
-   stays at 10 omissions / 0.922 (P 1.000 vs 0.912). On this corpus and this
-   checkpoint, mechanism C *subtracts* net value: 26 extra omissions and 9
-   hallucinations against the residual coverage the personas gave it.
-6. **The mechanism is measured, not speculative: confident wrong negatives
-   pre-empt questions.** Merge tiers (§3.3) protect rule candidates — a laya
-   proposal is consulted only where no rule fires — but in `fold_candidates`
-   a laya "no" with `answer_confidence >= 0.75` *decides the feature off*,
-   which suppresses the very clarification question that would have caught
-   the omission. The question burden shows it: 6.54 → 2.90 MCQs per input.
-   The model converts askable ambiguity into silent omission — the inverse
-   of the never-silently-omit intent — and §5.3's sweep prices it precisely:
-   at 0.75 auto-accept, 20% of auto-accepted decisions are wrong.
-7. **Concrete fix implied, not implemented (measurement scope).** The gate
-   should not decide *off* at the threshold it decides *on*: either a
-   higher (or infinite) threshold for laya-sourced negatives — ask whenever
-   rules are silent — or model-negative decisions treated as undecided.
-   The 0.85 sweep point (82.4% correctness at 70.6% coverage) suggests where
-   such an asymmetric gate would sit.
+| Config | macro R / P | pooled R / P | omissions | hallucinations | feature-exact | MCQ count (mean) |
+|---|---|---|---|---|---|---|
+| A+B+C hybrid + MCQ | 0.794 / 0.858 | 0.721 / 0.912 | **36** | 9 | 27/50 | 2.90 |
+
+*Fixed (two defects found by this rerun, each TDD'd):*
+
+| Config | macro R / P | pooled R / P | omissions | hallucinations | feature-exact | MCQ count (mean) |
+|---|---|---|---|---|---|---|
+| C only (Laya) + MCQ | 0.730 / 0.858 | 0.651 / 0.903 | 45 | 9 | 20/50 | 6.98 |
+| A+B+C hybrid + MCQ | 0.912 / 0.898 | **0.922 / 0.930** | **10** | 9 | 39/50 | 6.70 |
+| A+B+C hybrid (no MCQ) | 0.404 / 0.453 | 0.481 / 0.873 | 67 | 9 | 2/50 | 2.74 |
+
+5. **The unfixed rerun falsified the persona headline, and the harness was
+   at fault, not just the model.** Swapping the checkpoint in dropped
+   hybrid+MCQ from 0 omissions to 36 while rules+MCQ held at 10 — and the
+   excess traced to a real merge defect: candidates grouped by raw
+   `capability_id`, so a laya `needs_payments` twinned a rule
+   `payments.enabled` into the fold, whose distinct-value check fired a
+   spurious negation and undecided the rule's correct positive. The claimed
+   tier protection (§3.3) was not real at the feature level; the mock
+   personas never exposed it because their 0.5-confidence answers never
+   cleared the fold's threshold. Fixed by grouping merge on the normalized
+   feature target (`needs_X` ≡ `X.enabled`).
+6. **The second defect was the symmetric negative gate.** A laya "no" at
+   `answer_confidence >= 0.75` decided features *off*, suppressing the
+   clarifying question (measured: question burden 6.98 → 2.36 with the gate
+   removed). The fix is asymmetric: laya-sourced negatives never auto-decide
+   off — the loop asks; rules keep deciding off. With both fixes,
+   **hybrid+MCQ recovers to rules-parity: 0.922 pooled recall, 10 omissions**
+   (from 36), and the model's yes-side still lifts no-MCQ recall
+   0.419 → 0.481.
+7. **Honest residual: the model now breaks even, it does not yet pay.**
+   Post-fix hybrid matches rules exactly on recall and omissions but adds 9
+   hallucinations (precision 0.930 vs 1.000, feature-exact 39/50 vs 48/50)
+   at equal question burden. The persona run's zero-omission headline
+   remains un-transferred: the two rule-invisible features the personas
+   covered are not covered by this checkpoint's yes-side at 0.75. The
+   measured paths forward are the same calibration levers as §5.3 — a
+   temperature refit (T = 1.40 halves ECE) or a fine-tuned checkpoint —
+   re-measured through this harness.
 
 ### 5.3 → R3. Calibration and the auto-accept gate
 
@@ -580,19 +595,18 @@ questions per input of the no-MCQ floor are doing real work. A checkpoint
 refit (T = 1.40 halves ECE to 0.0425) or better annotation may move the
 trade, but the current numbers argue for asking.
 
-**Rules win the bounded vocabulary; the real checkpoint has not yet earned
-its place.** On 48/50 cases rules+aliases alone already reconstruct the spec
-(0.922 pooled recall, zero hallucinations). The persona ablation showed the
-model *could* carry the residual (§5.2, findings 4) — but the measured
-checkpoint (§5.2, findings 5–6) currently subtracts value: confident wrong
-negatives pre-empt the clarifying questions, and hybrid+MCQ lands at 0.721
-recall / 0.912 precision against rules-only's 0.922 / 1.000. This is the
-honest shape of R2: the architecture gives the model a narrow, protected
-slot (merge tiers, MCQ backstop), and today's checkpoint does not fill it
-well enough for auto-accept — the failure is quantified, located in the
-negative decisions, and paired with a concrete asymmetric-gate fix. Until a
-refit or fine-tune passes that bar, rules-plus-MCQ is the configuration the
-measurements support.
+**Rules win the bounded vocabulary; the fixed harness lets the model break
+even.** On 48/50 cases rules+aliases alone reconstruct the spec (0.922
+pooled recall, zero hallucinations). The checkpoint rerun (§5.2, findings
+5–7) first falsified the persona headline — then traced the loss to two
+harness defects (merge twinning, symmetric negative gate), both fixed and
+re-measured: hybrid+MCQ now matches rules on recall and omissions while the
+model contributes no-MCQ coverage (0.419 → 0.481). What the checkpoint still
+does not do is *pay*: it adds 9 hallucinations at equal recall and burden.
+The architecture's promise — a protected model slot with an MCQ backstop —
+is intact and now measured; today's checkpoint fills it to parity, not
+advantage, and the calibration levers (§5.3 refit, fine-tuning) are the
+measured route from parity to gain.
 
 **The golden evaluation has a blind spot this setup exposes.** `spec_matches`
 (§18.13) checks that expected values appear in the output; it cannot flag

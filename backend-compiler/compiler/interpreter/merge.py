@@ -16,10 +16,23 @@ from compiler.spec.models import Candidate
 __all__ = ["check_coverage", "merge"]
 
 
+def _feature_target(capability_id: str) -> str:
+    """The fold-level feature a candidate targets, so that `needs_payments`
+    (laya) and `payments.enabled` (rules) group into one tier contest instead
+    of twinning through to the fold, where the laya copy triggers a spurious
+    negation conflict."""
+    raw = capability_id
+    if raw.startswith("needs_"):
+        raw = raw[len("needs_"):]
+    if raw.endswith(".enabled"):
+        raw = raw[: -len(".enabled")]
+    return raw
+
+
 def merge(candidates_a, candidates_b, candidates_c) -> list[Candidate]:
     by_cap: dict[str, list[Candidate]] = defaultdict(list)
     for c in candidates_a + candidates_b + candidates_c:
-        by_cap[c.capability_id].append(c)
+        by_cap[_feature_target(c.capability_id)].append(c)
 
     merged: list[Candidate] = []
     for cands in by_cap.values():

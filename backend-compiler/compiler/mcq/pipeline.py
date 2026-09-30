@@ -76,7 +76,8 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
     for cand in candidates:
         kind, payload = _classify(cand.capability_id, ontology)
         if kind == "feature":
-            feature_values.setdefault(payload[0], []).append((cand.value, cand.confidence))
+            feature_values.setdefault(payload[0], []).append(
+                (cand.value, cand.confidence, cand.source))
         elif kind == "parameter":
             param_values.setdefault(payload[0], []).append((cand.value, cand.confidence))
         elif kind == "role":
@@ -92,7 +93,7 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
         result.feature_confidence[fid] = best[1]
         if result.spec.is_decided(fid):
             continue
-        distinct = {value for value, _ in proposals}
+        distinct = {value for value, _, _ in proposals}
         if len(distinct) > 1:
             result.negations.append(Question(
                 type="resolve_negation", feature_id=fid,
@@ -100,9 +101,19 @@ def fold_candidates(candidates: list[Candidate], ontology: Ontology,
                 prompt=f"Conflicting signals for {fid}. Enable it?",
             ))
             continue
-        value, conf = best
-        if conf >= AUTO_ACCEPT:
-            result.spec.decide_feature(fid, enabled=bool(value))
+        value, conf, source = best
+        if conf < AUTO_ACCEPT:
+            continue
+        if value:
+            result.spec.decide_feature(fid, enabled=True)
+        elif source != "laya":
+            # Asymmetric negative gate: a laya-sourced "no" never decides a
+            # feature off. The measured failure mode (paper §5.2 finding 6)
+            # is a confident model negative pre-empting the clarifying
+            # question and converting askable ambiguity into silent
+            # omission — so model negatives stay undecided and the loop
+            # asks. Rules keep deciding off (negation detection is theirs).
+            result.spec.decide_feature(fid, enabled=False)
 
     for key, proposals in param_values.items():
         if key in result.spec.decided_parameters:

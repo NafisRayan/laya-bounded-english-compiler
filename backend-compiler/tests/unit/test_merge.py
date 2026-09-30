@@ -70,3 +70,19 @@ def test_merge_two_exact_different_values_flags_ambiguity():
     ]
     merged = merge(a, [], [])
     assert len(merged) == 2
+
+def test_merge_groups_laya_needs_with_rule_feature_target():
+    """needs_X (laya) and X.enabled / X param keys (rules) are the same
+    feature target: the laya twin must not reach the fold alongside the
+    rule candidate, or fold's distinct-value check fires a spurious
+    negation (measured in the real-checkpoint ablation, paper 5.2)."""
+    from compiler.interpreter.merge import merge
+    from compiler.spec.models import Candidate
+    merged = merge(
+        [],
+        [Candidate("payments.enabled", True, 0.8, "phrase", "pay")],
+        [Candidate("needs_payments", False, 0.99, "laya", None)],
+    )
+    payments = [c for c in merged if "payments" in c.capability_id]
+    assert all(c.source != "laya" for c in payments)
+    assert any(c.value is True and c.source == "phrase" for c in payments)
