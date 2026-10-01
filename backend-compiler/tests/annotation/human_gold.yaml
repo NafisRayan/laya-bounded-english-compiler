@@ -398,8 +398,7 @@ payments_and_uploads:
   - owner
 payments_without_reviews_negation:
   buckets: []
-  edge_functions:
-  - stripe_webhook
+  edge_functions: []
   features:
     authentication: true
     payments: true

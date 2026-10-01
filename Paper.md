@@ -310,7 +310,7 @@ pinned checkpoint has been measured two ways: calibration (§5.3) and the
 full ablation grid (§5.2). The full baseline sweep — including the
 off-the-shelf generator — is measured (§5.1), and every §5 number is now
 reported against independently annotated, adjudicated human gold with a
-frozen held-out split (§4.1). Remaining: a third-reader pass on the 42
+frozen held-out split (§4.1). Remaining: a third-reader pass on the 41
 self-adjudicated rows — §5.1/§5.3/§5.4 report the status of each.
 
 ## 4. Experimental Setup
@@ -331,13 +331,13 @@ parameters, and, where relevant, roles, entities, buckets, edge functions).
 regression truth. They have since been independently annotated and
 adjudicated (protocol in `docs/annotation-protocol.md`): one annotator,
 blind to the engine's expectations, labeled all 50 inputs; 142 raw
-disagreements were adjudicated (42 `engine-wrong`, 33 `both-defensible`,
+disagreements were adjudicated (41 `engine-wrong`, 33 `both-defensible`,
 2 `annotator-misread`), producing the human gold every §5 number is now
 reported against. **Authoring bias is therefore measured, not assumed:**
 17 parameter pins and 13 feature pins in the engine gold had no input basis.
 Two limitations stand: the annotator and adjudicator were the same person
-(the 42:2 engine-wrong skew is exactly what self-adjudication produces —
-the 42 feature/parameter rows are flagged for a third reader), and held-out
+(the 41:3 engine-wrong skew is exactly what self-adjudication produces —
+the 41 feature/parameter rows are flagged for a third reader), and held-out
 scoring was performed once, after measurement code was frozen, as the
 protocol requires.
 
@@ -407,7 +407,7 @@ measurements replace the persona on the same cases in the same JSON schema
 **Measured against both golds (2026-09-30).** Every baseline was first
 scored against the engine-pinned gold, then re-scored against the
 independently annotated, adjudicated human gold
-(`tests/annotation/human_gold.yaml`; the adjudication ruled 42 of 142 raw
+(`tests/annotation/human_gold.yaml`; the adjudication ruled 41 of 142 raw
 disagreements `engine-wrong` — the authoring-bias quantification). The LLM
 baselines ran zero-shot through an OpenAI-compatible gateway serving
 `antigravity/gemini-3.8-flash-tiered` (gateway model id, not a pinned
@@ -550,7 +550,7 @@ the adjudicated human annotation (golden 35), the ordering flips:
 | hybrid + MCQ | **0.950 / 0.905** | **2** | 4 |
 | hybrid + MCQ, refit T = 1.40 | 0.900 / 0.900 | 4 | 4 |
 
-The engine-pinned gold was *under-selling* the hybrid: once the 42
+The engine-pinned gold was *under-selling* the hybrid: once the 41
 authoring-bias items stop counting against it, the hybrid beats rules on
 recall and omissions in-sample **and** on the frozen held-out set, with the
 refit trading a little recall for rules-parity precision. The hybrid's
@@ -710,9 +710,9 @@ schema in 15 of 50 cases.
 re-deploy), first-attempt success, 39 s create-to-verified on first contact,
 five live-API drift points found and fixed by actually running it.
 
-**Honest costs.** Authoring bias is quantified, not assumed: 42 of 142
+**Honest costs.** Authoring bias is quantified, not assumed: 41 of 142
 disagreements were the engine gold misreading its own inputs, adjudicated by
-the same person who annotated (the 42:2 self-adjudication skew is disclosed;
+the same person who annotated (the 41:3 self-adjudication skew is disclosed;
 those rows are flagged for a third reader). The hybrid still hallucinates
 4-7 requirements per 35 cases where rules alone produce 2-5 — calibration
 halves it, fine-tuning is the scoped remainder. Every number carries its

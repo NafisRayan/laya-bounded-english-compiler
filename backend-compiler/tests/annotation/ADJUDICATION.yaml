@@ -339,7 +339,7 @@ payments_without_reviews_negation:
     - kind: edge_functions
       item: 'stripe_webhook'
       side: annotation-only
-      verdict: engine-wrong
+      verdict: annotator-misread
 
 rent_without_item_needs_clarify:
   input: 'The site shows available equipment to renters.'
