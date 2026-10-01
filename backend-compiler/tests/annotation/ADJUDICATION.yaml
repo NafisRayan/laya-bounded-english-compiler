@@ -7,7 +7,7 @@ alias_and_phrase_decide:
     - kind: edge_functions
       item: 'stripe_webhook'
       side: annotation-only
-      verdict: engine-wrong
+      verdict: annotator-misread
 
 booking_mode_request_then_approval:
   input: 'Renters can request a booking and the owner approves first.'
@@ -15,11 +15,11 @@ booking_mode_request_then_approval:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
 
 bucket_purpose_avatars:
   input: 'Hosts upload a profile photo when they sign up.'
@@ -47,7 +47,7 @@ contact_owners_messaging:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: roles
       item: 'renter'
       side: annotation-only
@@ -95,11 +95,11 @@ dep_pruning:
     - kind: features
       item: 'bookings'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: features
       item: 'messaging'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
 
 duplicate_phrase_single_decision:
   input: 'Renters book items. Owners list equipment for rent.'
@@ -107,11 +107,11 @@ duplicate_phrase_single_decision:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
 
 fully_answered_no_questions:
   input: 'A site where renters book each item, chat with each other, pay through stripe, leave a review, upload a photo, complete an id check, get live updates, and keep a favorite list.'
@@ -191,7 +191,7 @@ id_check_verification:
     - kind: edge_functions
       item: 'verification_webhook'
       side: annotation-only
-      verdict: engine-wrong
+      verdict: annotator-misread
 
 kyc_avoided_negation:
   input: 'We avoid KYC to keep onboarding fast.'
@@ -215,11 +215,11 @@ laya_default_asks:
     - kind: features
       item: 'bookings'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: features
       item: 'messaging'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
 
 laya_high_decides:
   input: 'Use stripe for payments and email password for login'
@@ -227,7 +227,7 @@ laya_high_decides:
     - kind: edge_functions
       item: 'stripe_webhook'
       side: annotation-only
-      verdict: engine-wrong
+      verdict: annotator-misread
 
 laya_high_enables_everything:
   input: 'Start simple: a place where renters book each item.'
@@ -279,19 +279,19 @@ marketplace_airbnb_equipment:
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'mixed']
       side: annotation-only
-      verdict: engine-wrong
+      verdict: annotator-misread
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: buckets
       item: 'documents'
       side: annotation-only
-      verdict: engine-wrong
+      verdict: annotator-misread
     - kind: buckets
       item: 'listings'
       side: annotation-only
@@ -315,11 +315,11 @@ payments_and_uploads:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
     - kind: buckets
       item: 'listings'
       side: annotation-only
@@ -387,7 +387,7 @@ unparsed_coverage_resolved:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: both-defensible
+      verdict: engine-wrong
 
 verification_admin_approval:
   input: 'An admin verifies each government id document by hand.'
@@ -395,7 +395,7 @@ verification_admin_approval:
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'documents']
       side: annotation-only
-      verdict: engine-wrong
+      verdict: both-defensible
     - kind: parameters
       item: ['verification.method', 'government_id_and_admin']
       side: annotation-only
@@ -407,4 +407,4 @@ verification_admin_approval:
     - kind: buckets
       item: 'documents'
       side: annotation-only
-      verdict: engine-wrong
+      verdict: both-defensible

@@ -1,7 +1,6 @@
 alias_and_phrase_decide:
   buckets: []
-  edge_functions:
-  - stripe_webhook
+  edge_functions: []
   features:
     authentication: true
     payments: true
@@ -205,8 +204,7 @@ github_auth_alias:
 id_check_verification:
   buckets:
   - documents
-  edge_functions:
-  - verification_webhook
+  edge_functions: []
   features:
     authentication: true
     file_storage: true
@@ -273,8 +271,7 @@ laya_default_asks:
   roles: []
 laya_high_decides:
   buckets: []
-  edge_functions:
-  - stripe_webhook
+  edge_functions: []
   features:
     authentication: true
     payments: true
@@ -302,7 +299,6 @@ magic_link_alias:
 marketplace_airbnb_equipment:
   buckets:
   - listings
-  - documents
   edge_functions:
   - stripe_webhook
   - verification_webhook
@@ -314,7 +310,6 @@ marketplace_airbnb_equipment:
     payments: true
     verification: true
   parameters:
-    file_storage.bucket_purpose: mixed
     payments.provider: stripe
   roles:
   - owner

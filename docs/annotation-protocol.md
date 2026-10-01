@@ -30,8 +30,8 @@ features:                 # every feature the input requires (true) or forbids (
 parameters:               # parameter:value only where the input pins a choice
   booking.mode: request_then_approval
 roles: [owner, renter]    # only if the input names roles
-buckets: [listings]       # only if the input implies file storage
-edge_functions: []        # only if derivable (webhooks, notifications)
+buckets: [listings]       # only if the input explicitly describes file storage
+edge_functions: []        # only if the input explicitly describes them (never inferred from features)
 notes: anything ambiguous, in the annotator's own words
 ```
 
@@ -50,7 +50,8 @@ After both annotation passes exist (engine-pinned vs independent):
 
 1. Diff per case: any disagreement between the independent annotation and
    the engine-pinned gold is a finding — list it in
-   `tests/annotation/DISAGREEMENTS.md` with one line each.
+   `tests/annotation/DISAGREEMENTS.json` with one line each, and the
+   rulings themselves go to `tests/annotation/ADJUDICATION.yaml`.
 2. The paper reports metrics under BOTH gold sets. The independent set
    becomes primary only after the disagreements are adjudicated (ideally by
    a third reader).
