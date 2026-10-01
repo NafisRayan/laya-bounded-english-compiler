@@ -12,7 +12,6 @@ booking_mode_request_then_approval:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
   parameters:
     bookings.mode: request_then_approval
@@ -33,10 +32,8 @@ bucket_purpose_avatars:
 bucket_purpose_documents:
   buckets:
   - documents
-  edge_functions:
-  - verification_webhook
+  edge_functions: []
   features:
-    authentication: true
     file_storage: true
     verification: true
   parameters:
@@ -48,7 +45,6 @@ bucket_purpose_listings:
   - listings
   edge_functions: []
   features:
-    authentication: true
     file_storage: true
   parameters:
     file_storage.bucket_purpose: listings
@@ -61,17 +57,14 @@ bucket_purpose_mixed:
   - documents
   edge_functions: []
   features:
-    authentication: true
     file_storage: true
   parameters:
     file_storage.bucket_purpose: mixed
   roles: []
 charge_word_payments:
   buckets: []
-  edge_functions:
-  - stripe_webhook
+  edge_functions: []
   features:
-    authentication: true
     bookings: true
     payments: true
   parameters: {}
@@ -81,7 +74,6 @@ contact_owners_messaging:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     messaging: true
   parameters: {}
   roles:
@@ -90,7 +82,6 @@ contradiction_avoided_owner_approval:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     roles: true
   parameters:
     roles.role_names:
@@ -101,7 +92,6 @@ contradiction_resolved:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     roles: true
   parameters:
     roles.role_names:
@@ -112,7 +102,6 @@ contradiction_surfaced:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     roles: true
   parameters:
     roles.role_names:
@@ -123,7 +112,6 @@ dep_pruning:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
     messaging: true
   parameters: {}
@@ -132,7 +120,6 @@ duplicate_phrase_single_decision:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
   parameters: {}
   roles:
@@ -155,7 +142,6 @@ feedback_word_reviews:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
     reviews: true
   parameters: {}
@@ -166,7 +152,6 @@ file_upload_documents:
   - documents
   edge_functions: []
   features:
-    authentication: true
     file_storage: true
   parameters:
     file_storage.bucket_purpose: documents
@@ -174,12 +159,8 @@ file_upload_documents:
 fully_answered_no_questions:
   buckets:
   - documents
-  edge_functions:
-  - stripe_webhook
-  - verification_webhook
-  - notification_dispatch
+  edge_functions: []
   features:
-    authentication: true
     bookings: true
     favorites: true
     file_storage: true
@@ -206,7 +187,6 @@ id_check_verification:
   - documents
   edge_functions: []
   features:
-    authentication: true
     file_storage: true
     verification: true
   parameters:
@@ -217,11 +197,8 @@ kitchen_sink_marketplace:
   buckets:
   - listings
   - documents
-  edge_functions:
-  - stripe_webhook
-  - verification_webhook
+  edge_functions: []
   features:
-    authentication: true
     bookings: true
     favorites: true
     file_storage: true
@@ -250,10 +227,8 @@ kyc_avoided_negation:
 kyc_government_id:
   buckets:
   - documents
-  edge_functions:
-  - verification_webhook
+  edge_functions: []
   features:
-    authentication: true
     file_storage: true
     verification: true
   parameters:
@@ -283,7 +258,6 @@ laya_high_enables_everything:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
   parameters: {}
   roles:
@@ -299,11 +273,8 @@ magic_link_alias:
 marketplace_airbnb_equipment:
   buckets:
   - listings
-  edge_functions:
-  - stripe_webhook
-  - verification_webhook
+  edge_functions: []
   features:
-    authentication: true
     bookings: true
     file_storage: true
     messaging: true
@@ -317,8 +288,7 @@ marketplace_airbnb_equipment:
 max_mcqs_cap:
   buckets: []
   edge_functions: []
-  features:
-    authentication: true
+  features: {}
   parameters: {}
   roles:
   - owner
@@ -326,7 +296,6 @@ messaging_anytime_warning_only:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     messaging: true
   parameters:
     messaging.trigger_event: anytime
@@ -335,18 +304,15 @@ moderator_role:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     roles: true
   parameters:
     roles.role_names:
     - moderator
-  roles:
-  - admin
+  roles: []
 negation_no_payments:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
     payments: false
   parameters: {}
@@ -355,7 +321,6 @@ negation_no_reviews:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
     reviews: false
   parameters: {}
@@ -379,10 +344,8 @@ oauth_google_alias:
 payments_and_uploads:
   buckets:
   - listings
-  edge_functions:
-  - stripe_webhook
+  edge_functions: []
   features:
-    authentication: true
     bookings: true
     file_storage: true
     payments: true
@@ -395,7 +358,6 @@ payments_without_reviews_negation:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     payments: true
     reviews: false
   parameters: {}
@@ -403,10 +365,8 @@ payments_without_reviews_negation:
   - owner
 realtime_all_channels:
   buckets: []
-  edge_functions:
-  - notification_dispatch
+  edge_functions: []
   features:
-    authentication: true
     bookings: true
     messaging: true
     realtime: true
@@ -418,10 +378,8 @@ realtime_all_channels:
   roles: []
 realtime_booking_updates:
   buckets: []
-  edge_functions:
-  - notification_dispatch
+  edge_functions: []
   features:
-    authentication: true
     bookings: true
     realtime: true
   parameters:
@@ -431,10 +389,8 @@ realtime_booking_updates:
   - renter
 realtime_chat:
   buckets: []
-  edge_functions:
-  - notification_dispatch
+  edge_functions: []
   features:
-    authentication: true
     messaging: true
     realtime: true
   parameters:
@@ -444,8 +400,7 @@ realtime_chat:
 rent_without_item_needs_clarify:
   buckets: []
   edge_functions: []
-  features:
-    authentication: true
+  features: {}
   parameters: {}
   roles:
   - renter
@@ -453,7 +408,6 @@ reviews_and_favorites:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
     favorites: true
     reviews: true
@@ -463,23 +417,19 @@ reviews_and_favorites:
 role_names_two_roles:
   buckets:
   - documents
-  edge_functions:
-  - verification_webhook
+  edge_functions: []
   features:
-    authentication: true
     file_storage: true
     roles: true
     verification: true
   parameters:
     file_storage.bucket_purpose: documents
-    verification.method: admin_approval
   roles:
   - verifier
 role_staff_and_admin_dedupe:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     roles: true
   parameters:
     roles.role_names:
@@ -491,7 +441,6 @@ roles_phrases:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     roles: true
   parameters:
     roles.role_names:
@@ -502,28 +451,22 @@ saved_items_favorites:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
-    bookings: true
     favorites: true
   parameters: {}
-  roles:
-  - renter
+  roles: []
 staff_role:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     roles: true
   parameters:
     roles.role_names:
     - staff
-  roles:
-  - admin
+  roles: []
 unparsed_coverage_resolved:
   buckets: []
   edge_functions: []
-  features:
-    authentication: true
+  features: {}
   parameters: {}
   roles:
   - owner
@@ -531,17 +474,14 @@ unparsed_sentence_resolved_feature:
   buckets: []
   edge_functions: []
   features:
-    authentication: true
     bookings: true
   parameters: {}
   roles: []
 verification_admin_approval:
   buckets:
   - documents
-  edge_functions:
-  - verification_webhook
+  edge_functions: []
   features:
-    authentication: true
     file_storage: true
     roles: true
     verification: true
