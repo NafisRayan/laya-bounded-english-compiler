@@ -1,8 +1,8 @@
 # From English to a Working Backend: A Deterministic, Ontology-Bounded Compiler for NL-to-Backend Tasks
 
-*Draft — §1, §3–§7 complete with measured results (cleaned human-verified gold,
-frozen held-out split). §2 Related Work in progress. Evidence ledger and
-per-section status: `Paper Outline.md`.*
+*Draft — all sections drafted (§1–§7, measured results on cleaned human-verified
+gold, frozen held-out split); §2 Related Work needs its reference list
+finalized. Evidence ledger and per-section status: `Paper Outline.md`.*
 
 ---
 
@@ -75,60 +75,90 @@ defines the protocol and §5 is empty by design.
 
 ## 2. Related Work
 
-*The survey has not yet been conducted; this section fixes the five clusters
-the paper must cover and what each comparison must show. Citations are
-placeholders pending the hunt (outline, §2).*
+Five literatures border this system. Each is stated in its strongest form
+before the delta.
 
-**NL to schema and text-to-SQL.** A large literature maps natural language to
-database schemas and queries, from early schema-mapping systems through
-neural text-to-SQL [\cite:text2sql-survey]. These systems validate the premise
-that constrained, schema-aware decoding outperforms free-form generation for
-structured outputs, but they target query answering over an existing schema
-rather than the synthesis of a complete backend — schema *plus* security
-policy *plus* platform configuration — and none, to our knowledge, treat
-requirement omission as a first-class metric. DbSmash and similar Supabase
-generators [\cite:dbsmash, \cite:supabase-generators] are the closest tools:
-LLM-based, one-shot, and non-interactive, with no validated intermediate
-specification the user can review before deployment. Our baseline §4.2.5
-measures exactly this gap.
+**NL to schema and text-to-SQL.** The largest neighboring line maps natural
+language to database *queries over an existing schema*: benchmarks such as
+Spider (Yu et al. 2018) and BIRD (Li et al. 2023) fixed the cross-domain task
+and its execution-based scoring, LLM-era decomposed and schema-aware prompting
+then moved execution accuracy sharply upward (DIN-SQL — Pourreza and Rafiei
+2023; C3 — Dong et al. 2023), and the older semantic-parsing context is
+surveyed in Kamath and Das (2019). The line validates a premise we build on —
+constrained, schema-aware decoding beats free-form generation for structured
+output — but its schema is an *input*, and none of it, to our knowledge,
+scores requirement omission as a first-class metric. Our delta: the target is
+not SQL text but a typed `BackendSpec` covering schema plus security policy
+plus platform configuration; the vocabulary is bounded by a versioned
+ontology with a never-silently-omit invariant (§3.1, §3.4); deployment
+through the platform API is part of the measured task (§5.4) — and rather
+than compare on their benchmarks, we run the LLM baselines on ours, where
+direct-to-SQL generation recovers 0.413 table recall and the spec-space
+baseline holds the precision edge (§5.1).
 
-**Program synthesis with intermediate representations.** Using a typed IR as
-the synthesis target — rather than emitting the artifact directly — is a
-recurrent finding in program synthesis [\cite:synthesis-ir]. The compiler here
-follows that shape: `BackendSpec` is the inspectable, versionable artifact;
-SQL is a deterministic function of it. The interesting trade-off, which the
-ontology-size sweep (§5.2) probes, is that a *closed* IR guarantees
-auditability at the cost of expressiveness.
+**Program synthesis with intermediate representations.** Synthesis over
+bounded target languages is a mature discipline: sketching (Solar-Lezama
+2008), syntax-guided synthesis (Alur et al. 2013), DSL-bounded induction
+shipped at consumer scale in FlashFill (Gulwani 2011), neural prior guidance
+over DSLs in DeepCoder (Balog et al. 2017), and solver-aided host languages
+(Torlak and Bodík 2013). Its recurrent finding is ours by adoption:
+restricting the target to a typed intermediate representation makes search
+tractable and the result checkable. Our delta: the IR here is not a program
+space to be searched but a domain-typed product spec — correctness is not
+established by a solver over candidate programs but by a validator that
+re-derives the spec from its decisions and rejects any mismatch (§3.5), and
+the closed vocabulary is precisely what makes *flag-don't-guess* expressible
+as an invariant rather than an aspiration (§3.1).
 
-**Human-in-the-loop disambiguation.** Clarifying-question systems and
-mixed-initiative UI research [\cite:clarification-ml, \cite:mixed-initiative]
-establish that targeted questions out-perform both silence and
-over-questioning. Our MCQ engine contributes a dependency-graph ordering over
-*capability-level* questions (feature confirms, parameter choices, negation
-and contradiction resolutions, and unparsed-sentence clarifications) with a
-hard cap on question budget — a concrete instantiation the calibration
-literature's coverage-aware deferral [\cite:selective-prediction] usually
-leaves abstract.
+**Human-in-the-loop disambiguation.** Mixed-initiative interaction
+principles (Horvitz 1999), clarifying-question retrieval in open-domain
+conversational QA (Aliannejadi et al. 2019), and question selection under
+uncertainty in active learning (Settles 2009) establish that targeted
+questions outperform both silence and over-asking. Our delta: the questions
+are neither authored in advance nor free-form generated — they are
+multiple-choice items *derived from the partial spec itself* (contradiction
+and negation resolutions, capability confirms, parameter choices, and
+unparsed-sentence clarification), ordered by a dependency graph and hard-
+capped, with the burden measured rather than asserted: ≈6.5–7 questions per
+input for the human-answerable configurations and ≈2.3 for the
+interpretation-only floor (§5.2). The unparsed-sentence item is what makes
+never-silently-omit structural: the user is asked about exactly the sentence
+the interpreter could not read (§3.4).
 
-**Model calibration and selective prediction.** ECE
-[\cite:ece-naeini], temperature scaling [\cite:guo-2017], and
-coverage–correctness trade-offs [\cite:selective-prediction] are standard
-post-hoc calibration tools. This paper's R3 is narrower and more
-engineering-oriented: an *in-compiler gate* that measures ECE on the model's
-shipped calibrated confidence, fits a temperature only when the gate trips,
-and connects the result to a fixed 0.75 auto-accept decision threshold. The
-vendor's own data motivates the gate: the base checkpoint's shipped ECE is
-far above 0.1, and a per-(question-type, option-count) temperature refit
-moves measured ECE from ≈0.47 to ≈0.08 — our reproduction attempts a single
-scalar version of that fit inside the repo.
+**Model calibration and selective prediction.** Expected calibration error
+(Naeini et al. 2015), temperature scaling (Guo et al. 2017), and the
+reject-option / risk-coverage line (Chow 1970; Geifman and El-Yaniv 2017)
+form the standard toolkit: measure calibration post hoc, rescale, and trade
+coverage against accuracy at a chosen operating point. Our delta is the
+deployment shape: calibration as an *in-compiler gate* — 10-bin ECE measured
+on the model's shipped `answer_confidence`, a temperature fitted only when
+ECE ≥ 0.1, feeding a fixed 0.75 auto-accept threshold (§3.6) — with the
+coverage–correctness curve measured on the golden corpus: 87.8% of decisions
+auto-accept at 80.0% correctness, and the curve is non-monotone, so raising
+the threshold is not monotonically safer (§5.3). One finding is consistent
+with label noise as a first-order confounder (Frénay and Verleysen 2014):
+successive cleanups of the gold labels moved measured ECE 0.0951 → 0.0341
+while accuracy rose 0.784 → 0.896 — in-sample (§5.3), and most of the
+apparent miscalibration lived in the labels.
 
-**Deterministic infrastructure generation.** Infrastructure-as-code and
-schema-migration tooling ([\cite:iac]; e.g. Terraform, Prisma Migrate) is
-deterministic by construction but consumes formal input. The present system
-sits between that line and the LLM line: NL enters, but everything downstream
-of interpretation is deterministic, idempotent, and replayable — the
-composition engine's re-application semantics (§3.5) are verified by an
-exhaustive pairwise fragment matrix against a live PostgreSQL.
+**Backend and schema generator tooling.** Managed-backend platforms supply
+the substrate but consume explicit configuration (Firebase 2026; Supabase
+2026), the ecosystem's natural-language story is prompt templates and
+assistants rather than compilers (Supabase 2026), and infrastructure-as-code
+is deterministic but requires formal input (e.g., Terraform, Prisma). The
+closest published-tool neighbor is DbSmash, an AI CLI that turns a
+plain-text app description into a schema (DbSmash 2026); we benchmarked it on
+our corpus through its non-interactive CLI path: schema artifacts in 15 of 50
+runs, table recall 0.079 / precision 0.179 (§5.1) — stated with the fairness
+caveat that the tool's intended interactive flow is stronger than the path
+our harness drives, so the number prices the non-interactive mode, not the
+tool at its best. Our delta: the pipeline produces a validated, reviewable
+typed spec that a human approves before anything deploys (§3.2), is
+deterministic and idempotent downstream of interpretation — byte-identical
+migrations for identical input, 595-pair fragment matrix against a live
+PostgreSQL (§3.5) — and is measured end to end against cleaned human gold,
+where it holds the recall and least-omission crown while conceding pooled
+precision to the best LLM baseline under an operator-answer confound (§5.1).
 
 ## 3. System Design
 
@@ -776,3 +806,28 @@ The hybrid hallucinates 30-32 requirements per 35 cases under operator-answer
 scoring — mostly the operator layer contradicting the cleaned gold, and
 exactly why the MCQ loop exists. Every number here carries its setting,
 and every number regenerates from committed artifacts.
+
+
+## References
+
+- Aliannejadi, M., Kiseleva, J., Choshen, J., Riede, M. (2019). Evaluating mixed-initiative systems: Searches for clarifying questions. *SIGIR 2019*.
+- Alur, R., Bodík, R., Dallal, E., et al. (2013). Syntax-guided synthesis. *Dependable Software Systems Engineering*.
+- Balog, M., Gaunt, A. L., Brockschmidt, M. (2017). DeepCoder: A deep learning framework for short program synthesis. *ICLR 2017*.
+- Chow, C. K. (1970). On optimum recognition error and reject tradeoff. *IEEE Transactions on Information Theory*, 16(1).
+- Dong, Z., et al. (2023). C3: Zero-shot text-to-SQL with ChatGPT. *VLDB 2023 workshop*. [peer to verify]
+- Firebase (2026). Firebase documentation. Google. https://firebase.google.com/docs
+- Frénay, B., Verleysen, M. (2014). Classification in the presence of label noise: A survey. *IEEE TNNLS*, 25(5).
+- Geifman, Y., El-Yaniv, R. (2017). Selective classification for deep neural networks. *NeurIPS 2017*.
+- Gulwani, S. (2011). Automating string processing in spreadsheets using input-output examples (FlashFill). *CACM*, 54(1).
+- Guo, C., Pleiss, G., Sun, Y., Weinberger, K. Q. (2017). On calibration of modern neural networks. *ICML 2017*.
+- Horvitz, E. (1999). Principles of mixed-initiative interaction. *CHI 1999*.
+- Kamath, A., Das, R. (2019). A survey on semantic parsing. *arXiv:1812.00978*.
+- Li, J., et al. (2023). Can LLM already serve as a database interface? A BIET benchmark (BIRD). *NeurIPS 2023 Datasets and Benchmarks*. [name order to verify]
+- Naeini, M. P., Cooper, G., Hauskrecht, M. (2015). Obtaining well calibrated probabilities using Bayesian binning. *AAAI 2015*.
+- Pourreza, M., Rafiei, D. (2023). DIN-SQL: Decomposed in-context learning of text-to-SQL with self-correction. *NeurIPS 2023*.
+- Settles, B. (2009). Active learning literature survey. *Computer Sciences Technical Report 1648, University of Wisconsin-Madison*.
+- Solar-Lezama, A. (2008). *Program Synthesis by Sketching*. PhD thesis, UC Berkeley.
+- Supabase (2026). Supabase documentation. https://supabase.com/docs
+- DbSmash (2026). DbSmash CLI documentation. https://www.npmjs.com/package/dbsmash. [URL to verify]
+- Torlak, E., Bodík, R. (2013). Growing solver-aided languages with Rosette. *Onward! 2013*.
+- Yu, T., et al. (2018). Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing. *EMNLP 2018*.
