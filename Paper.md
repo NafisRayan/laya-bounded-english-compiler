@@ -417,7 +417,7 @@ gold, since no sentence in the corpus mentions webhooks), and a batch
 human ruling on the linter's candidates (`LINTER_RULINGS.md`, 82 keep /
 54 drop + 6 consistency). Baselines ran zero-shot through an
 OpenAI-compatible gateway (`antigravity/gemini-3.8-flash-tiered`);
-dbsmash through its non-interactive path.
+dbsmash through its non-interactive path. Parse counts: the baseline emitted parseable specs for 45 of 50 inputs in the original pinned run; 32 of those fall in the golden 35 (13 in held-out) — the baseline was never re-run, its pinned outputs were only re-scored against the corrected gold.
 
 | System (golden 35, human gold) | pooled R / P | omissions | hallucinations |
 |---|---|---|---|
@@ -434,9 +434,11 @@ still pin `authentication` in ~40 cases the human gold says need none —
 so a large share of the 30-32 "hallucinations" is operator-answer
 contamination, not engine invention. The operator-free comparison
 (MCQ-off, golden 35): hybrid **0.807 / 0.886** with 11 omissions and 3
-hallucinations, vs rules-only 0.667 / 1.000 with 19 omissions. Under
-that clean view the hybrid leads rules on every axis; against the spec
-baseline the picture is genuinely split — the hybrid keeps the recall
+hallucinations, vs rules-only 0.667 / **1.000** with 19 omissions and
+**zero** hallucinations — the hybrid leads rules on recall and omissions,
+while rules retains perfect precision and a hallucination-free record in
+this view (a pure-rules floor never invents; it omits more). Against the
+spec baseline the picture is genuinely split — the hybrid keeps the recall
 and omission advantage (0.947/3 vs 0.906/6 MCQ-on; 0.807/11 vs 0.906/6
 is the one axis the baseline wins at MCQ-off), while the baseline now
 holds the precision advantage (0.850 vs 0.628) that the contaminated
@@ -569,9 +571,11 @@ checkpoint):
 | rules, MCQ-off (operator-free) | 0.615 / 1.000 | 10 | 0 |
 
 8. **Two views, stated separately.** *Operator-free (MCQ-off):* the hybrid
-   dominates rules on every axis in-sample and held-out (recall 0.807 vs
+   leads rules on recall and omissions in both sets (recall 0.807 vs
    0.667; omissions 11 vs 19; held-out 0.769 vs 0.615, 6 vs 10) with 2-3
-   hallucinations. *MCQ-on:* recall and omissions still favor the hybrid
+   hallucinations — while rules retains perfect precision (1.000) and a
+   zero-hallucination record in this view, its pure-rules nature. *MCQ-on:*
+   recall and omissions still favor the hybrid
    (0.947/3 vs 0.895/6; held-out 0.923/2 vs 0.846/4), but the absolute
    precision of both systems drops because the operator-answer layer is an
    engine-era artifact (see §5.1's confound note) — the hallucination
@@ -715,14 +719,16 @@ loudest: unsupported requirements are flagged, not guessed.
 ## 7. Conclusion
 
 The layered compiler ships and is measured end to end against a cleaned,
-adjudicated human gold: natural language in, a typed \BackendSpec\, and a
+adjudicated human gold: natural language in, a typed `BackendSpec`, and a
 deployed Supabase project out. What survives, claim by claim:
 
-**R2 (architecture).** Operator-free (MCQ-off), the hybrid dominates
-rules-only on every axis — golden recall 0.807 vs 0.667 with 11 vs 19
-omissions; held-out 0.769 vs 0.615 with 6 vs 10 — and the mechanism grid
-earned its keep by exposing two real defects (merge target grouping, the
-symmetric negative gate) that mocks could not see. Under operator answers
+**R2 (architecture).** Operator-free (MCQ-off), the hybrid leads
+rules-only on recall and omissions — golden recall 0.807 vs 0.667 with 11
+vs 19 omissions; held-out 0.769 vs 0.615 with 6 vs 10 — while rules
+retains perfect precision and zero hallucinations in that view. The
+mechanism grid earned its keep by exposing two real defects (merge target
+grouping, the symmetric negative gate) that mocks could not see. Under
+operator answers
 the hybrid keeps the recall and omission lead (0.947 / 3 golden; 0.923 / 2
 held-out).
 
