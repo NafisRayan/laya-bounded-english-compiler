@@ -28,7 +28,8 @@ failure mode is silent: a requirement that the model simply drops never
 appears in the output, and nothing marks the omission. A malformed generated
 RLS policy is not a cosmetic bug but a security risk — the difference between
 "owner can read their rows" and "everyone can read everyone's rows" is one
-prompt drift away.
+prompt drift away — and security audits of LLM-generated code find exactly
+this class of failure at scale (Pearce et al. 2022).
 
 We instead treat NL-to-backend as a *compilation* problem over an explicit,
 versioned task vocabulary. A fixed ontology enumerates the features,
@@ -84,9 +85,12 @@ Spider (Yu et al. 2018) and BIRD (Li et al. 2023) fixed the cross-domain task
 and its execution-based scoring, LLM-era decomposed and schema-aware prompting
 then moved execution accuracy sharply upward (DIN-SQL — Pourreza and Rafiei
 2023; C3 — Dong et al. 2023), and the older semantic-parsing context is
-surveyed in Kamath and Das (2019). The line validates a premise we build on —
+surveyed in Kamath and Das (2019). Text2Schema (Li et al. 2025) begins to
+close the gap on our side of the line, generating table structures from
+unstructured intent. The line validates a premise we build on —
 constrained, schema-aware decoding beats free-form generation for structured
-output — but its schema is an *input*, and none of it, to our knowledge,
+output — but its schema is an *input* (Text2Schema's output stops at bare
+relational DDL), and none of it, to our knowledge,
 scores requirement omission as a first-class metric. Our delta: the target is
 not SQL text but a typed `BackendSpec` covering schema plus security policy
 plus platform configuration; the vocabulary is bounded by a versioned
@@ -145,18 +149,27 @@ apparent miscalibration lived in the labels.
 the substrate but consume explicit configuration (Firebase 2026; Supabase
 2026), the ecosystem's natural-language story is prompt templates and
 assistants rather than compilers (Supabase 2026), and infrastructure-as-code
-is deterministic but requires formal input (e.g., Terraform, Prisma). The
-closest published-tool neighbor is DbSmash, an AI CLI that turns a
+is deterministic but requires formal input (e.g., Terraform, Prisma). Two
+findings motivate replacing probabilistic generation in this domain
+outright: LLM-generated code carries security vulnerabilities in roughly
+40% of scenarios (Pearce et al. 2022), with broken access control and
+injection among the most frequent; and on cloud infrastructure tasks the
+best LLM achieves only 19.36% pass@1 against 86.6% on ordinary Python
+(IaC-Eval — Kon et al. 2024). The closest published-tool neighbor is
+DbSmash, an AI CLI that turns a
 plain-text app description into a schema (DbSmash 2026); we benchmarked it on
 our corpus through its non-interactive CLI path: schema artifacts in 15 of 50
 runs, table recall 0.079 / precision 0.179 (§5.1) — stated with the fairness
 caveat that the tool's intended interactive flow is stronger than the path
 our harness drives, so the number prices the non-interactive mode, not the
 tool at its best. Our delta: the pipeline produces a validated, reviewable
-typed spec that a human approves before anything deploys (§3.2), is
+typed spec that a human approves before anything deploys (§3.2); its RLS
+policies and auth rules are synthesized from pre-verified parameterized
+fragments rather than generated text — the direct answer to the access-control
+failure modes Pearce et al. document — and the pipeline is
 deterministic and idempotent downstream of interpretation — byte-identical
 migrations for identical input, 595-pair fragment matrix against a live
-PostgreSQL (§3.5) — and is measured end to end against cleaned human gold,
+PostgreSQL (§3.5) — measured end to end against cleaned human gold,
 where it holds the recall and least-omission crown while conceding pooled
 precision to the best LLM baseline under an operator-answer confound (§5.1).
 
@@ -238,7 +251,9 @@ threshold is the knob R3's calibration work defends (§3.6).
 
 ### 3.4 Clarification: the MCQ loop
 
-Residual ambiguity becomes a bounded multiple-choice session. The engine
+Residual ambiguity becomes a bounded multiple-choice session — the
+structured counterpart to the free-form clarification conversation
+ClarifyGPT (Mu et al. 2024) generates around LLM code generation. The engine
 generates six question kinds: feature confirmation, parameter choice,
 negation resolution, contradiction resolution, *unparsed-sentence
 clarification*, and (ordering-reserved) weak confirmation. Every input
@@ -642,7 +657,11 @@ checkpoint):
 ### 5.3 → R3. Calibration and the auto-accept gate
 
 **Measured (real `english` checkpoint; both golds, then cleaned gold).**
-With the vendored `laya` 0.3.20 installed in the venv (torch 2.14 CPU,
+This gate matters because code LLMs are in fact badly miscalibrated —
+Spiess et al. (2025) document token probabilities diverging from
+functional correctness across models and benchmarks — and our auto-accept
+threshold gates deployment on exactly that quantity. With the vendored
+`laya` 0.3.20 installed in the venv (torch 2.14 CPU,
 transformers 5.17) and the pinned `english` checkpoint (421M ModernBERT,
 fetched from the Hub), Mechanism C's actual noul questions ran on all 50
 golden cases; each feature-item answer yields one
@@ -685,7 +704,11 @@ held-out labels.
 
 ### 5.4 End-to-end (secondary)
 
-**Measured: one real deployment, first-attempt success.** With a real
+**Measured: one real deployment, first-attempt success.** Deployment is
+where generative approaches measurably collapse — on cloud
+infrastructure-as-code tasks the best LLM reaches 19.36% pass@1 against
+86.6% on ordinary Python (IaC-Eval — Kon et al. 2024) — which is why this
+pipeline deploys by deterministic API compilation instead. With a real
 organization configured (`SUPABASE_ACCESS_TOKEN` + org slug, loaded from
 `.env`), the e2e tier created a project through the Management API, applied
 29 generated migrations with the CLI, configured auth, deployed two edge
@@ -831,3 +854,17 @@ and every number regenerates from committed artifacts.
 - DbSmash (2026). DbSmash CLI documentation. https://www.npmjs.com/package/dbsmash. [URL to verify]
 - Torlak, E., Bodík, R. (2013). Growing solver-aided languages with Rosette. *Onward! 2013*.
 - Yu, T., et al. (2018). Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing. *EMNLP 2018*.
+
+### Added during the literature-review integration (identifiers in LITERATURE_REVIEW.md)
+
+- Cherian, J. J., Gibbs, I., Candès, E. J. (2024). Large language model validity via enhanced conformal prediction methods. *NeurIPS 2024*. arXiv:2406.09714.
+- Kon, P. T. J., Liu, J., Qiu, Y., et al. (2024). IaC-Eval: A code generation benchmark for cloud infrastructure-as-code programs. *NeurIPS 2024 Datasets and Benchmarks*.
+- Li, Z., et al. (2025). Text2Schema: Filling the gap in designing database table structures based on natural language. arXiv:2503.23886. [peer to verify]
+- Luitel, D., Hassani, S., Sabetzadeh, M. (2024). Improving requirements completeness: Automated assistance through large language models. *Requirements Engineering Journal*. DOI 10.1007/s00766-024-00416-3.
+- Mu, F., Shi, L., Wang, S., et al. (2024). ClarifyGPT: A framework for enhancing LLM-based code generation via requirements clarification. *FSE 2024*. DOI 10.1145/3660810.
+- Mündler, N., He, J., Wang, H., Sen, K., Song, D., Vechev, M. (2025). Type-constrained code generation with language models. *PLDI 2025*. DOI 10.1145/3729274.
+- Pearce, H., Ahmad, B., Tan, B., Dolan-Gavitt, B., Karri, R. (2022). Asleep at the keyboard? Assessing the security of GitHub Copilot's code contributions. *IEEE S&P 2022*. DOI 10.1109/SP46214.2022.9833571.
+- Saparina, I., Lapata, M. (2024). AMBROSIA: A benchmark for parsing ambiguous questions into database queries. *NeurIPS 2024 Datasets and Benchmarks*. arXiv:2406.19073.
+- Spiess, C., Gros, D., Pai, K. S., Pradel, M., Rabin, M. R. I., Jha, S., Devanbu, P. (2025). Calibration and correctness of language models for code. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00040.
+- Tian, Z., Chen, J., Zhang, X., et al. (2025). Fixing large language models' specification misunderstanding for better code generation. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00108.
+- Ugare, S., Suresh, T., Kang, H., Misailovic, S. (2024). SynCode: LLM generation with grammar augmentation. *TMLR 2024*. arXiv:2403.01632.
