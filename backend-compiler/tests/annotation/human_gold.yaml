@@ -1,0 +1,560 @@
+alias_and_phrase_decide:
+  buckets: []
+  edge_functions:
+  - stripe_webhook
+  features:
+    authentication: true
+    payments: true
+  parameters:
+    authentication.method: email_password
+    payments.provider: stripe
+  roles: []
+booking_mode_request_then_approval:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+  parameters:
+    bookings.mode: request_then_approval
+  roles:
+  - renter
+  - owner
+bucket_purpose_avatars:
+  buckets:
+  - avatars
+  edge_functions: []
+  features:
+    authentication: true
+    file_storage: true
+  parameters:
+    file_storage.bucket_purpose: avatars
+  roles:
+  - owner
+bucket_purpose_documents:
+  buckets:
+  - documents
+  edge_functions:
+  - verification_webhook
+  features:
+    authentication: true
+    file_storage: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: documents
+  roles:
+  - renter
+bucket_purpose_listings:
+  buckets:
+  - listings
+  edge_functions: []
+  features:
+    authentication: true
+    file_storage: true
+  parameters:
+    file_storage.bucket_purpose: listings
+  roles:
+  - owner
+bucket_purpose_mixed:
+  buckets:
+  - avatars
+  - listings
+  - documents
+  edge_functions: []
+  features:
+    authentication: true
+    file_storage: true
+  parameters:
+    file_storage.bucket_purpose: mixed
+  roles: []
+charge_word_payments:
+  buckets: []
+  edge_functions:
+  - stripe_webhook
+  features:
+    authentication: true
+    bookings: true
+    payments: true
+  parameters: {}
+  roles:
+  - renter
+contact_owners_messaging:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    messaging: true
+  parameters: {}
+  roles:
+  - owner
+contradiction_avoided_owner_approval:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names:
+    - admin
+  roles:
+  - admin
+contradiction_resolved:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names:
+    - admin
+  roles:
+  - admin
+contradiction_surfaced:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names:
+    - admin
+  roles:
+  - admin
+dep_pruning:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+    messaging: true
+  parameters: {}
+  roles: []
+duplicate_phrase_single_decision:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+  parameters: {}
+  roles:
+  - renter
+  - owner
+empty_spec_junk_text:
+  buckets: []
+  edge_functions: []
+  features: {}
+  parameters: {}
+  roles: []
+favorites_negated_alone:
+  buckets: []
+  edge_functions: []
+  features:
+    favorites: false
+  parameters: {}
+  roles: []
+feedback_word_reviews:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+    reviews: true
+  parameters: {}
+  roles:
+  - renter
+file_upload_documents:
+  buckets:
+  - documents
+  edge_functions: []
+  features:
+    authentication: true
+    file_storage: true
+  parameters:
+    file_storage.bucket_purpose: documents
+  roles: []
+fully_answered_no_questions:
+  buckets:
+  - documents
+  edge_functions:
+  - stripe_webhook
+  - verification_webhook
+  - notification_dispatch
+  features:
+    authentication: true
+    bookings: true
+    favorites: true
+    file_storage: true
+    messaging: true
+    payments: true
+    realtime: true
+    reviews: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: mixed
+    payments.provider: stripe
+  roles:
+  - renter
+github_auth_alias:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+  parameters:
+    authentication.method: oauth_github
+  roles: []
+id_check_verification:
+  buckets:
+  - documents
+  edge_functions:
+  - verification_webhook
+  features:
+    authentication: true
+    file_storage: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: documents
+  roles:
+  - renter
+kitchen_sink_marketplace:
+  buckets:
+  - listings
+  - documents
+  edge_functions:
+  - stripe_webhook
+  - verification_webhook
+  features:
+    authentication: true
+    bookings: true
+    favorites: true
+    file_storage: true
+    messaging: true
+    payments: true
+    reviews: true
+    roles: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: mixed
+    payments.provider: stripe
+    roles.role_names:
+    - admin
+    verification.method: government_id_and_admin
+  roles:
+  - owner
+  - renter
+  - admin
+kyc_avoided_negation:
+  buckets: []
+  edge_functions: []
+  features:
+    verification: false
+  parameters: {}
+  roles: []
+kyc_government_id:
+  buckets:
+  - documents
+  edge_functions:
+  - verification_webhook
+  features:
+    authentication: true
+    file_storage: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: documents
+    verification.method: government_id
+  roles:
+  - owner
+laya_default_asks:
+  buckets: []
+  edge_functions: []
+  features:
+    bookings: true
+    messaging: true
+  parameters: {}
+  roles: []
+laya_high_decides:
+  buckets: []
+  edge_functions:
+  - stripe_webhook
+  features:
+    authentication: true
+    payments: true
+  parameters:
+    authentication.method: email_password
+    payments.provider: stripe
+  roles: []
+laya_high_enables_everything:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+  parameters: {}
+  roles:
+  - renter
+magic_link_alias:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+  parameters:
+    authentication.method: magic_link
+  roles: []
+marketplace_airbnb_equipment:
+  buckets:
+  - listings
+  - documents
+  edge_functions:
+  - stripe_webhook
+  - verification_webhook
+  features:
+    authentication: true
+    bookings: true
+    file_storage: true
+    messaging: true
+    payments: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: mixed
+    payments.provider: stripe
+  roles:
+  - owner
+  - renter
+max_mcqs_cap:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+  parameters: {}
+  roles:
+  - owner
+messaging_anytime_warning_only:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    messaging: true
+  parameters:
+    messaging.trigger_event: anytime
+  roles: []
+moderator_role:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names:
+    - moderator
+  roles:
+  - admin
+negation_no_payments:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+    payments: false
+  parameters: {}
+  roles: []
+negation_no_reviews:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+    reviews: false
+  parameters: {}
+  roles:
+  - renter
+negation_resolved_by_answer:
+  buckets: []
+  edge_functions: []
+  features:
+    payments: false
+  parameters: {}
+  roles: []
+oauth_google_alias:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+  parameters:
+    authentication.method: oauth_google
+  roles: []
+payments_and_uploads:
+  buckets:
+  - listings
+  edge_functions:
+  - stripe_webhook
+  features:
+    authentication: true
+    bookings: true
+    file_storage: true
+    payments: true
+  parameters:
+    file_storage.bucket_purpose: listings
+  roles:
+  - renter
+  - owner
+payments_without_reviews_negation:
+  buckets: []
+  edge_functions:
+  - stripe_webhook
+  features:
+    authentication: true
+    payments: true
+    reviews: false
+  parameters: {}
+  roles:
+  - owner
+realtime_all_channels:
+  buckets: []
+  edge_functions:
+  - notification_dispatch
+  features:
+    authentication: true
+    bookings: true
+    messaging: true
+    realtime: true
+  parameters:
+    realtime.channels:
+    - messages
+    - bookings
+    - notifications
+  roles: []
+realtime_booking_updates:
+  buckets: []
+  edge_functions:
+  - notification_dispatch
+  features:
+    authentication: true
+    bookings: true
+    realtime: true
+  parameters:
+    realtime.channels:
+    - bookings
+  roles:
+  - renter
+realtime_chat:
+  buckets: []
+  edge_functions:
+  - notification_dispatch
+  features:
+    authentication: true
+    messaging: true
+    realtime: true
+  parameters:
+    realtime.channels:
+    - messages
+  roles: []
+rent_without_item_needs_clarify:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+  parameters: {}
+  roles:
+  - renter
+reviews_and_favorites:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+    favorites: true
+    reviews: true
+  parameters: {}
+  roles:
+  - renter
+role_names_two_roles:
+  buckets:
+  - documents
+  edge_functions:
+  - verification_webhook
+  features:
+    authentication: true
+    file_storage: true
+    roles: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: documents
+    verification.method: admin_approval
+  roles:
+  - verifier
+role_staff_and_admin_dedupe:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names:
+    - staff
+    - admin
+  roles:
+  - admin
+roles_phrases:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names:
+    - admin
+  roles:
+  - admin
+saved_items_favorites:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+    favorites: true
+  parameters: {}
+  roles:
+  - renter
+staff_role:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    roles: true
+  parameters:
+    roles.role_names:
+    - staff
+  roles:
+  - admin
+unparsed_coverage_resolved:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+  parameters: {}
+  roles:
+  - owner
+unparsed_sentence_resolved_feature:
+  buckets: []
+  edge_functions: []
+  features:
+    authentication: true
+    bookings: true
+  parameters: {}
+  roles: []
+verification_admin_approval:
+  buckets:
+  - documents
+  edge_functions:
+  - verification_webhook
+  features:
+    authentication: true
+    file_storage: true
+    roles: true
+    verification: true
+  parameters:
+    file_storage.bucket_purpose: documents
+    roles.role_names:
+    - admin
+    verification.method: government_id_and_admin
+  roles:
+  - admin

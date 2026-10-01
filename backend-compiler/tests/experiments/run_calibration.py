@@ -46,14 +46,21 @@ RESULTS_DIR = Path(__file__).parent / "results"
 SWEEP_THRESHOLDS = [round(0.50 + 0.05 * i, 2) for i in range(10)]
 
 
-def collect_pairs(client, cases: list[tuple[str, dict]], ontology) -> list[dict]:
-    """One pair per (case, feature-item) noul answer; entity items skipped."""
+def collect_pairs(client, cases: list[tuple[str, dict]], ontology,
+                  gold_by_case: dict | None = None) -> list[dict]:
+    """One pair per (case, feature-item) noul answer; entity items skipped.
+
+    ``gold_by_case`` overrides the truth source with the adjudicated human
+    gold (case -> {features: {fid: bool}}) for claim-grade runs.
+    """
     questions = laya_questions(ontology)
     pairs: list[dict] = []
     for case_name, data in cases:
+        source = ((gold_by_case or {}).get(case_name)
+                  or (data.get("expected_spec") or {}))
         gold_features = {
             fid: bool(enabled)
-            for fid, enabled in ((data.get("expected_spec") or {}).get("features") or {}).items()
+            for fid, enabled in (source.get("features") or {}).items()
         }
         response = client.predict(str(data["input"]), questions)
         for qid, answer in response.get("answers", {}).items():
@@ -133,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - real-netwo
     parser.add_argument("--device", default=None,
                         help="torch device for the Router (default LAYA_DEVICE or cpu)")
     parser.add_argument("--limit", type=int, default=None, help="only the first N cases")
+    parser.add_argument("--gold", default="engine", choices=["engine", "human"],
+                        help="truth labels: engine-pinned gold or the adjudicated human gold")
     parser.add_argument("--out", type=Path, default=RESULTS_DIR / "calibration_pairs.jsonl")
     parser.add_argument("--summary", type=Path,
                         default=RESULTS_DIR / "calibration_summary.md")
@@ -144,7 +153,14 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - real-netwo
         cases = cases[: args.limit]
 
     client = LayaClient(device=args.device)
-    pairs = collect_pairs(client, cases, ontology)
+    gold_by_case = None
+    if args.gold == "human":
+        import yaml
+
+        from tests.annotation.build_human_gold import HUMAN_GOLD_PATH
+
+        gold_by_case = yaml.safe_load(HUMAN_GOLD_PATH.read_text(encoding="utf-8"))
+    pairs = collect_pairs(client, cases, ontology, gold_by_case=gold_by_case)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8") as fh:

@@ -114,3 +114,55 @@ def test_score_ignores_derived_entities(tmp_path):
 def iter_first_case():
     from tests.experiments.runner import iter_cases
     return iter_cases()[0]
+
+def test_build_human_gold_applies_verdicts(tmp_path, monkeypatch):
+    import tests.annotation.build_human_gold as bhg
+
+    engine_spec = {
+        "features": {"payments": True, "reviews": True},
+        "parameters": {"payments.provider": "stripe"},
+        "roles": ["admin"],
+        "buckets": [{"name": "docs", "purpose": "documents"}],
+        "edge_functions": [],
+    }
+    monkeypatch.setattr(
+        bhg, "iter_cases",
+        lambda: [("c1", {"input": "x", "expected_spec": engine_spec})])
+
+    # worksheet: human missed payments (engine-only), invented reviews
+    # (annotation-only), misread provider (annotation-only vs engine stripe),
+    # invented admin role by misread.
+    worksheet = {
+        "case": "c1", "input": "x",
+        "features": {"payments": True, "reviews": True},
+        "parameters": {"payments.provider": "venmo"},
+        "roles": ["admin"], "buckets": [], "edge_functions": [], "notes": "",
+    }
+    ann = tmp_path / "golden"
+    ann.mkdir(parents=True)
+    (ann / "c1.yaml").write_text(yaml.safe_dump(worksheet), encoding="utf-8")
+
+    adjudication = {"c1": {"disagreements": [
+        {"kind": "features", "item": "reviews", "side": "annotation-only",
+         "verdict": "engine-wrong"},
+        {"kind": "features", "item": "payments", "side": "engine-only",
+         "verdict": "both-defensible"},
+        {"kind": "parameters", "item": ["payments.provider", "venmo"],
+         "side": "annotation-only", "verdict": "annotator-misread"},
+        {"kind": "parameters", "item": ["payments.provider", "stripe"],
+         "side": "engine-only", "verdict": "annotator-misread"},
+        {"kind": "roles", "item": "admin", "side": "annotation-only",
+         "verdict": "annotator-misread"},
+    ]}}
+    adj_path = tmp_path / "adj.yaml"
+    adj_path.write_text(yaml.safe_dump(adjudication), encoding="utf-8")
+    monkeypatch.setattr(bhg, "ADJUDICATION_PATH", adj_path)
+
+    gold = bhg.build_human_gold(tmp_path)
+    # engine-wrong -> annotation-only item stays out; engine-only
+    # both-defensible does NOT enter human gold (annotator side stands);
+    # engine-wrong on the annotation-only item keeps the annotator's reading
+    assert gold["c1"]["features"] == {"payments": True, "reviews": True}
+    # annotator-misread -> engine value restored
+    assert gold["c1"]["parameters"] == {"payments.provider": "stripe"}
+    assert gold["c1"]["roles"] == []

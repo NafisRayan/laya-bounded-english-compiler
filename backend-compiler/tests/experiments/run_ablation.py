@@ -121,22 +121,40 @@ def main(argv: list[str] | None = None) -> int:
                              "LAYA_DEVICE or cpu)")
     parser.add_argument("--limit", type=int, default=None,
                         help="only the first N cases")
+    parser.add_argument("--gold", default="engine", choices=["engine", "human"],
+                        help="scoring gold: engine-pinned expected_spec or the "
+                             "adjudicated human gold (tests/annotation)")
+    parser.add_argument("--split", default="all",
+                        choices=["all", "golden", "held_out"],
+                        help="which cases to run (golden/held_out per "
+                             "tests/golden/splits.yaml)")
     args = parser.parse_args(argv)
 
     mechs = [m.strip() for m in args.mechanisms.split(",") if m.strip()]
     mcq_modes = [m.strip() == "on" for m in args.mcq.split(",") if m.strip()]
 
     real = args.real_laya
-    out_path = Path(args.out or RESULTS_DIR /
-                    ("ablation_real.jsonl" if real else "ablation.jsonl"))
-    summary_path = Path(args.summary or RESULTS_DIR /
-                        ("ablation_real_summary.md" if real
-                         else "ablation_summary.md"))
+    suffix = ("_real" if real else "") + ("_human" if args.gold == "human" else "")
+    out_path = Path(args.out or RESULTS_DIR / f"ablation{suffix}.jsonl")
+    summary_path = Path(args.summary or RESULTS_DIR / f"ablation{suffix}_summary.md")
 
     ontology = load_test_ontology()
     cases = iter_cases()
+    if args.split != "all":
+        from tests.experiments.splits import load_splits
+
+        allowed = set(load_splits()[args.split])
+        cases = [(n, d) for n, d in cases if n in allowed]
     if args.limit:
         cases = cases[: args.limit]
+
+    human_gold = None
+    if args.gold == "human":
+        import yaml
+
+        from tests.annotation.build_human_gold import HUMAN_GOLD_PATH
+
+        human_gold = yaml.safe_load(HUMAN_GOLD_PATH.read_text(encoding="utf-8"))
 
     client = None
     if real:
@@ -146,11 +164,17 @@ def main(argv: list[str] | None = None) -> int:
 
     rows = []
     for case_name, data in cases:
+        labels = None
+        if human_gold is not None:
+            from tests.experiments.metrics import extract_labels
+
+            labels = extract_labels(human_gold.get(case_name) or {})
         for mech in mechs:
             for mcq_on in mcq_modes:
                 metrics = run_case(case_name, data, ontology, mech, mcq_on,
                                    laya_client=client,
-                                   persona_label="real-english" if real else None)
+                                   persona_label="real-english" if real else None,
+                                   labels=labels)
                 rows.append(asdict(metrics))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -159,14 +183,21 @@ def main(argv: list[str] | None = None) -> int:
             fh.write(json.dumps(row) + "\n")
 
     summary = summarize(rows)
+    gold_note = ("scoring gold: **adjudicated human annotation** "
+                 "(tests/annotation/human_gold.yaml)" if args.gold == "human"
+                 else "scoring gold: engine-pinned expected_spec.")
+    split_note = (f"cases: **{args.split}** set."
+                  if args.split != "all" else "")
     if real:
-        title = "Ablation results (50 golden cases, real english checkpoint)"
+        title = "Ablation results (golden cases, real english checkpoint)"
         persona_note = ("Laya source: **real** pinned `english` checkpoint "
-                        "(convaiinnovations/laya), shared LayaClient, same "
-                        "engine-pinned gold as the persona runs.")
+                        "(convaiinnovations/laya), shared LayaClient. "
+                        + gold_note + (" " + split_note if split_note else ""))
     else:
-        title = "Ablation results (50 golden cases, mock Laya personas)"
-        persona_note = "Personas used: **none** (43), **default** (5), **high** (2)."
+        title = "Ablation results (golden cases, mock Laya personas)"
+        persona_note = ("Personas used: **none** (43), **default** (5), "
+                        "**high** (2). " + gold_note
+                        + (" " + split_note if split_note else ""))
     summary_path.write_text(render_markdown(summary, title, persona_note),
                             encoding="utf-8")
 
