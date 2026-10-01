@@ -5,7 +5,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, ".")
 
-import yaml
+import yaml  # noqa: E402
 
 from tests.experiments.baselines import (  # noqa: E402
     BaselineResult,
@@ -14,8 +14,8 @@ from tests.experiments.baselines import (  # noqa: E402
     score_baseline,
     table_names_from_sql,
 )
-from tests.experiments.run_baselines import labels_for
-from tests.experiments.runner import load_test_ontology
+from tests.experiments.run_baselines import labels_for  # noqa: E402
+from tests.experiments.runner import load_test_ontology  # noqa: E402
 
 ontology = load_test_ontology()
 human = yaml.safe_load(Path("tests/annotation/human_gold.yaml").read_text(encoding="utf-8"))
