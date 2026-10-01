@@ -7,7 +7,7 @@ alias_and_phrase_decide:
     - kind: edge_functions
       item: 'stripe_webhook'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
 
 booking_mode_request_then_approval:
   input: 'Renters can request a booking and the owner approves first.'
@@ -15,11 +15,11 @@ booking_mode_request_then_approval:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 bucket_purpose_avatars:
   input: 'Hosts upload a profile photo when they sign up.'
@@ -27,7 +27,7 @@ bucket_purpose_avatars:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 bucket_purpose_documents:
   input: 'Renters upload their id document during verification.'
@@ -35,11 +35,11 @@ bucket_purpose_documents:
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: buckets
       item: 'verification'
       side: engine-only
-      verdict: 
+      verdict: both-defensible
 
 contact_owners_messaging:
   input: 'Buyers can contact owners about each listing.'
@@ -47,11 +47,11 @@ contact_owners_messaging:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: annotator-misread
 
 contradiction_avoided_owner_approval:
   input: 'An admin can manage the platform.'
@@ -59,11 +59,11 @@ contradiction_avoided_owner_approval:
     - kind: features
       item: 'bookings'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['bookings.mode', 'owner_approval']
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
 
 contradiction_surfaced:
   input: 'Admins can manage the platform'
@@ -71,23 +71,23 @@ contradiction_surfaced:
     - kind: features
       item: 'roles'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'bookings'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['roles.role_names', ['admin']]
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['bookings.mode', 'instant']
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: roles
       item: 'admin'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
 
 dep_pruning:
   input: 'We need bookings and messaging'
@@ -95,11 +95,11 @@ dep_pruning:
     - kind: features
       item: 'bookings'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: features
       item: 'messaging'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 duplicate_phrase_single_decision:
   input: 'Renters book items. Owners list equipment for rent.'
@@ -107,11 +107,11 @@ duplicate_phrase_single_decision:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 fully_answered_no_questions:
   input: 'A site where renters book each item, chat with each other, pay through stripe, leave a review, upload a photo, complete an id check, get live updates, and keep a favorite list.'
@@ -119,59 +119,59 @@ fully_answered_no_questions:
     - kind: features
       item: 'roles'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'mixed']
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: parameters
       item: ['authentication.method', 'email_password']
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['bookings.mode', 'owner_approval']
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'listings']
       side: engine-only
-      verdict: 
+      verdict: both-defensible
     - kind: parameters
       item: ['messaging.trigger_event', 'after_request']
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['realtime.channels', ['bookings']]
       side: engine-only
-      verdict: 
+      verdict: both-defensible
     - kind: parameters
       item: ['roles.role_names', ['admin']]
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['verification.method', 'admin_approval']
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: roles
       item: 'admin'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: buckets
       item: 'documents'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: buckets
       item: 'listings'
       side: engine-only
-      verdict: 
+      verdict: both-defensible
     - kind: buckets
       item: 'verification'
       side: engine-only
-      verdict: 
+      verdict: both-defensible
 
 id_check_verification:
   input: 'We run an id check on every renter before approval.'
@@ -179,19 +179,19 @@ id_check_verification:
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'documents']
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: buckets
       item: 'documents'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: edge_functions
       item: 'verification_webhook'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
 
 kyc_avoided_negation:
   input: 'We avoid KYC to keep onboarding fast.'
@@ -199,11 +199,11 @@ kyc_avoided_negation:
     - kind: features
       item: 'authentication'
       side: engine-only
-      verdict: 
+      verdict: both-defensible
     - kind: features
       item: 'file_storage'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
 
 laya_default_asks:
   input: 'We need bookings and messaging'
@@ -211,15 +211,15 @@ laya_default_asks:
     - kind: features
       item: 'authentication'
       side: annotation-only
-      verdict: 
+      verdict: annotator-misread
     - kind: features
       item: 'bookings'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: features
       item: 'messaging'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 laya_high_decides:
   input: 'Use stripe for payments and email password for login'
@@ -227,7 +227,7 @@ laya_high_decides:
     - kind: edge_functions
       item: 'stripe_webhook'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
 
 laya_high_enables_everything:
   input: 'Start simple: a place where renters book each item.'
@@ -235,43 +235,43 @@ laya_high_enables_everything:
     - kind: features
       item: 'favorites'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'file_storage'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'messaging'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'payments'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'realtime'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'reviews'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'roles'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: features
       item: 'verification'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: edge_functions
       item: 'verification_webhook'
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
 
 marketplace_airbnb_equipment:
   input: 'Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners need verification, users can message each other, payments use Stripe. Owners upload photos of their gear.'
@@ -279,23 +279,23 @@ marketplace_airbnb_equipment:
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'mixed']
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: buckets
       item: 'documents'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: buckets
       item: 'listings'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
 
 negation_no_reviews:
   input: 'We let renters book each equipment item. There is no review system.'
@@ -303,7 +303,7 @@ negation_no_reviews:
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 payments_and_uploads:
   input: 'Renters pay owners to rent each item, and upload photos of it.'
@@ -311,23 +311,23 @@ payments_and_uploads:
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'listings']
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: buckets
       item: 'listings'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: edge_functions
       item: 'stripe_webhook'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
 
 payments_without_reviews_negation:
   input: 'Vendors can charge for their services. There will be no review system.'
@@ -335,11 +335,11 @@ payments_without_reviews_negation:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
     - kind: edge_functions
       item: 'stripe_webhook'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
 
 rent_without_item_needs_clarify:
   input: 'The site shows available equipment to renters.'
@@ -347,7 +347,7 @@ rent_without_item_needs_clarify:
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 reviews_and_favorites:
   input: 'Guests can leave a review after their stay and save a favorite listing for later.'
@@ -355,7 +355,7 @@ reviews_and_favorites:
     - kind: roles
       item: 'renter'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 role_staff_and_admin_dedupe:
   input: 'Staff and admins keep the platform safe.'
@@ -363,11 +363,11 @@ role_staff_and_admin_dedupe:
     - kind: parameters
       item: ['roles.role_names', ['admin', 'staff']]
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['roles.role_names', ['admin']]
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
 
 staff_role:
   input: 'Staff can manage the platform.'
@@ -375,11 +375,11 @@ staff_role:
     - kind: parameters
       item: ['roles.role_names', ['staff']]
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['roles.role_names', ['admin']]
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
 
 unparsed_coverage_resolved:
   input: 'Owners can reject bad actors.'
@@ -387,7 +387,7 @@ unparsed_coverage_resolved:
     - kind: roles
       item: 'owner'
       side: annotation-only
-      verdict: 
+      verdict: both-defensible
 
 verification_admin_approval:
   input: 'An admin verifies each government id document by hand.'
@@ -395,16 +395,16 @@ verification_admin_approval:
     - kind: parameters
       item: ['file_storage.bucket_purpose', 'documents']
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['verification.method', 'government_id_and_admin']
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
     - kind: parameters
       item: ['verification.method', 'admin_approval']
       side: engine-only
-      verdict: 
+      verdict: engine-wrong
     - kind: buckets
       item: 'documents'
       side: annotation-only
-      verdict: 
+      verdict: engine-wrong
