@@ -57,6 +57,11 @@ After both annotation passes exist (engine-pinned vs independent):
    a third reader).
 3. Held-out cases are scored exactly once, after all measurement code is
    frozen, and never used for tuning.
+4. Agreement re-reviews (rows where annotator and engine agree, invisible
+   to the clash diff) run blind on stripped copies: blinding is
+   load-bearing where prior rulings exist (the tier 1–2 checks) and
+   trivial for mechanical/consistency checks (tier 3–4) — future
+   reviewers get stripped copies regardless.
 
 ## Scoring
 

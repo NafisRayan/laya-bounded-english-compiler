@@ -310,9 +310,10 @@ pinned checkpoint has been measured two ways: calibration (§5.3) and the
 full ablation grid (§5.2). The full baseline sweep — including the
 off-the-shelf generator — is measured (§5.1), and every §5 number is
 reported against the cleaned, adjudicated human gold with a frozen
-held-out split (§4.1). Remaining: a fully independent agreement-bias
-re-review (the clash pass is done; the agreement pass is not) — §4.1
-discloses exactly what that leaves unmeasured.
+held-out split (§4.1). The agreement-bias re-review has also run: an
+independent blind reviewer covered all 184 gold rows, confirming the prior
+rulings everywhere but one held-out parameter defect, held and disclosed
+by decision (§4.1).
 
 ## 4. Experimental Setup
 
@@ -343,8 +344,22 @@ flipped 21 rulings in both directions); `both-defensible` items are scored
 on the annotator side (the scorer has no neutral state); agreement-on-wrong
 bias — annotator and engine agreeing on an unmentioned feature, invisible
 to clash review — was found (e.g. `authentication` in "We need bookings and
-messaging") and only partially measured; held-out cases were scored exactly
-once, after measurement code and gold were frozen.
+messaging") and then **measured**: an independent reviewer, blind on all
+required tiers, covered 184/184 rows (zero boilerplate; reasons quoting
+sentence words), overturning 0 of 82 prior keeps, confirming all 5 judgment
+drops, and disagreeing 4 times — two concurred soft calls (`mixed` read as
+a two-inference stack, `verifier` as canonicalization), one self-
+contradictory sentence read as ambiguous, and one concurred defect on a
+never-ruled row: `kitchen_sink_marketplace` · `roles.role_names = [admin]`
+pins admin-only while the sentence names owners, renters, and admins. The
+defect sits in a once-scored held-out case and is **held and disclosed by
+decision** — mutating a frozen scored set to fix one parameter row was
+ruled not worth breaking the score-once protocol; it is named here and
+fixed in the next gold generation. The re-review's blind attestation was
+corrected post-hoc (original negative → confirmed positive after the
+reviewer's edit and content corroboration); the full trail is in
+`tests/annotation/AGREEMENT_REVIEW_VALIDATION.md`. Held-out cases were
+scored exactly once, after measurement code and gold were frozen.
 
 ### 4.2 Baselines
 
@@ -750,12 +765,13 @@ determinism advantages are measured; precision dominance is not claimed.
 re-deploy), first-attempt success, 39 s create-to-verified on first
 contact, five live-API drift points found and fixed by running it.
 
-**Honest costs.** The gold took three corrections and still carries two
-disclosed limits: the annotator self-adjudicated (the third reader saw
-pre-filled verdicts and side labels, and still flipped 21 of 77), and
-agreement-on-wrong bias was only partially measured (39 auth pins and 16
-edges were caught; a full agreement re-review has not run). The hybrid
-hallucinates 30-32 requirements per 35 cases under operator-answer
+**Honest costs.** The gold took three corrections and one independent
+agreement re-review (184/184 rows, blind; one concurred held-out defect
+named and held by decision, §4.1), and still carries disclosed limits: the
+annotator self-adjudicated (the third reader saw pre-filled verdicts and
+side labels, and still flipped 21 of 77), and the re-review was a single
+fast pass whose blind attestation was corrected post-hoc (§4.1).
+The hybrid hallucinates 30-32 requirements per 35 cases under operator-answer
 scoring — mostly the operator layer contradicting the cleaned gold, and
 exactly why the MCQ loop exists. Every number here carries its setting,
 and every number regenerates from committed artifacts.

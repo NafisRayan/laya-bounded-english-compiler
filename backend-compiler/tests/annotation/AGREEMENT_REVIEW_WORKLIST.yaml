@@ -1,0 +1,1187 @@
+# Agreement-bias re-review worklist (current gold + 5 applied judgment drops)
+# edge_functions already removed corpus-wide - settled policy, not re-reviewable here
+#
+# tier 1 (82): linter-flagged, ruled KEEP  -> confirm_keep | recommend_drop | ambiguous
+# tier 2 (5):  judgment drops ALREADY APPLIED -> confirm_drop | recommend_restore
+# tier 3 (34): anchored parameters + negated features -> keep | recommend_drop | ambiguous
+# tier 4 (63): anchored features/roles/buckets -> OPTIONAL sweep, same verdicts as tier 3
+#
+# prior_ruling mirrors LINTER_RULINGS.md - DO NOT open that file until Phase A is done.
+- tier: 1
+  case: alias_and_phrase_decide
+  kind: features
+  item: authentication:True
+  prior_ruling: keep
+  input: Use stripe for payments and email password for login
+- tier: 1
+  case: bucket_purpose_avatars
+  kind: buckets
+  item: avatars
+  prior_ruling: keep
+  input: Hosts upload a profile photo when they sign up.
+- tier: 1
+  case: bucket_purpose_avatars
+  kind: features
+  item: authentication:True
+  prior_ruling: keep
+  input: Hosts upload a profile photo when they sign up.
+- tier: 1
+  case: bucket_purpose_avatars
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: Hosts upload a profile photo when they sign up.
+- tier: 1
+  case: bucket_purpose_avatars
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''avatars'']'
+  prior_ruling: keep
+  input: Hosts upload a profile photo when they sign up.
+- tier: 1
+  case: bucket_purpose_documents
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: Renters upload their id document during verification.
+- tier: 1
+  case: bucket_purpose_listings
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: Sellers upload photos of their property listings.
+- tier: 1
+  case: bucket_purpose_listings
+  kind: roles
+  item: owner
+  prior_ruling: keep
+  input: Sellers upload photos of their property listings.
+- tier: 1
+  case: bucket_purpose_mixed
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: The app stores avatars, listing photos, and personal documents.
+- tier: 1
+  case: bucket_purpose_mixed
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''mixed'']'
+  prior_ruling: keep
+  input: The app stores avatars, listing photos, and personal documents.
+- tier: 1
+  case: charge_word_payments
+  kind: features
+  item: payments:True
+  prior_ruling: keep
+  input: We charge renters for each booking.
+- tier: 1
+  case: contact_owners_messaging
+  kind: features
+  item: messaging:True
+  prior_ruling: keep
+  input: Buyers can contact owners about each listing.
+- tier: 1
+  case: contradiction_avoided_owner_approval
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: An admin can manage the platform.
+- tier: 1
+  case: contradiction_resolved
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: Admins can manage the platform
+- tier: 1
+  case: contradiction_surfaced
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: Admins can manage the platform
+- tier: 1
+  case: duplicate_phrase_single_decision
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: Renters book items. Owners list equipment for rent.
+- tier: 1
+  case: favorites_negated_alone
+  kind: features
+  item: favorites:False
+  prior_ruling: keep
+  input: We skip the bookmark feature to keep the app lean.
+- tier: 1
+  case: feedback_word_reviews
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: Customers give feedback after each rental.
+- tier: 1
+  case: feedback_word_reviews
+  kind: features
+  item: reviews:True
+  prior_ruling: keep
+  input: Customers give feedback after each rental.
+- tier: 1
+  case: feedback_word_reviews
+  kind: roles
+  item: renter
+  prior_ruling: keep
+  input: Customers give feedback after each rental.
+- tier: 1
+  case: file_upload_documents
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: Users can upload documents to their profiles.
+- tier: 1
+  case: fully_answered_no_questions
+  kind: buckets
+  item: documents
+  prior_ruling: keep
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 1
+  case: fully_answered_no_questions
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 1
+  case: fully_answered_no_questions
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 1
+  case: fully_answered_no_questions
+  kind: features
+  item: payments:True
+  prior_ruling: keep
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 1
+  case: fully_answered_no_questions
+  kind: features
+  item: realtime:True
+  prior_ruling: keep
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 1
+  case: fully_answered_no_questions
+  kind: features
+  item: verification:True
+  prior_ruling: keep
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 1
+  case: fully_answered_no_questions
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''mixed'']'
+  prior_ruling: keep
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 1
+  case: github_auth_alias
+  kind: features
+  item: authentication:True
+  prior_ruling: keep
+  input: Developers sign in with github auth.
+- tier: 1
+  case: id_check_verification
+  kind: buckets
+  item: documents
+  prior_ruling: keep
+  input: We run an id check on every renter before approval.
+- tier: 1
+  case: id_check_verification
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: We run an id check on every renter before approval.
+- tier: 1
+  case: id_check_verification
+  kind: features
+  item: verification:True
+  prior_ruling: keep
+  input: We run an id check on every renter before approval.
+- tier: 1
+  case: id_check_verification
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''documents'']'
+  prior_ruling: keep
+  input: We run an id check on every renter before approval.
+- tier: 1
+  case: kitchen_sink_marketplace
+  kind: buckets
+  item: documents
+  prior_ruling: keep
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 1
+  case: kitchen_sink_marketplace
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 1
+  case: kitchen_sink_marketplace
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 1
+  case: kitchen_sink_marketplace
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 1
+  case: kitchen_sink_marketplace
+  kind: features
+  item: verification:True
+  prior_ruling: keep
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 1
+  case: kitchen_sink_marketplace
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''mixed'']'
+  prior_ruling: keep
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 1
+  case: kyc_avoided_negation
+  kind: features
+  item: verification:False
+  prior_ruling: keep
+  input: We avoid KYC to keep onboarding fast.
+- tier: 1
+  case: kyc_government_id
+  kind: buckets
+  item: documents
+  prior_ruling: keep
+  input: Sellers must verify their identity with government id before listing.
+- tier: 1
+  case: kyc_government_id
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: Sellers must verify their identity with government id before listing.
+- tier: 1
+  case: kyc_government_id
+  kind: features
+  item: verification:True
+  prior_ruling: keep
+  input: Sellers must verify their identity with government id before listing.
+- tier: 1
+  case: kyc_government_id
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''documents'']'
+  prior_ruling: keep
+  input: Sellers must verify their identity with government id before listing.
+- tier: 1
+  case: kyc_government_id
+  kind: roles
+  item: owner
+  prior_ruling: keep
+  input: Sellers must verify their identity with government id before listing.
+- tier: 1
+  case: laya_high_decides
+  kind: features
+  item: authentication:True
+  prior_ruling: keep
+  input: Use stripe for payments and email password for login
+- tier: 1
+  case: laya_high_enables_everything
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: 'Start simple: a place where renters book each item.'
+- tier: 1
+  case: magic_link_alias
+  kind: features
+  item: authentication:True
+  prior_ruling: keep
+  input: Login uses magic link.
+- tier: 1
+  case: marketplace_airbnb_equipment
+  kind: buckets
+  item: listings
+  prior_ruling: keep
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 1
+  case: marketplace_airbnb_equipment
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 1
+  case: marketplace_airbnb_equipment
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 1
+  case: marketplace_airbnb_equipment
+  kind: features
+  item: messaging:True
+  prior_ruling: keep
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 1
+  case: messaging_anytime_warning_only
+  kind: features
+  item: messaging:True
+  prior_ruling: keep
+  input: Users message each other whenever they want.
+- tier: 1
+  case: messaging_anytime_warning_only
+  kind: parameters
+  item: '[''messaging.trigger_event'', ''anytime'']'
+  prior_ruling: keep
+  input: Users message each other whenever they want.
+- tier: 1
+  case: moderator_role
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: A moderator can suspend listings.
+- tier: 1
+  case: negation_no_payments
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: Users can book each item. We don't take payments.
+- tier: 1
+  case: negation_no_reviews
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: We let renters book each equipment item. There is no review system.
+- tier: 1
+  case: oauth_google_alias
+  kind: features
+  item: authentication:True
+  prior_ruling: keep
+  input: Sign in with Google auth.
+- tier: 1
+  case: payments_and_uploads
+  kind: buckets
+  item: listings
+  prior_ruling: keep
+  input: Renters pay owners to rent each item, and upload photos of it.
+- tier: 1
+  case: payments_and_uploads
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: Renters pay owners to rent each item, and upload photos of it.
+- tier: 1
+  case: payments_and_uploads
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: Renters pay owners to rent each item, and upload photos of it.
+- tier: 1
+  case: payments_and_uploads
+  kind: features
+  item: payments:True
+  prior_ruling: keep
+  input: Renters pay owners to rent each item, and upload photos of it.
+- tier: 1
+  case: payments_and_uploads
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''listings'']'
+  prior_ruling: keep
+  input: Renters pay owners to rent each item, and upload photos of it.
+- tier: 1
+  case: payments_without_reviews_negation
+  kind: features
+  item: payments:True
+  prior_ruling: keep
+  input: Vendors can charge for their services. There will be no review system.
+- tier: 1
+  case: realtime_all_channels
+  kind: features
+  item: messaging:True
+  prior_ruling: keep
+  input: 'Everything should update live: new messages, booking changes, and notifications.'
+- tier: 1
+  case: realtime_all_channels
+  kind: features
+  item: realtime:True
+  prior_ruling: keep
+  input: 'Everything should update live: new messages, booking changes, and notifications.'
+- tier: 1
+  case: realtime_booking_updates
+  kind: features
+  item: realtime:True
+  prior_ruling: keep
+  input: Renters book items and get live updates the moment their booking status changes.
+- tier: 1
+  case: realtime_chat
+  kind: features
+  item: realtime:True
+  prior_ruling: keep
+  input: Users chat with each other in real time.
+- tier: 1
+  case: realtime_chat
+  kind: parameters
+  item: '[''realtime.channels'', [''messages'']]'
+  prior_ruling: keep
+  input: Users chat with each other in real time.
+- tier: 1
+  case: reviews_and_favorites
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: Guests can leave a review after their stay and save a favorite listing for later.
+- tier: 1
+  case: role_names_two_roles
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: A senior team checks every id document.
+- tier: 1
+  case: role_names_two_roles
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: A senior team checks every id document.
+- tier: 1
+  case: role_names_two_roles
+  kind: features
+  item: verification:True
+  prior_ruling: keep
+  input: A senior team checks every id document.
+- tier: 1
+  case: role_names_two_roles
+  kind: roles
+  item: verifier
+  prior_ruling: keep
+  input: A senior team checks every id document.
+- tier: 1
+  case: role_staff_and_admin_dedupe
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: Staff and admins keep the platform safe.
+- tier: 1
+  case: roles_phrases
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: An admin can manage the platform.
+- tier: 1
+  case: saved_items_favorites
+  kind: features
+  item: favorites:True
+  prior_ruling: keep
+  input: Shoppers keep saved items on their profile.
+- tier: 1
+  case: staff_role
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: Staff can manage the platform.
+- tier: 1
+  case: unparsed_sentence_resolved_feature
+  kind: features
+  item: bookings:True
+  prior_ruling: keep
+  input: We want to book each item. Also our logo is a blue heron.
+- tier: 1
+  case: verification_admin_approval
+  kind: features
+  item: file_storage:True
+  prior_ruling: keep
+  input: An admin verifies each government id document by hand.
+- tier: 1
+  case: verification_admin_approval
+  kind: features
+  item: roles:True
+  prior_ruling: keep
+  input: An admin verifies each government id document by hand.
+- tier: 1
+  case: verification_admin_approval
+  kind: features
+  item: verification:True
+  prior_ruling: keep
+  input: An admin verifies each government id document by hand.
+- tier: 2
+  case: moderator_role
+  kind: roles
+  item: admin
+  prior_ruling: drop
+  applied: true
+  note: already removed from gold; verdict = confirm_drop or recommend_restore
+  input: A moderator can suspend listings.
+- tier: 2
+  case: role_names_two_roles
+  kind: parameters
+  item: '[''verification.method'', ''admin_approval'']'
+  prior_ruling: drop
+  applied: true
+  note: already removed from gold; verdict = confirm_drop or recommend_restore
+  input: A senior team checks every id document.
+- tier: 2
+  case: saved_items_favorites
+  kind: features
+  item: bookings:True
+  prior_ruling: drop
+  applied: true
+  note: already removed from gold; verdict = confirm_drop or recommend_restore
+  input: Shoppers keep saved items on their profile.
+- tier: 2
+  case: saved_items_favorites
+  kind: roles
+  item: renter
+  prior_ruling: drop
+  applied: true
+  note: already removed from gold; verdict = confirm_drop or recommend_restore
+  input: Shoppers keep saved items on their profile.
+- tier: 2
+  case: staff_role
+  kind: roles
+  item: admin
+  prior_ruling: drop
+  applied: true
+  note: already removed from gold; verdict = confirm_drop or recommend_restore
+  input: Staff can manage the platform.
+- tier: 3
+  case: alias_and_phrase_decide
+  kind: parameters
+  item: '[''authentication.method'', ''email_password'']'
+  prior_ruling: null
+  input: Use stripe for payments and email password for login
+- tier: 3
+  case: alias_and_phrase_decide
+  kind: parameters
+  item: '[''payments.provider'', ''stripe'']'
+  prior_ruling: null
+  input: Use stripe for payments and email password for login
+- tier: 3
+  case: booking_mode_request_then_approval
+  kind: parameters
+  item: '[''bookings.mode'', ''request_then_approval'']'
+  prior_ruling: null
+  input: Renters can request a booking and the owner approves first.
+- tier: 3
+  case: bucket_purpose_documents
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''documents'']'
+  prior_ruling: null
+  input: Renters upload their id document during verification.
+- tier: 3
+  case: bucket_purpose_listings
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''listings'']'
+  prior_ruling: null
+  input: Sellers upload photos of their property listings.
+- tier: 3
+  case: contradiction_avoided_owner_approval
+  kind: parameters
+  item: '[''roles.role_names'', [''admin'']]'
+  prior_ruling: null
+  input: An admin can manage the platform.
+- tier: 3
+  case: contradiction_resolved
+  kind: parameters
+  item: '[''roles.role_names'', [''admin'']]'
+  prior_ruling: null
+  input: Admins can manage the platform
+- tier: 3
+  case: contradiction_surfaced
+  kind: parameters
+  item: '[''roles.role_names'', [''admin'']]'
+  prior_ruling: null
+  input: Admins can manage the platform
+- tier: 3
+  case: file_upload_documents
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''documents'']'
+  prior_ruling: null
+  input: Users can upload documents to their profiles.
+- tier: 3
+  case: fully_answered_no_questions
+  kind: parameters
+  item: '[''payments.provider'', ''stripe'']'
+  prior_ruling: null
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 3
+  case: github_auth_alias
+  kind: parameters
+  item: '[''authentication.method'', ''oauth_github'']'
+  prior_ruling: null
+  input: Developers sign in with github auth.
+- tier: 3
+  case: kitchen_sink_marketplace
+  kind: parameters
+  item: '[''payments.provider'', ''stripe'']'
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 3
+  case: kitchen_sink_marketplace
+  kind: parameters
+  item: '[''roles.role_names'', [''admin'']]'
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 3
+  case: kitchen_sink_marketplace
+  kind: parameters
+  item: '[''verification.method'', ''government_id_and_admin'']'
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 3
+  case: kyc_government_id
+  kind: parameters
+  item: '[''verification.method'', ''government_id'']'
+  prior_ruling: null
+  input: Sellers must verify their identity with government id before listing.
+- tier: 3
+  case: laya_high_decides
+  kind: parameters
+  item: '[''authentication.method'', ''email_password'']'
+  prior_ruling: null
+  input: Use stripe for payments and email password for login
+- tier: 3
+  case: laya_high_decides
+  kind: parameters
+  item: '[''payments.provider'', ''stripe'']'
+  prior_ruling: null
+  input: Use stripe for payments and email password for login
+- tier: 3
+  case: magic_link_alias
+  kind: parameters
+  item: '[''authentication.method'', ''magic_link'']'
+  prior_ruling: null
+  input: Login uses magic link.
+- tier: 3
+  case: marketplace_airbnb_equipment
+  kind: parameters
+  item: '[''payments.provider'', ''stripe'']'
+  prior_ruling: null
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 3
+  case: moderator_role
+  kind: parameters
+  item: '[''roles.role_names'', [''moderator'']]'
+  prior_ruling: null
+  input: A moderator can suspend listings.
+- tier: 3
+  case: negation_no_payments
+  kind: features
+  item: payments:False
+  prior_ruling: null
+  input: Users can book each item. We don't take payments.
+- tier: 3
+  case: negation_no_reviews
+  kind: features
+  item: reviews:False
+  prior_ruling: null
+  input: We let renters book each equipment item. There is no review system.
+- tier: 3
+  case: negation_resolved_by_answer
+  kind: features
+  item: payments:False
+  prior_ruling: null
+  input: Buyers can pay for services. There are no payments.
+- tier: 3
+  case: oauth_google_alias
+  kind: parameters
+  item: '[''authentication.method'', ''oauth_google'']'
+  prior_ruling: null
+  input: Sign in with Google auth.
+- tier: 3
+  case: payments_without_reviews_negation
+  kind: features
+  item: reviews:False
+  prior_ruling: null
+  input: Vendors can charge for their services. There will be no review system.
+- tier: 3
+  case: realtime_all_channels
+  kind: parameters
+  item: '[''realtime.channels'', [''messages'', ''bookings'', ''notifications'']]'
+  prior_ruling: null
+  input: 'Everything should update live: new messages, booking changes, and notifications.'
+- tier: 3
+  case: realtime_booking_updates
+  kind: parameters
+  item: '[''realtime.channels'', [''bookings'']]'
+  prior_ruling: null
+  input: Renters book items and get live updates the moment their booking status changes.
+- tier: 3
+  case: role_names_two_roles
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''documents'']'
+  prior_ruling: null
+  input: A senior team checks every id document.
+- tier: 3
+  case: role_staff_and_admin_dedupe
+  kind: parameters
+  item: '[''roles.role_names'', [''staff'', ''admin'']]'
+  prior_ruling: null
+  input: Staff and admins keep the platform safe.
+- tier: 3
+  case: roles_phrases
+  kind: parameters
+  item: '[''roles.role_names'', [''admin'']]'
+  prior_ruling: null
+  input: An admin can manage the platform.
+- tier: 3
+  case: staff_role
+  kind: parameters
+  item: '[''roles.role_names'', [''staff'']]'
+  prior_ruling: null
+  input: Staff can manage the platform.
+- tier: 3
+  case: verification_admin_approval
+  kind: parameters
+  item: '[''file_storage.bucket_purpose'', ''documents'']'
+  prior_ruling: null
+  input: An admin verifies each government id document by hand.
+- tier: 3
+  case: verification_admin_approval
+  kind: parameters
+  item: '[''roles.role_names'', [''admin'']]'
+  prior_ruling: null
+  input: An admin verifies each government id document by hand.
+- tier: 3
+  case: verification_admin_approval
+  kind: parameters
+  item: '[''verification.method'', ''government_id_and_admin'']'
+  prior_ruling: null
+  input: An admin verifies each government id document by hand.
+- tier: 4
+  case: alias_and_phrase_decide
+  kind: features
+  item: payments:True
+  prior_ruling: null
+  input: Use stripe for payments and email password for login
+- tier: 4
+  case: booking_mode_request_then_approval
+  kind: features
+  item: bookings:True
+  prior_ruling: null
+  input: Renters can request a booking and the owner approves first.
+- tier: 4
+  case: booking_mode_request_then_approval
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Renters can request a booking and the owner approves first.
+- tier: 4
+  case: booking_mode_request_then_approval
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: Renters can request a booking and the owner approves first.
+- tier: 4
+  case: bucket_purpose_avatars
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Hosts upload a profile photo when they sign up.
+- tier: 4
+  case: bucket_purpose_documents
+  kind: buckets
+  item: documents
+  prior_ruling: null
+  input: Renters upload their id document during verification.
+- tier: 4
+  case: bucket_purpose_documents
+  kind: features
+  item: verification:True
+  prior_ruling: null
+  input: Renters upload their id document during verification.
+- tier: 4
+  case: bucket_purpose_documents
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: Renters upload their id document during verification.
+- tier: 4
+  case: bucket_purpose_listings
+  kind: buckets
+  item: listings
+  prior_ruling: null
+  input: Sellers upload photos of their property listings.
+- tier: 4
+  case: bucket_purpose_mixed
+  kind: buckets
+  item: avatars
+  prior_ruling: null
+  input: The app stores avatars, listing photos, and personal documents.
+- tier: 4
+  case: bucket_purpose_mixed
+  kind: buckets
+  item: documents
+  prior_ruling: null
+  input: The app stores avatars, listing photos, and personal documents.
+- tier: 4
+  case: bucket_purpose_mixed
+  kind: buckets
+  item: listings
+  prior_ruling: null
+  input: The app stores avatars, listing photos, and personal documents.
+- tier: 4
+  case: charge_word_payments
+  kind: features
+  item: bookings:True
+  prior_ruling: null
+  input: We charge renters for each booking.
+- tier: 4
+  case: charge_word_payments
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: We charge renters for each booking.
+- tier: 4
+  case: contact_owners_messaging
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Buyers can contact owners about each listing.
+- tier: 4
+  case: contradiction_avoided_owner_approval
+  kind: roles
+  item: admin
+  prior_ruling: null
+  input: An admin can manage the platform.
+- tier: 4
+  case: contradiction_resolved
+  kind: roles
+  item: admin
+  prior_ruling: null
+  input: Admins can manage the platform
+- tier: 4
+  case: contradiction_surfaced
+  kind: roles
+  item: admin
+  prior_ruling: null
+  input: Admins can manage the platform
+- tier: 4
+  case: dep_pruning
+  kind: features
+  item: bookings:True
+  prior_ruling: null
+  input: We need bookings and messaging
+- tier: 4
+  case: dep_pruning
+  kind: features
+  item: messaging:True
+  prior_ruling: null
+  input: We need bookings and messaging
+- tier: 4
+  case: duplicate_phrase_single_decision
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Renters book items. Owners list equipment for rent.
+- tier: 4
+  case: duplicate_phrase_single_decision
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: Renters book items. Owners list equipment for rent.
+- tier: 4
+  case: file_upload_documents
+  kind: buckets
+  item: documents
+  prior_ruling: null
+  input: Users can upload documents to their profiles.
+- tier: 4
+  case: fully_answered_no_questions
+  kind: features
+  item: favorites:True
+  prior_ruling: null
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 4
+  case: fully_answered_no_questions
+  kind: features
+  item: messaging:True
+  prior_ruling: null
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 4
+  case: fully_answered_no_questions
+  kind: features
+  item: reviews:True
+  prior_ruling: null
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 4
+  case: fully_answered_no_questions
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: A site where renters book each item, chat with each other, pay through stripe, leave a review,
+    upload a photo, complete an id check, get live updates, and keep a favorite list.
+- tier: 4
+  case: id_check_verification
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: We run an id check on every renter before approval.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: buckets
+  item: listings
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: features
+  item: favorites:True
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: features
+  item: messaging:True
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: features
+  item: payments:True
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: features
+  item: reviews:True
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: roles
+  item: admin
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: kitchen_sink_marketplace
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: A marketplace where owners list equipment, renters book items, both parties chat with each other,
+    payments run through stripe, renters leave a review afterwards, owners upload photos, and admins verify
+    government id before anyone can favorite a listing.
+- tier: 4
+  case: laya_default_asks
+  kind: features
+  item: bookings:True
+  prior_ruling: null
+  input: We need bookings and messaging
+- tier: 4
+  case: laya_default_asks
+  kind: features
+  item: messaging:True
+  prior_ruling: null
+  input: We need bookings and messaging
+- tier: 4
+  case: laya_high_decides
+  kind: features
+  item: payments:True
+  prior_ruling: null
+  input: Use stripe for payments and email password for login
+- tier: 4
+  case: laya_high_enables_everything
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: 'Start simple: a place where renters book each item.'
+- tier: 4
+  case: marketplace_airbnb_equipment
+  kind: features
+  item: payments:True
+  prior_ruling: null
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 4
+  case: marketplace_airbnb_equipment
+  kind: features
+  item: verification:True
+  prior_ruling: null
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 4
+  case: marketplace_airbnb_equipment
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 4
+  case: marketplace_airbnb_equipment
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners
+    need verification, users can message each other, payments use Stripe. Owners upload photos of their
+    gear.
+- tier: 4
+  case: max_mcqs_cap
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Owners can reject bad actors.
+- tier: 4
+  case: negation_no_reviews
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: We let renters book each equipment item. There is no review system.
+- tier: 4
+  case: payments_and_uploads
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Renters pay owners to rent each item, and upload photos of it.
+- tier: 4
+  case: payments_and_uploads
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: Renters pay owners to rent each item, and upload photos of it.
+- tier: 4
+  case: payments_without_reviews_negation
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Vendors can charge for their services. There will be no review system.
+- tier: 4
+  case: realtime_all_channels
+  kind: features
+  item: bookings:True
+  prior_ruling: null
+  input: 'Everything should update live: new messages, booking changes, and notifications.'
+- tier: 4
+  case: realtime_booking_updates
+  kind: features
+  item: bookings:True
+  prior_ruling: null
+  input: Renters book items and get live updates the moment their booking status changes.
+- tier: 4
+  case: realtime_booking_updates
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: Renters book items and get live updates the moment their booking status changes.
+- tier: 4
+  case: realtime_chat
+  kind: features
+  item: messaging:True
+  prior_ruling: null
+  input: Users chat with each other in real time.
+- tier: 4
+  case: rent_without_item_needs_clarify
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: The site shows available equipment to renters.
+- tier: 4
+  case: reviews_and_favorites
+  kind: features
+  item: favorites:True
+  prior_ruling: null
+  input: Guests can leave a review after their stay and save a favorite listing for later.
+- tier: 4
+  case: reviews_and_favorites
+  kind: features
+  item: reviews:True
+  prior_ruling: null
+  input: Guests can leave a review after their stay and save a favorite listing for later.
+- tier: 4
+  case: reviews_and_favorites
+  kind: roles
+  item: renter
+  prior_ruling: null
+  input: Guests can leave a review after their stay and save a favorite listing for later.
+- tier: 4
+  case: role_names_two_roles
+  kind: buckets
+  item: documents
+  prior_ruling: null
+  input: A senior team checks every id document.
+- tier: 4
+  case: role_staff_and_admin_dedupe
+  kind: roles
+  item: admin
+  prior_ruling: null
+  input: Staff and admins keep the platform safe.
+- tier: 4
+  case: roles_phrases
+  kind: roles
+  item: admin
+  prior_ruling: null
+  input: An admin can manage the platform.
+- tier: 4
+  case: unparsed_coverage_resolved
+  kind: roles
+  item: owner
+  prior_ruling: null
+  input: Owners can reject bad actors.
+- tier: 4
+  case: verification_admin_approval
+  kind: buckets
+  item: documents
+  prior_ruling: null
+  input: An admin verifies each government id document by hand.
+- tier: 4
+  case: verification_admin_approval
+  kind: roles
+  item: admin
+  prior_ruling: null
+  input: An admin verifies each government id document by hand.

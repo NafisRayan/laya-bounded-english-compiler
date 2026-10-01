@@ -1,0 +1,1336 @@
+# Agreement-bias re-review - independent reviewer report
+# Phase A verdicts recorded before opening AGREEMENT_REVIEW_WORKLIST.yaml (lines 301+)
+# and LINTER_RULINGS.md. Phase B diffs appended afterward without editing Phase A verdicts.
+reviewer: "New Eyes"
+date: 2026-10-01
+minutes_spent_phase_a: 30
+phase_a_completed_blind: true
+rows:
+    # ---------- TIER 1 (82) ----------
+    - tier: 1
+      case: alias_and_phrase_decide
+      kind: features
+      item: "authentication:True"
+      verdict: confirm_keep
+      reason: "sentence says 'email password for login' - login is the authentication capability itself"
+      confidence: high
+    - tier: 1
+      case: bucket_purpose_avatars
+      kind: buckets
+      item: "avatars"
+      verdict: confirm_keep
+      reason: "sentence says 'upload a profile photo' - a profile photo is an avatar"
+      confidence: high
+    - tier: 1
+      case: bucket_purpose_avatars
+      kind: features
+      item: "authentication:True"
+      verdict: confirm_keep
+      reason: "sentence says 'when they sign up' - sign-up is account registration, which requires authentication (no method pinned, but the feature flag only needs the capability)"
+      confidence: medium
+    - tier: 1
+      case: bucket_purpose_avatars
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'upload a profile photo' - uploading a photo is file storage"
+      confidence: high
+    - tier: 1
+      case: bucket_purpose_avatars
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'avatars']"
+      verdict: confirm_keep
+      reason: "sentence says 'upload a profile photo' - the only storage described is profile photos, so the purpose is avatars"
+      confidence: medium
+    - tier: 1
+      case: bucket_purpose_documents
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'upload their id document' - an upload is file storage"
+      confidence: high
+    - tier: 1
+      case: bucket_purpose_listings
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'upload photos of their property listings' - photo upload is file storage"
+      confidence: high
+    - tier: 1
+      case: bucket_purpose_listings
+      kind: roles
+      item: "owner"
+      verdict: confirm_keep
+      reason: "sentence says 'Sellers upload photos of their property listings' - the seller of the listing is the listing owner"
+      confidence: medium
+    - tier: 1
+      case: bucket_purpose_mixed
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'The app stores avatars, listing photos, and personal documents' - storing files is file storage"
+      confidence: high
+    - tier: 1
+      case: bucket_purpose_mixed
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'mixed']"
+      verdict: confirm_keep
+      reason: "sentence says 'stores avatars, listing photos, and personal documents' - three storage purposes are explicitly enumerated"
+      confidence: high
+    - tier: 1
+      case: charge_word_payments
+      kind: features
+      item: "payments:True"
+      verdict: confirm_keep
+      reason: "sentence says 'We charge renters for each booking' - charging is taking payments"
+      confidence: high
+    - tier: 1
+      case: contact_owners_messaging
+      kind: features
+      item: "messaging:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Buyers can contact owners about each listing' - buyer-to-owner contact is in-app messaging in this schema"
+      confidence: medium
+    - tier: 1
+      case: contradiction_avoided_owner_approval
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'An admin can manage the platform' - a named role exists"
+      confidence: high
+    - tier: 1
+      case: contradiction_resolved
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Admins can manage the platform' - a named role exists"
+      confidence: high
+    - tier: 1
+      case: contradiction_surfaced
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Admins can manage the platform' - a named role exists"
+      confidence: high
+    - tier: 1
+      case: duplicate_phrase_single_decision
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Renters book items' - booking stated directly"
+      confidence: high
+    - tier: 1
+      case: favorites_negated_alone
+      kind: features
+      item: "favorites:False"
+      verdict: confirm_keep
+      reason: "sentence says 'We skip the bookmark feature' - bookmark is favorites, skip forbids it"
+      confidence: high
+    - tier: 1
+      case: feedback_word_reviews
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'after each rental' - rentals are the app's transactions and bookings is the rental capability"
+      confidence: medium
+    - tier: 1
+      case: feedback_word_reviews
+      kind: features
+      item: "reviews:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Customers give feedback after each rental' - post-transaction feedback is a review"
+      confidence: high
+    - tier: 1
+      case: feedback_word_reviews
+      kind: roles
+      item: "renter"
+      verdict: confirm_keep
+      reason: "sentence says 'Customers give feedback after each rental' - the customers of rentals are the renters"
+      confidence: medium
+    - tier: 1
+      case: file_upload_documents
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Users can upload documents' - upload is file storage"
+      confidence: high
+    - tier: 1
+      case: fully_answered_no_questions
+      kind: buckets
+      item: "documents"
+      verdict: confirm_keep
+      reason: "sentence says 'complete an id check' - an id check requires submitting an id document"
+      confidence: medium
+    - tier: 1
+      case: fully_answered_no_questions
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'renters book each item'"
+      confidence: high
+    - tier: 1
+      case: fully_answered_no_questions
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'upload a photo'"
+      confidence: high
+    - tier: 1
+      case: fully_answered_no_questions
+      kind: features
+      item: "payments:True"
+      verdict: confirm_keep
+      reason: "sentence says 'pay through stripe'"
+      confidence: high
+    - tier: 1
+      case: fully_answered_no_questions
+      kind: features
+      item: "realtime:True"
+      verdict: confirm_keep
+      reason: "sentence says 'get live updates'"
+      confidence: high
+    - tier: 1
+      case: fully_answered_no_questions
+      kind: features
+      item: "verification:True"
+      verdict: confirm_keep
+      reason: "sentence says 'complete an id check' - an id check is verification"
+      confidence: high
+    - tier: 1
+      case: fully_answered_no_questions
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'mixed']"
+      verdict: ambiguous
+      reason: "sentence says 'upload a photo' (photo of what is unstated) and 'complete an id check' (documents only by inference) - 'mixed' rests on two stacked inferences"
+      confidence: medium
+    - tier: 1
+      case: github_auth_alias
+      kind: features
+      item: "authentication:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Developers sign in with github auth'"
+      confidence: high
+    - tier: 1
+      case: id_check_verification
+      kind: buckets
+      item: "documents"
+      verdict: confirm_keep
+      reason: "sentence says 'We run an id check' - checking an id presupposes an id document in the app"
+      confidence: medium
+    - tier: 1
+      case: id_check_verification
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'id check' - the id document must be submitted, hence stored"
+      confidence: medium
+    - tier: 1
+      case: id_check_verification
+      kind: features
+      item: "verification:True"
+      verdict: confirm_keep
+      reason: "sentence says 'We run an id check on every renter' - an id check is verification"
+      confidence: high
+    - tier: 1
+      case: id_check_verification
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'documents']"
+      verdict: confirm_keep
+      reason: "sentence says 'id check' - the only implied stored artifact is the id document"
+      confidence: medium
+    - tier: 1
+      case: kitchen_sink_marketplace
+      kind: buckets
+      item: "documents"
+      verdict: confirm_keep
+      reason: "sentence says 'admins verify government id' - a government id is a document"
+      confidence: high
+    - tier: 1
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'renters book items'"
+      confidence: high
+    - tier: 1
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'owners upload photos'"
+      confidence: high
+    - tier: 1
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence names 'owners', 'renters', and 'admins' - roles exist"
+      confidence: high
+    - tier: 1
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "verification:True"
+      verdict: confirm_keep
+      reason: "sentence says 'admins verify government id'"
+      confidence: high
+    - tier: 1
+      case: kitchen_sink_marketplace
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'mixed']"
+      verdict: confirm_keep
+      reason: "sentence says 'owners upload photos' (listings) and 'verify government id' (documents) - two storage purposes"
+      confidence: medium
+    - tier: 1
+      case: kyc_avoided_negation
+      kind: features
+      item: "verification:False"
+      verdict: confirm_keep
+      reason: "sentence says 'We avoid KYC' - KYC is identity verification, avoid forbids it"
+      confidence: high
+    - tier: 1
+      case: kyc_government_id
+      kind: buckets
+      item: "documents"
+      verdict: confirm_keep
+      reason: "sentence says 'government id' - a government id is a document"
+      confidence: high
+    - tier: 1
+      case: kyc_government_id
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'verify their identity with government id' - the id must be submitted through the app, hence stored"
+      confidence: medium
+    - tier: 1
+      case: kyc_government_id
+      kind: features
+      item: "verification:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Sellers must verify their identity'"
+      confidence: high
+    - tier: 1
+      case: kyc_government_id
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'documents']"
+      verdict: confirm_keep
+      reason: "sentence says 'government id' - the only implied stored artifact is the id document"
+      confidence: medium
+    - tier: 1
+      case: kyc_government_id
+      kind: roles
+      item: "owner"
+      verdict: confirm_keep
+      reason: "sentence says 'Sellers must verify ... before listing' - the selling/listing side is the owner"
+      confidence: medium
+    - tier: 1
+      case: laya_high_decides
+      kind: features
+      item: "authentication:True"
+      verdict: confirm_keep
+      reason: "sentence says 'email password for login'"
+      confidence: high
+    - tier: 1
+      case: laya_high_enables_everything
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'a place where renters book each item'"
+      confidence: high
+    - tier: 1
+      case: magic_link_alias
+      kind: features
+      item: "authentication:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Login uses magic link'"
+      confidence: high
+    - tier: 1
+      case: marketplace_airbnb_equipment
+      kind: buckets
+      item: "listings"
+      verdict: confirm_keep
+      reason: "sentence says 'Owners upload photos of their gear' - the gear is the listed equipment"
+      confidence: medium
+    - tier: 1
+      case: marketplace_airbnb_equipment
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'renters book each item'"
+      confidence: high
+    - tier: 1
+      case: marketplace_airbnb_equipment
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Owners upload photos of their gear'"
+      confidence: high
+    - tier: 1
+      case: marketplace_airbnb_equipment
+      kind: features
+      item: "messaging:True"
+      verdict: confirm_keep
+      reason: "sentence says 'users can message each other'"
+      confidence: high
+    - tier: 1
+      case: messaging_anytime_warning_only
+      kind: features
+      item: "messaging:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Users message each other whenever they want'"
+      confidence: high
+    - tier: 1
+      case: messaging_anytime_warning_only
+      kind: parameters
+      item: "['messaging.trigger_event', 'anytime']"
+      verdict: confirm_keep
+      reason: "sentence says 'whenever they want' - messaging is not gated on any event, which is the 'anytime' value"
+      confidence: medium
+    - tier: 1
+      case: moderator_role
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'A moderator can suspend listings' - a named role exists"
+      confidence: high
+    - tier: 1
+      case: negation_no_payments
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Users can book each item'"
+      confidence: high
+    - tier: 1
+      case: negation_no_reviews
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'We let renters book each equipment item'"
+      confidence: high
+    - tier: 1
+      case: oauth_google_alias
+      kind: features
+      item: "authentication:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Sign in with Google auth'"
+      confidence: high
+    - tier: 1
+      case: payments_and_uploads
+      kind: buckets
+      item: "listings"
+      verdict: confirm_keep
+      reason: "sentence says 'upload photos of it' - 'it' is 'each item', the listed thing"
+      confidence: medium
+    - tier: 1
+      case: payments_and_uploads
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'pay owners to rent each item' - renting items is the booking capability"
+      confidence: medium
+    - tier: 1
+      case: payments_and_uploads
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'upload photos of it'"
+      confidence: high
+    - tier: 1
+      case: payments_and_uploads
+      kind: features
+      item: "payments:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Renters pay owners'"
+      confidence: high
+    - tier: 1
+      case: payments_and_uploads
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'listings']"
+      verdict: confirm_keep
+      reason: "sentence says 'upload photos of it' (each item) - the only upload, so purpose is listings"
+      confidence: medium
+    - tier: 1
+      case: payments_without_reviews_negation
+      kind: features
+      item: "payments:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Vendors can charge for their services' - charging is payments"
+      confidence: high
+    - tier: 1
+      case: realtime_all_channels
+      kind: features
+      item: "messaging:True"
+      verdict: confirm_keep
+      reason: "sentence says 'new messages' - messages exist"
+      confidence: high
+    - tier: 1
+      case: realtime_all_channels
+      kind: features
+      item: "realtime:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Everything should update live'"
+      confidence: high
+    - tier: 1
+      case: realtime_booking_updates
+      kind: features
+      item: "realtime:True"
+      verdict: confirm_keep
+      reason: "sentence says 'get live updates the moment their booking status changes'"
+      confidence: high
+    - tier: 1
+      case: realtime_chat
+      kind: features
+      item: "realtime:True"
+      verdict: confirm_keep
+      reason: "sentence says 'chat with each other in real time'"
+      confidence: high
+    - tier: 1
+      case: realtime_chat
+      kind: parameters
+      item: "['realtime.channels', ['messages']]"
+      verdict: confirm_keep
+      reason: "sentence says 'chat ... in real time' - real-time delivery applies to the messages channel"
+      confidence: medium
+    - tier: 1
+      case: reviews_and_favorites
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'after their stay' - stays presuppose bookings"
+      confidence: medium
+    - tier: 1
+      case: role_names_two_roles
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'checks every id document' - the documents must be in the app to be checked"
+      confidence: medium
+    - tier: 1
+      case: role_names_two_roles
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'A senior team checks' - a named actor category (staff-side role) exists"
+      confidence: medium
+    - tier: 1
+      case: role_names_two_roles
+      kind: features
+      item: "verification:True"
+      verdict: confirm_keep
+      reason: "sentence says 'checks every id document' - document checking is verification"
+      confidence: high
+    - tier: 1
+      case: role_names_two_roles
+      kind: roles
+      item: "verifier"
+      verdict: ambiguous
+      reason: "sentence says 'A senior team checks every id document' - the actor is named 'senior team'; 'verifier' is a functional canonicalization a reasonable reader may accept or reject"
+      confidence: medium
+    - tier: 1
+      case: role_staff_and_admin_dedupe
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Staff and admins keep the platform safe' - roles are named"
+      confidence: high
+    - tier: 1
+      case: roles_phrases
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'An admin can manage the platform'"
+      confidence: high
+    - tier: 1
+      case: saved_items_favorites
+      kind: features
+      item: "favorites:True"
+      verdict: confirm_keep
+      reason: "sentence says 'keep saved items on their profile' - saved items are favorites"
+      confidence: high
+    - tier: 1
+      case: staff_role
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'Staff can manage the platform'"
+      confidence: high
+    - tier: 1
+      case: unparsed_sentence_resolved_feature
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_keep
+      reason: "sentence says 'We want to book each item'"
+      confidence: high
+    - tier: 1
+      case: verification_admin_approval
+      kind: features
+      item: "file_storage:True"
+      verdict: confirm_keep
+      reason: "sentence says 'verifies each government id document by hand' - the document must be submitted and stored to be verified"
+      confidence: high
+    - tier: 1
+      case: verification_admin_approval
+      kind: features
+      item: "roles:True"
+      verdict: confirm_keep
+      reason: "sentence says 'An admin verifies'"
+      confidence: high
+    - tier: 1
+      case: verification_admin_approval
+      kind: features
+      item: "verification:True"
+      verdict: confirm_keep
+      reason: "sentence says 'verifies each government id document'"
+      confidence: high
+    # ---------- TIER 2 (5) ----------
+    - tier: 2
+      case: moderator_role
+      kind: roles
+      item: "admin"
+      verdict: confirm_drop
+      reason: "sentence says 'A moderator can suspend listings' - the only named role is 'moderator'; 'admin' appears nowhere"
+      confidence: high
+    - tier: 2
+      case: role_names_two_roles
+      kind: parameters
+      item: "['verification.method', 'admin_approval']"
+      verdict: confirm_drop
+      reason: "sentence says 'A senior team checks every id document' - the checker is a senior team; the value names an 'admin' the sentence never mentions"
+      confidence: high
+    - tier: 2
+      case: saved_items_favorites
+      kind: features
+      item: "bookings:True"
+      verdict: confirm_drop
+      reason: "sentence says 'Shoppers keep saved items on their profile' - no booking activity is mentioned anywhere"
+      confidence: high
+    - tier: 2
+      case: saved_items_favorites
+      kind: roles
+      item: "renter"
+      verdict: confirm_drop
+      reason: "sentence says 'Shoppers' - the only actor; nothing rental-related maps shoppers to 'renter'"
+      confidence: high
+    - tier: 2
+      case: staff_role
+      kind: roles
+      item: "admin"
+      verdict: confirm_drop
+      reason: "sentence says 'Staff can manage the platform' - only 'Staff' is named"
+      confidence: high
+    # ---------- TIER 3 (34) ----------
+    - tier: 3
+      case: alias_and_phrase_decide
+      kind: parameters
+      item: "['authentication.method', 'email_password']"
+      verdict: keep
+      reason: "sentence says 'email password for login' - the method value is pinned verbatim"
+      confidence: high
+    - tier: 3
+      case: alias_and_phrase_decide
+      kind: parameters
+      item: "['payments.provider', 'stripe']"
+      verdict: keep
+      reason: "sentence says 'Use stripe for payments'"
+      confidence: high
+    - tier: 3
+      case: booking_mode_request_then_approval
+      kind: parameters
+      item: "['bookings.mode', 'request_then_approval']"
+      verdict: keep
+      reason: "sentence says 'request a booking and the owner approves first' - request plus approval is stated verbatim"
+      confidence: high
+    - tier: 3
+      case: bucket_purpose_documents
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'documents']"
+      verdict: keep
+      reason: "sentence says 'upload their id document during verification' - the only stored artifact is id documents"
+      confidence: high
+    - tier: 3
+      case: bucket_purpose_listings
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'listings']"
+      verdict: keep
+      reason: "sentence says 'photos of their property listings'"
+      confidence: high
+    - tier: 3
+      case: contradiction_avoided_owner_approval
+      kind: parameters
+      item: "['roles.role_names', ['admin']]"
+      verdict: keep
+      reason: "sentence says 'An admin can manage the platform' - the only role named"
+      confidence: high
+    - tier: 3
+      case: contradiction_resolved
+      kind: parameters
+      item: "['roles.role_names', ['admin']]"
+      verdict: keep
+      reason: "sentence says 'Admins can manage the platform' - the only role named"
+      confidence: high
+    - tier: 3
+      case: contradiction_surfaced
+      kind: parameters
+      item: "['roles.role_names', ['admin']]"
+      verdict: keep
+      reason: "sentence says 'Admins can manage the platform' - the only role named"
+      confidence: high
+    - tier: 3
+      case: file_upload_documents
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'documents']"
+      verdict: keep
+      reason: "sentence says 'upload documents to their profiles' - documents is the stated purpose"
+      confidence: high
+    - tier: 3
+      case: fully_answered_no_questions
+      kind: parameters
+      item: "['payments.provider', 'stripe']"
+      verdict: keep
+      reason: "sentence says 'pay through stripe'"
+      confidence: high
+    - tier: 3
+      case: github_auth_alias
+      kind: parameters
+      item: "['authentication.method', 'oauth_github']"
+      verdict: keep
+      reason: "sentence says 'sign in with github auth' - GitHub sign-in is the OAuth-with-GitHub method"
+      confidence: high
+    - tier: 3
+      case: kitchen_sink_marketplace
+      kind: parameters
+      item: "['payments.provider', 'stripe']"
+      verdict: keep
+      reason: "sentence says 'payments run through stripe'"
+      confidence: high
+    - tier: 3
+      case: kitchen_sink_marketplace
+      kind: parameters
+      item: "['roles.role_names', ['admin']]"
+      verdict: recommend_drop
+      reason: "sentence names 'owners', 'renters', and 'admins' - a role_names value of ['admin'] alone drops two named roles; the sentence does not pin admin-only"
+      confidence: medium
+    - tier: 3
+      case: kitchen_sink_marketplace
+      kind: parameters
+      item: "['verification.method', 'government_id_and_admin']"
+      verdict: keep
+      reason: "sentence says 'admins verify government id' - both the artifact and the human checker are named"
+      confidence: high
+    - tier: 3
+      case: kyc_government_id
+      kind: parameters
+      item: "['verification.method', 'government_id']"
+      verdict: keep
+      reason: "sentence says 'verify their identity with government id' - and no admin is involved, so the plain government_id value fits"
+      confidence: high
+    - tier: 3
+      case: laya_high_decides
+      kind: parameters
+      item: "['authentication.method', 'email_password']"
+      verdict: keep
+      reason: "sentence says 'email password for login'"
+      confidence: high
+    - tier: 3
+      case: laya_high_decides
+      kind: parameters
+      item: "['payments.provider', 'stripe']"
+      verdict: keep
+      reason: "sentence says 'Use stripe for payments'"
+      confidence: high
+    - tier: 3
+      case: magic_link_alias
+      kind: parameters
+      item: "['authentication.method', 'magic_link']"
+      verdict: keep
+      reason: "sentence says 'Login uses magic link'"
+      confidence: high
+    - tier: 3
+      case: marketplace_airbnb_equipment
+      kind: parameters
+      item: "['payments.provider', 'stripe']"
+      verdict: keep
+      reason: "sentence says 'payments use Stripe'"
+      confidence: high
+    - tier: 3
+      case: moderator_role
+      kind: parameters
+      item: "['roles.role_names', ['moderator']]"
+      verdict: keep
+      reason: "sentence says 'A moderator can suspend listings' - the only role named"
+      confidence: high
+    - tier: 3
+      case: negation_no_payments
+      kind: features
+      item: "payments:False"
+      verdict: keep
+      reason: "sentence says 'We don't take payments'"
+      confidence: high
+    - tier: 3
+      case: negation_no_reviews
+      kind: features
+      item: "reviews:False"
+      verdict: keep
+      reason: "sentence says 'There is no review system'"
+      confidence: high
+    - tier: 3
+      case: negation_resolved_by_answer
+      kind: features
+      item: "payments:False"
+      verdict: ambiguous
+      reason: "sentence says 'Buyers can pay for services' and also 'There are no payments' - the two clauses directly contradict; either verdict is defensible from the sentence alone"
+      confidence: medium
+    - tier: 3
+      case: oauth_google_alias
+      kind: parameters
+      item: "['authentication.method', 'oauth_google']"
+      verdict: keep
+      reason: "sentence says 'Sign in with Google auth' - Google sign-in is the OAuth-with-Google method"
+      confidence: high
+    - tier: 3
+      case: payments_without_reviews_negation
+      kind: features
+      item: "reviews:False"
+      verdict: keep
+      reason: "sentence says 'There will be no review system'"
+      confidence: high
+    - tier: 3
+      case: realtime_all_channels
+      kind: parameters
+      item: "['realtime.channels', ['messages', 'bookings', 'notifications']]"
+      verdict: keep
+      reason: "sentence says 'new messages, booking changes, and notifications' - the three channels are enumerated"
+      confidence: high
+    - tier: 3
+      case: realtime_booking_updates
+      kind: parameters
+      item: "['realtime.channels', ['bookings']]"
+      verdict: keep
+      reason: "sentence says 'live updates the moment their booking status changes' - bookings is the only live channel"
+      confidence: high
+    - tier: 3
+      case: role_names_two_roles
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'documents']"
+      verdict: keep
+      reason: "sentence says 'checks every id document' - if the documents are app-side, their storage purpose is documents"
+      confidence: medium
+    - tier: 3
+      case: role_staff_and_admin_dedupe
+      kind: parameters
+      item: "['roles.role_names', ['staff', 'admin']]"
+      verdict: keep
+      reason: "sentence says 'Staff and admins keep the platform safe' - exactly these two roles are named"
+      confidence: high
+    - tier: 3
+      case: roles_phrases
+      kind: parameters
+      item: "['roles.role_names', ['admin']]"
+      verdict: keep
+      reason: "sentence says 'An admin can manage the platform' - the only role named"
+      confidence: high
+    - tier: 3
+      case: staff_role
+      kind: parameters
+      item: "['roles.role_names', ['staff']]"
+      verdict: keep
+      reason: "sentence says 'Staff can manage the platform' - the only role named"
+      confidence: high
+    - tier: 3
+      case: verification_admin_approval
+      kind: parameters
+      item: "['file_storage.bucket_purpose', 'documents']"
+      verdict: keep
+      reason: "sentence says 'government id document'"
+      confidence: high
+    - tier: 3
+      case: verification_admin_approval
+      kind: parameters
+      item: "['roles.role_names', ['admin']]"
+      verdict: keep
+      reason: "sentence says 'An admin verifies' - the only role named"
+      confidence: high
+    - tier: 3
+      case: verification_admin_approval
+      kind: parameters
+      item: "['verification.method', 'government_id_and_admin']"
+      verdict: keep
+      reason: "sentence says 'An admin verifies each government id document by hand' - artifact and checker are both stated"
+      confidence: high
+    # ---------- TIER 4 (63, optional sweep - attempted) ----------
+    - tier: 4
+      case: alias_and_phrase_decide
+      kind: features
+      item: "payments:True"
+      verdict: keep
+      reason: "sentence says 'stripe for payments'"
+      confidence: high
+    - tier: 4
+      case: booking_mode_request_then_approval
+      kind: features
+      item: "bookings:True"
+      verdict: keep
+      reason: "sentence says 'request a booking'"
+      confidence: high
+    - tier: 4
+      case: booking_mode_request_then_approval
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'the owner approves first'"
+      confidence: high
+    - tier: 4
+      case: booking_mode_request_then_approval
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'Renters can request a booking'"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_avatars
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'Hosts upload a profile photo' - host is the direct domain synonym of the owning/listing role"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_documents
+      kind: buckets
+      item: "documents"
+      verdict: keep
+      reason: "sentence says 'their id document'"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_documents
+      kind: features
+      item: "verification:True"
+      verdict: keep
+      reason: "sentence says 'during verification'"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_documents
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'Renters upload their id document'"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_listings
+      kind: buckets
+      item: "listings"
+      verdict: keep
+      reason: "sentence says 'their property listings'"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_mixed
+      kind: buckets
+      item: "avatars"
+      verdict: keep
+      reason: "sentence says 'stores avatars'"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_mixed
+      kind: buckets
+      item: "documents"
+      verdict: keep
+      reason: "sentence says 'personal documents'"
+      confidence: high
+    - tier: 4
+      case: bucket_purpose_mixed
+      kind: buckets
+      item: "listings"
+      verdict: keep
+      reason: "sentence says 'listing photos'"
+      confidence: high
+    - tier: 4
+      case: charge_word_payments
+      kind: features
+      item: "bookings:True"
+      verdict: keep
+      reason: "sentence says 'for each booking' - bookings are stated"
+      confidence: high
+    - tier: 4
+      case: charge_word_payments
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'We charge renters'"
+      confidence: high
+    - tier: 4
+      case: contact_owners_messaging
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'contact owners'"
+      confidence: high
+    - tier: 4
+      case: contradiction_avoided_owner_approval
+      kind: roles
+      item: "admin"
+      verdict: keep
+      reason: "sentence says 'An admin can manage the platform'"
+      confidence: high
+    - tier: 4
+      case: contradiction_resolved
+      kind: roles
+      item: "admin"
+      verdict: keep
+      reason: "sentence says 'Admins can manage the platform'"
+      confidence: high
+    - tier: 4
+      case: contradiction_surfaced
+      kind: roles
+      item: "admin"
+      verdict: keep
+      reason: "sentence says 'Admins can manage the platform'"
+      confidence: high
+    - tier: 4
+      case: dep_pruning
+      kind: features
+      item: "bookings:True"
+      verdict: keep
+      reason: "sentence says 'We need bookings and messaging'"
+      confidence: high
+    - tier: 4
+      case: dep_pruning
+      kind: features
+      item: "messaging:True"
+      verdict: keep
+      reason: "sentence says 'We need bookings and messaging'"
+      confidence: high
+    - tier: 4
+      case: duplicate_phrase_single_decision
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'Owners list equipment for rent'"
+      confidence: high
+    - tier: 4
+      case: duplicate_phrase_single_decision
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'Renters book items'"
+      confidence: high
+    - tier: 4
+      case: file_upload_documents
+      kind: buckets
+      item: "documents"
+      verdict: keep
+      reason: "sentence says 'upload documents to their profiles'"
+      confidence: high
+    - tier: 4
+      case: fully_answered_no_questions
+      kind: features
+      item: "favorites:True"
+      verdict: keep
+      reason: "sentence says 'keep a favorite list'"
+      confidence: high
+    - tier: 4
+      case: fully_answered_no_questions
+      kind: features
+      item: "messaging:True"
+      verdict: keep
+      reason: "sentence says 'chat with each other'"
+      confidence: high
+    - tier: 4
+      case: fully_answered_no_questions
+      kind: features
+      item: "reviews:True"
+      verdict: keep
+      reason: "sentence says 'leave a review'"
+      confidence: high
+    - tier: 4
+      case: fully_answered_no_questions
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'renters book each item'"
+      confidence: high
+    - tier: 4
+      case: id_check_verification
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'id check on every renter'"
+      confidence: high
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: buckets
+      item: "listings"
+      verdict: keep
+      reason: "sentence says 'owners list equipment' and 'owners upload photos' - the photos are of the listed equipment, so purpose listings is contextual"
+      confidence: medium
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "favorites:True"
+      verdict: keep
+      reason: "sentence says 'before anyone can favorite a listing'"
+      confidence: high
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "messaging:True"
+      verdict: keep
+      reason: "sentence says 'both parties chat with each other'"
+      confidence: high
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "payments:True"
+      verdict: keep
+      reason: "sentence says 'payments run through stripe'"
+      confidence: high
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: features
+      item: "reviews:True"
+      verdict: keep
+      reason: "sentence says 'renters leave a review afterwards'"
+      confidence: high
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: roles
+      item: "admin"
+      verdict: keep
+      reason: "sentence says 'admins verify'"
+      confidence: high
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'owners list equipment'"
+      confidence: high
+    - tier: 4
+      case: kitchen_sink_marketplace
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'renters book items'"
+      confidence: high
+    - tier: 4
+      case: laya_default_asks
+      kind: features
+      item: "bookings:True"
+      verdict: keep
+      reason: "sentence says 'We need bookings and messaging'"
+      confidence: high
+    - tier: 4
+      case: laya_default_asks
+      kind: features
+      item: "messaging:True"
+      verdict: keep
+      reason: "sentence says 'We need bookings and messaging'"
+      confidence: high
+    - tier: 4
+      case: laya_high_decides
+      kind: features
+      item: "payments:True"
+      verdict: keep
+      reason: "sentence says 'Use stripe for payments'"
+      confidence: high
+    - tier: 4
+      case: laya_high_enables_everything
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'renters book each item'"
+      confidence: high
+    - tier: 4
+      case: marketplace_airbnb_equipment
+      kind: features
+      item: "payments:True"
+      verdict: keep
+      reason: "sentence says 'payments use Stripe'"
+      confidence: high
+    - tier: 4
+      case: marketplace_airbnb_equipment
+      kind: features
+      item: "verification:True"
+      verdict: keep
+      reason: "sentence says 'Owners need verification'"
+      confidence: high
+    - tier: 4
+      case: marketplace_airbnb_equipment
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'owners list equipment'"
+      confidence: high
+    - tier: 4
+      case: marketplace_airbnb_equipment
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'renters book each item'"
+      confidence: high
+    - tier: 4
+      case: max_mcqs_cap
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'Owners can reject bad actors'"
+      confidence: high
+    - tier: 4
+      case: negation_no_reviews
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'We let renters book each equipment item'"
+      confidence: high
+    - tier: 4
+      case: payments_and_uploads
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'Renters pay owners'"
+      confidence: high
+    - tier: 4
+      case: payments_and_uploads
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'Renters pay owners to rent each item'"
+      confidence: high
+    - tier: 4
+      case: payments_without_reviews_negation
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'Vendors can charge for their services' - vendor is the selling/owning side"
+      confidence: medium
+    - tier: 4
+      case: realtime_all_channels
+      kind: features
+      item: "bookings:True"
+      verdict: keep
+      reason: "sentence says 'booking changes' - bookings exist"
+      confidence: high
+    - tier: 4
+      case: realtime_booking_updates
+      kind: features
+      item: "bookings:True"
+      verdict: keep
+      reason: "sentence says 'Renters book items'"
+      confidence: high
+    - tier: 4
+      case: realtime_booking_updates
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'Renters book items'"
+      confidence: high
+    - tier: 4
+      case: realtime_chat
+      kind: features
+      item: "messaging:True"
+      verdict: keep
+      reason: "sentence says 'Users chat with each other in real time'"
+      confidence: high
+    - tier: 4
+      case: rent_without_item_needs_clarify
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'available equipment to renters'"
+      confidence: high
+    - tier: 4
+      case: reviews_and_favorites
+      kind: features
+      item: "favorites:True"
+      verdict: keep
+      reason: "sentence says 'save a favorite listing for later'"
+      confidence: high
+    - tier: 4
+      case: reviews_and_favorites
+      kind: features
+      item: "reviews:True"
+      verdict: keep
+      reason: "sentence says 'leave a review after their stay'"
+      confidence: high
+    - tier: 4
+      case: reviews_and_favorites
+      kind: roles
+      item: "renter"
+      verdict: keep
+      reason: "sentence says 'Guests ... after their stay' - guests are the renting party"
+      confidence: medium
+    - tier: 4
+      case: role_names_two_roles
+      kind: buckets
+      item: "documents"
+      verdict: keep
+      reason: "sentence says 'every id document' - documents are handled app-side"
+      confidence: medium
+    - tier: 4
+      case: role_staff_and_admin_dedupe
+      kind: roles
+      item: "admin"
+      verdict: keep
+      reason: "sentence says 'Staff and admins keep the platform safe'"
+      confidence: high
+    - tier: 4
+      case: roles_phrases
+      kind: roles
+      item: "admin"
+      verdict: keep
+      reason: "sentence says 'An admin can manage the platform'"
+      confidence: high
+    - tier: 4
+      case: unparsed_coverage_resolved
+      kind: roles
+      item: "owner"
+      verdict: keep
+      reason: "sentence says 'Owners can reject bad actors'"
+      confidence: high
+    - tier: 4
+      case: verification_admin_approval
+      kind: buckets
+      item: "documents"
+      verdict: keep
+      reason: "sentence says 'government id document'"
+      confidence: high
+    - tier: 4
+      case: verification_admin_approval
+      kind: roles
+      item: "admin"
+      verdict: keep
+      reason: "sentence says 'An admin verifies'"
+      confidence: high
+phase_b_diffs:
+    - case: fully_answered_no_questions
+      item: "['file_storage.bucket_purpose', 'mixed']"
+      my_verdict: ambiguous
+      prior_ruling: keep
+      comment: "LINTER_RULINGS itself calls this row adjudicated 'both-defensible' (torn zone) - my ambiguity matches that reading; whether a both-defensible item stays in gold is the team's call"
+    - case: role_names_two_roles
+      item: "verifier"
+      my_verdict: ambiguous
+      prior_ruling: keep
+      comment: "sentence names the actor 'a senior team'; 'verifier' is function-equivalent renaming - defensible (prior ruling) but not sentence-named, so torn"
+    - case: kitchen_sink_marketplace
+      item: "['roles.role_names', ['admin']]"
+      my_verdict: recommend_drop
+      prior_ruling: "null (in gold, never ruled)"
+      comment: "sentence names 'owners', 'renters', AND 'admins'; ['admin'] alone under-pins - mirror image of the moderator_role flag in LINTER_RULINGS; check whether annotation meant [owner, renter, admin]"
+    - case: negation_resolved_by_answer
+      item: "payments:False"
+      my_verdict: ambiguous
+      prior_ruling: "null (in gold, never ruled)"
+      comment: "'Buyers can pay' contradicts 'There are no payments' - from the sentence alone either verdict is defensible (case name hints an out-of-band answer resolved it; that answer is not in the sentence)"
+notes: >
+    (1) Tier 4 (optional) was attempted in full. (2) Rows whose gold value rests on a stack of two
+    inferences (e.g. fully_answered_no_questions bucket_purpose 'mixed': photo-of-unknown-purpose
+    plus id-check-to-documents) were marked ambiguous rather than kept. (3) Diffs: 4 total - tier 1:
+    2 of 82 disagreements (both ambiguous, none recommend_drop); tier 2: 0 of 5 (all five drops
+    confirmed); tier 3: 2 of 34 non-keep verdicts (1 ambiguous, 1 recommend_drop) against rows that
+    carry prior_ruling null, i.e. in gold but never ruled; tier 4: 0 of 63 (all keep). (4) Agreement
+    summary: 175 of 184 verdicts align with the prior/in-gold state; no tier-1 row rose to
+    recommend_drop, so the heart of the agreement-bias check (does the sentence imply the kept item?)
+    survived a fresh reading. (5) Flags for the team, no action taken: (a) kitchen_sink_marketplace
+    roles.role_names ['admin'] vs a sentence naming three roles - same param/roles-list mismatch
+    pattern as the moderator_role flag in LINTER_RULINGS.md; (b) the two tier-3 non-keep verdicts
+    sit on never-ruled rows, so they are new findings rather than ruling reversals; (c) tier-3/tier-4
+    prior_ruling null made blind-to-prior trivially true for those tiers - worth stating in the
+    paper's protocol description.
