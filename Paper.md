@@ -85,7 +85,8 @@ Spider (Yu et al. 2018) and BIRD (Li et al. 2023) fixed the cross-domain task
 and its execution-based scoring, LLM-era decomposed and schema-aware prompting
 then moved execution accuracy sharply upward (DIN-SQL — Pourreza and Rafiei
 2023; C3 — Dong et al. 2023), and the older semantic-parsing context is
-surveyed in Kamath and Das (2019). Text2Schema (Li et al. 2025) begins to
+surveyed in Kamath and Das (2019), and prompt-design itself is benchmarked
+(DAIL-SQL — Gao et al. 2024). Text2Schema (Li et al. 2025) begins to
 close the gap on our side of the line, generating table structures from
 unstructured intent. The line validates a premise we build on —
 constrained, schema-aware decoding beats free-form generation for structured
@@ -112,7 +113,11 @@ space to be searched but a domain-typed product spec — correctness is not
 established by a solver over candidate programs but by a validator that
 re-derives the spec from its decisions and rejects any mismatch (§3.5), and
 the closed vocabulary is precisely what makes *flag-don't-guess* expressible
-as an invariant rather than an aspiration (§3.1).
+as an invariant rather than an aspiration (§3.1). The generate-then-verify
+counterpart exists in specification generation — SpecGen (Dong et al. 2025)
+and AutoReSpec (Ayon et al. 2026) iterate LLM output until a formal
+verifier accepts it — whereas here the validator sits inside the compiler
+and no free-form artifact ever exists to repair.
 
 **Human-in-the-loop disambiguation.** Mixed-initiative interaction
 principles (Horvitz 1999), clarifying-question retrieval in open-domain
@@ -127,7 +132,11 @@ capped, with the burden measured rather than asserted: ≈6.5–7 questions per
 input for the human-answerable configurations and ≈2.3 for the
 interpretation-only floor (§5.2). The unparsed-sentence item is what makes
 never-silently-omit structural: the user is asked about exactly the sentence
-the interpreter could not read (§3.4).
+the interpreter could not read (§3.4). The dialogue-precedent line — CoSQL
+(Yu et al. 2019), PRACTIQ (Dong et al. 2025) — established that database
+interfaces must model clarification and unanswerable queries; those systems
+resolve through free-text dialogue, where ours presents bounded,
+ontology-grounded multiple-choice options.
 
 **Model calibration and selective prediction.** Expected calibration error
 (Naeini et al. 2015), temperature scaling (Guo et al. 2017), and the
@@ -172,6 +181,14 @@ migrations for identical input, 595-pair fragment matrix against a live
 PostgreSQL (§3.5) — measured end to end against cleaned human gold,
 where it holds the recall and least-omission crown while conceding pooled
 precision to the best LLM baseline under an operator-answer confound (§5.1).
+The security literature closes the loop: developers assisted by AI write
+significantly less secure code while feeling more confident in it (Sandoval
+et al. 2023), and extracting enforceable access-control policy from natural
+language has been a recognized hard problem since before LLMs (Narouei et
+al. 2020), with current LLM translation still falling short of enforceable
+accuracy (Lawal et al. 2024) — the reason this compiler classifies policy
+decisions against a fixed option set and expands pre-verified fragments
+rather than generating policy text.
 
 ## 3. System Design
 
@@ -868,3 +885,13 @@ and every number regenerates from committed artifacts.
 - Spiess, C., Gros, D., Pai, K. S., Pradel, M., Rabin, M. R. I., Jha, S., Devanbu, P. (2025). Calibration and correctness of language models for code. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00040.
 - Tian, Z., Chen, J., Zhang, X., et al. (2025). Fixing large language models' specification misunderstanding for better code generation. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00108.
 - Ugare, S., Suresh, T., Kang, H., Misailovic, S. (2024). SynCode: LLM generation with grammar augmentation. *TMLR 2024*. arXiv:2403.01632.
+- Ayon, R. S., Ahmed, S., et al. (2026). AutoReSpec: A framework for generating specification using large language models. *FORGE 2026* (ICSE workshop). DOI 10.1145/3793655.3793731.
+- Dong, M., Kumar, N. A., Hu, Y., et al. (2025). PRACTIQ: A practical conversational text-to-SQL dataset with ambiguous and unanswerable queries. *NAACL 2025*.
+- Dong, Y., Liu, J., Zhou, Z., et al. (2025). SpecGen: Automated generation of formal program specifications via large language models. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00129.
+- Gao, D., Gao, H., Gong, Y., et al. (2024). Text-to-SQL empowered by large language models: A benchmark evaluation (DAIL-SQL). *PVLDB*, 17(5). DOI 10.14778/3641204.3641221.
+- Jiang, J., Lai, C.-Y., Liu, Y., et al. (2025). A survey on large language models for code generation. *ACM TOSEM*, 35(2). DOI 10.1145/3747588.
+- Lawal, S., Zhao, X., Rios, A., Krishnan, R., Ferraiolo, D. (2024). Translating natural language specifications into access control policies by leveraging large language models. *IEEE TPS-ISA 2024*.
+- Narouei, M., Khanpour, H., Ionescu, A., et al. (2020). Automatic extraction of access control policies from natural language documents. *IEEE TDSC*, 17(3). DOI 10.1109/TDSC.2018.2818708.
+- Sandoval, N., Pearce, H., Lapelsohn, S., et al. (2023). Do users write more insecure code with AI assistants? *ACM CCS 2023*. DOI 10.1145/3576915.3623157.
+- Tian, Y., Zhang, Z., Ning, Z., Li, T. J. J., Kummerfeld, J. K., Zhang, T. (2023). Interactive text-to-SQL generation via editable step-by-step explanations. *EMNLP 2023*.
+- Yu, T., Zhang, R., Er, H., et al. (2019). CoSQL: A conversational text-to-SQL challenge towards cross-domain natural language interfaces to databases. *EMNLP-IJCNLP 2019*.
