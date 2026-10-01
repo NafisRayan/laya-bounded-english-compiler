@@ -1,7 +1,8 @@
 # From English to a Working Backend: A Deterministic, Ontology-Bounded Compiler for NL-to-Backend Tasks
 
-*Draft — §1–§3 (critical-path step 5). §4–§8 are stubs pending measured runs
-(see `Paper Outline.md` for the per-section plan and evidence ledger).*
+*Draft — §1, §3–§7 complete with measured results (cleaned human-verified gold,
+frozen held-out split). §2 Related Work in progress. Evidence ledger and
+per-section status: `Paper Outline.md`.*
 
 ---
 
