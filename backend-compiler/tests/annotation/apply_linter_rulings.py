@@ -8,11 +8,8 @@ and staff are not ontology-valid roles, so the roles collector ends empty
 while role_names carries the sentence's own naming.
 """
 
-import json
-from pathlib import Path
 
 import sys
-from pathlib import Path
 
 sys.path.insert(0, ".")
 
