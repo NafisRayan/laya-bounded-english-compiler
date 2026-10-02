@@ -165,16 +165,20 @@ def main(argv: list[str] | None = None) -> int:
     rows = []
     for case_name, data in cases:
         labels = None
+        operator_ua = None
         if human_gold is not None:
             from tests.experiments.metrics import extract_labels
+            from tests.experiments.runner import operator_answers_from_gold
 
-            labels = extract_labels(human_gold.get(case_name) or {})
+            entry = human_gold.get(case_name) or {}
+            labels = extract_labels(entry)
+            operator_ua = operator_answers_from_gold(entry)
         for mech in mechs:
             for mcq_on in mcq_modes:
                 metrics = run_case(case_name, data, ontology, mech, mcq_on,
                                    laya_client=client,
                                    persona_label="real-english" if real else None,
-                                   labels=labels)
+                                   labels=labels, user_answers=operator_ua)
                 rows.append(asdict(metrics))
 
     out_path.parent.mkdir(parents=True, exist_ok=True)

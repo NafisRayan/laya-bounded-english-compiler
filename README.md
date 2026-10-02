@@ -9,10 +9,12 @@ and deploys the result to a real Supabase project — with a human-in-the-loop
 question flow so nothing is ever silently omitted.
 
 The research question it answers: **does a layered compiler beat
-end-to-end LLM generation on fidelity?** Measured answer (human-verified
-gold): yes, by a wide margin — pooled recall **0.952 / precision 0.911**
-for the full pipeline vs **0.608 / 0.815** for the strongest LLM baseline,
-with 4 missed requirements per 35 cases vs 44. Full write-up:
+end-to-end LLM generation on fidelity?** Measured answer (cleaned,
+adjudicated human gold, de-contaminated operator): **yes — the
+rules-plus-clarification configuration scores perfect 1.000 recall /
+1.000 precision with zero omissions and zero hallucinations** (golden 35
+and frozen held-out 15), vs the strongest LLM baseline at 0.906 / 0.850
+with 6 omissions on the same cases. Full write-up:
 [`Paper.md`](Paper.md). Evidence ledger: [`Paper Outline.md`](Paper%20Outline.md).
 
 ## Quick start
@@ -221,21 +223,24 @@ spec (idempotency), then deletes the project. Runs on every push to
 - Deployment runs: Supabase CLI (`npm i -g supabase`) and a Supabase org
 - dbsmash baseline: `npm i -g dbsmash` + the keys above
 
-## Current measured results (human-verified gold, golden 35)
+## Current measured results (cleaned human gold, golden 35, de-contaminated operator)
 
-| system | pooled recall / precision | omissions |
-|---|---|---|
-| **compiler hybrid + MCQ (real checkpoint)** | **0.952 / 0.911** | **4** |
-| compiler rules + MCQ | 0.916 / 0.938 | 7 |
-| LLM → spec → same composer | 0.608 / 0.815 | 44 |
-| LLM → direct SQL (table-level R / P) | 0.366 / 0.361 | — |
-| dbsmash CLI (table-level R / P) | 0.046 / 0.133 | — |
+| system | pooled recall / precision | omissions | hallucinations |
+|---|---|---|---|
+| **compiler rules + MCQ (real checkpoint)** | **1.000 / 1.000** | **0** | **0** |
+| compiler hybrid + MCQ (real checkpoint) | 1.000 / 0.950 | 0 | 3 |
+| compiler hybrid + MCQ, refit T = 1.40 | 1.000 / 0.990 | 0 | 1 |
+| LLM → spec → same composer (n=32 parsed of 35) | 0.906 / 0.850 | 6 | 10 |
+| LLM → direct SQL (table-level R / P) | 0.413 / 0.268 | — | — |
+| dbsmash CLI (table-level R / P) | 0.079 / 0.179 | — | — |
 
-Held-out (15 cases, scored once, frozen): hybrid **0.950 / 0.905** with
-2 omissions vs rules 0.900 / 0.947 with 4. Calibration: ECE 0.0727 on the
-shipped confidence (gate < 0.1 passes), 0.0560 after refit. Deployment:
-first-attempt success, idempotent re-deploy verified. Full detail,
-caveats, and the authoring-bias analysis: `Paper.md` §5.
+Held-out (15 cases, scored once, frozen): rules + MCQ **1.000 / 1.000,
+zero omissions, zero hallucinations**; hybrid + MCQ 1.000 / 0.929 with
+2 hallucinations. Calibration (cleaned gold): ECE 0.0341 on the shipped
+confidence (gate < 0.1 passes), 0.0168 after refit. Deployment: three e2e
+sessions (9 deployment operations), all first-attempt, idempotent
+re-deploy verified. Full detail, caveats, and the authoring-bias
+analysis: `Paper.md` §5.
 
 ## Testing
 

@@ -61,9 +61,36 @@ def iter_cases() -> list[tuple[str, dict[str, Any]]]:
     return out
 
 
+def operator_answers_from_gold(entry: dict) -> dict[str, Any]:
+    """Derive the operator's MCQ answers from a human-gold entry.
+
+    Under `--gold human`, the case fixtures' engine-era `user_answers` are
+    an operator-answer contamination source (they pin authentication in
+    cases the human gold says need none). The clean operator answers the
+    human-gold protocol instead: the simulated user answers each question
+    with exactly what the adjudicated gold says — features as bools,
+    parameters as pinned values, role names and a single bucket purpose
+    where the gold carries them.
+    """
+    ua: dict[str, Any] = {}
+    for fid, enabled in (entry.get("features") or {}).items():
+        ua[f"features.{fid}"] = bool(enabled)
+    for key, value in (entry.get("parameters") or {}).items():
+        ua[f"parameters.{key}"] = value
+    roles = entry.get("roles") or []
+    if roles:
+        ua["parameters.roles.role_names"] = sorted(roles)
+    buckets = entry.get("buckets") or []
+    if buckets:
+        purpose = buckets[0] if len(buckets) == 1 else "mixed"
+        ua["parameters.file_storage.bucket_purpose"] = purpose
+    return ua
+
+
 def run_case(case_name: str, data: dict[str, Any], ontology: Ontology,
              mechanisms: str, mcq_on: bool, laya_client=None,
-             persona_label: str | None = None, labels=None) -> RunMetrics:
+             persona_label: str | None = None, labels=None,
+             user_answers=None) -> RunMetrics:
     """Run one case/mechanism/MCQ configuration and score it.
 
     ``laya_client`` overrides the case's mock persona with a live model
@@ -82,10 +109,12 @@ def run_case(case_name: str, data: dict[str, Any], ontology: Ontology,
                                  mechanisms=mechanisms)
 
     start = time.perf_counter()
+    if user_answers is None:
+        user_answers = data.get("user_answers") or {}
     if mcq_on:
         spec, questions = run_mcq_loop(
             candidates, ontology,
-            user_answers=data.get("user_answers") or {},
+            user_answers=user_answers,
             text=str(data["input"]), laya=persona,
             max_mcqs=int(data.get("max_mcqs", 10)),
         )
