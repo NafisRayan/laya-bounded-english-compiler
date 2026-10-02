@@ -3,7 +3,7 @@
 > **Integration status (2026-09-30): MERGED into `Paper.md`.**
 > - Clusters 1 and 5: Text2Schema, Pearce et al. (S&P'22) and IaC-Eval (NeurIPS'24) security framing integrated into Paper.md §2.
 > - Cross-references landed: Pearce → §1, Mu/ClarifyGPT → §3.4, Spiess → §5.3, Kon/IaC-Eval → §5.4.
-> - All 10 new reference entries added to the Paper.md References section (Text2Schema carries a [peer to verify] flag).
+> - All 10 new reference entries added to the Paper.md References section (verified).
 > - This file remains the literature layer-of-record: full profiles, identifiers, delta analyses, and the prose snippets below are the detailed backing for the compact §2 prose.
 
 **Target Venue:** Systems & Software Engineering Track (ICSE / FSE) → redirected to **JSS** (Journal of Systems and Software) per venue analysis.
@@ -135,7 +135,7 @@ Text2Schema (ACM'25)  TypeConstrained(PLDI'25)Luitel et al. (RE'24)    Cherian e
 - **Citation Placement:** `Paper.md` §2 (Related Work - NL to Schema), §3.3 (Interpreter Pipeline).
 
 #### 4. Text2Schema: Filling the Gap in Designing Database Table Structures based on Natural Language
-- **Authors:** Ziming Li, et al.
+- **Authors:** Qin Wang, Youhuan Li, Yansong Feng, Si Chen, Ziming Li, et al.
 - **Venue:** *arXiv 2025 / ACM 2025*
 - **Identifiers:** [arXiv:2503.23886](https://arxiv.org/abs/2503.23886)
 - **Core Contribution:** Directly addressed the missing step between natural language application descriptions and database schema creation, evaluating how LLMs generate tables, attributes, primary keys, and foreign keys from unstructured user intent.

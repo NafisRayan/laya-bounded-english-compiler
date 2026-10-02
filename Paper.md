@@ -111,7 +111,7 @@ and its execution-based scoring, LLM-era decomposed and schema-aware prompting
 then moved execution accuracy sharply upward (DIN-SQL — Pourreza and Rafiei
 2023; C3 — Dong et al. 2023), and the older semantic-parsing context is
 surveyed in Kamath and Das (2019), and prompt-design itself is benchmarked
-(DAIL-SQL — Gao et al. 2024). Text2Schema (Li et al. 2025) begins to
+(DAIL-SQL — Gao et al. 2024). Text2Schema (Wang et al. 2025) begins to
 close the gap on our side of the line, generating table structures from
 unstructured intent. The line validates a premise we build on —
 constrained, schema-aware decoding beats free-form generation for structured
@@ -208,7 +208,7 @@ injection among the most frequent; and on cloud infrastructure tasks the
 best LLM achieves only 19.36% pass@1 against 86.6% on ordinary Python
 (IaC-Eval — Kon et al. 2024). The closest published-tool neighbor is
 DbSmash, an AI CLI that turns a
-plain-text app description into a schema (DbSmash 2026); we benchmarked it on
+plain-text app description into a schema (Reddy 2025); we benchmarked it on
 our corpus through its non-interactive CLI path: schema artifacts in 15 of 50
 runs, table recall 0.081 / precision 0.179 (§5.1) — stated with the fairness
 caveat that the tool's intended interactive flow is stronger than the path
@@ -920,3 +920,62 @@ pipeline faithfully compiles what the human gold specifies, and the
 remaining open question is how the human gold itself generalizes. Every
 number carries its setting, and every number regenerates from committed
 artifacts.
+
+
+## References
+
+- Aliannejadi, M., Kiseleva, J., Choshen, J., Riede, M. (2019). Evaluating mixed-initiative systems: Searches for clarifying questions. *SIGIR 2019*.
+- Alur, R., Bodík, R., Dallal, E., et al. (2013). Syntax-guided synthesis. *Dependable Software Systems Engineering*.
+- Balog, M., Gaunt, A. L., Brockschmidt, M. (2017). DeepCoder: A deep learning framework for short program synthesis. *ICLR 2017*.
+- Chow, C. K. (1970). On optimum recognition error and reject tradeoff. *IEEE Transactions on Information Theory*, 16(1).
+- Dong, X., Zhang, C., Ge, Y., et al. (2023). C3: Zero-shot Text-to-SQL with ChatGPT. arXiv:2307.07306.
+- Firebase (2026). Firebase documentation. Google. https://firebase.google.com/docs
+- Frénay, B., Verleysen, M. (2014). Classification in the presence of label noise: A survey. *IEEE TNNLS*, 25(5).
+- Geifman, Y., El-Yaniv, R. (2017). Selective classification for deep neural networks. *NeurIPS 2017*.
+- Gulwani, S. (2011). Automating string processing in spreadsheets using input-output examples (FlashFill). *CACM*, 54(1).
+- Guo, C., Pleiss, G., Sun, Y., Weinberger, K. Q. (2017). On calibration of modern neural networks. *ICML 2017*.
+- Horvitz, E. (1999). Principles of mixed-initiative interaction. *CHI 1999*.
+- Kamath, A., Das, R. (2019). A survey on semantic parsing. *arXiv:1812.00978*.
+- Li, J., Hui, B., Qu, G., et al. (2023). Can LLM already serve as a database interface? A big bench for large-scale database grounded text-to-SQLs (BIRD). *NeurIPS 2023 Datasets and Benchmarks*.
+- Naeini, M. P., Cooper, G., Hauskrecht, M. (2015). Obtaining well calibrated probabilities using Bayesian binning. *AAAI 2015*.
+- Pourreza, M., Rafiei, D. (2023). DIN-SQL: Decomposed in-context learning of text-to-SQL with self-correction. *NeurIPS 2023*.
+- Reddy, N. S. (2025). DbSmash (Version 1.0.7) [Computer software]. https://www.npmjs.com/package/dbsmash.
+- Settles, B. (2009). Active learning literature survey. *Computer Sciences Technical Report 1648, University of Wisconsin-Madison*.
+- Solar-Lezama, A. (2008). *Program Synthesis by Sketching*. PhD thesis, UC Berkeley.
+- Supabase (2026). Supabase documentation. https://supabase.com/docs
+- Torlak, E., Bodík, R. (2013). Growing solver-aided languages with Rosette. *Onward! 2013*.
+- Yu, T., et al. (2018). Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing. *EMNLP 2018*.
+
+### Added during the literature-review integration (identifiers in LITERATURE_REVIEW.md)
+
+- Cherian, J. J., Gibbs, I., Candès, E. J. (2024). Large language model validity via enhanced conformal prediction methods. *NeurIPS 2024*. arXiv:2406.09714.
+- Kon, P. T. J., Liu, J., Qiu, Y., et al. (2024). IaC-Eval: A code generation benchmark for cloud infrastructure-as-code programs. *NeurIPS 2024 Datasets and Benchmarks*.
+- Luitel, D., Hassani, S., Sabetzadeh, M. (2024). Improving requirements completeness: Automated assistance through large language models. *Requirements Engineering Journal*. DOI 10.1007/s00766-024-00416-3.
+- Mu, F., Shi, L., Wang, S., et al. (2024). ClarifyGPT: A framework for enhancing LLM-based code generation via requirements clarification. *FSE 2024*. DOI 10.1145/3660810.
+- Mündler, N., He, J., Wang, H., Sen, K., Song, D., Vechev, M. (2025). Type-constrained code generation with language models. *PLDI 2025*. DOI 10.1145/3729274.
+- Pearce, H., Ahmad, B., Tan, B., Dolan-Gavitt, B., Karri, R. (2022). Asleep at the keyboard? Assessing the security of GitHub Copilot's code contributions. *IEEE S&P 2022*. DOI 10.1109/SP46214.2022.9833571.
+- Saparina, I., Lapata, M. (2024). AMBROSIA: A benchmark for parsing ambiguous questions into database queries. *NeurIPS 2024 Datasets and Benchmarks*. arXiv:2406.19073.
+- Spiess, C., Gros, D., Pai, K. S., Pradel, M., Rabin, M. R. I., Jha, S., Devanbu, P. (2025). Calibration and correctness of language models for code. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00040.
+- Tian, Z., Chen, J., Zhang, X., et al. (2025). Fixing large language models' specification misunderstanding for better code generation. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00108.
+- Ugare, S., Suresh, T., Kang, H., Misailovic, S. (2024). SynCode: LLM generation with grammar augmentation. *TMLR 2024*. arXiv:2403.01632.
+- Wang, Q., Li, Y., Feng, Y., et al. (2025). Text2Schema: Filling the gap in designing database table structures based on natural language. arXiv:2503.23886.
+- Ayon, R. S., Ahmed, S., et al. (2026). AutoReSpec: A framework for generating specification using large language models. *FORGE 2026* (ICSE workshop). DOI 10.1145/3793655.3793731.
+- Dong, M., Kumar, N. A., Hu, Y., et al. (2025). PRACTIQ: A practical conversational text-to-SQL dataset with ambiguous and unanswerable queries. *NAACL 2025*.
+- Dong, Y., Liu, J., Zhou, Z., et al. (2025). SpecGen: Automated generation of formal program specifications via large language models. *ICSE 2025*. DOI 10.1109/ICSE55347.2025.00129.
+- Gao, D., Gao, H., Gong, Y., et al. (2024). Text-to-SQL empowered by large language models: A benchmark evaluation (DAIL-SQL). *PVLDB*, 17(5). DOI 10.14778/3641204.3641221.
+- Jiang, J., Lai, C.-Y., Liu, Y., et al. (2025). A survey on large language models for code generation. *ACM TOSEM*, 35(2). DOI 10.1145/3747588.
+- Lawal, S., Zhao, X., Rios, A., Krishnan, R., Ferraiolo, D. (2024). Translating natural language specifications into access control policies by leveraging large language models. *IEEE TPS-ISA 2024*.
+- Narouei, M., Khanpour, H., Ionescu, A., et al. (2020). Automatic extraction of access control policies from natural language documents. *IEEE TDSC*, 17(3). DOI 10.1109/TDSC.2018.2818708.
+- Sandoval, N., Pearce, H., Lapelsohn, S., et al. (2023). Do users write more insecure code with AI assistants? *ACM CCS 2023*. DOI 10.1145/3576915.3623157.
+- Tian, Y., Zhang, Z., Ning, Z., Li, T. J. J., Kummerfeld, J. K., Zhang, T. (2023). Interactive text-to-SQL generation via editable step-by-step explanations. *EMNLP 2023*.
+- Yu, T., Zhang, R., Er, H., et al. (2019). CoSQL: A conversational text-to-SQL challenge towards cross-domain natural language interfaces to databases. *EMNLP-IJCNLP 2019*.
+- Andreas, J., Bufe, D., Burkett, D., et al. (2020). Task-oriented dialogue as dataflow synthesis. *TACL*, 8.
+- Desai, A., Gulwani, S., Hingorani, V., et al. (2016). Program synthesis using natural language. *ICSE 2016*. DOI 10.1145/2884781.2884786.
+- Du, X., Liu, M., Hui, B., et al. (2023). ClassEval: A manually-crafted benchmark for evaluating LLMs on class-level code generation. *ESEC/FSE 2023*. DOI 10.1145/3597503.3639219.
+- Ji, Z., Lee, N., Frieske, R., et al. (2023). Survey of hallucination in natural language generation. *ACM Computing Surveys*, 55(12). DOI 10.1145/3571730.
+- Jimenez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., Press, O., Narasimhan, K. (2024). SWE-bench: Can language models resolve real-world GitHub issues? *ICLR 2024*.
+- Kumar, A., Liang, P., Ma, T. (2019). Verified uncertainty calibration. *NeurIPS 2019 (Spotlight)*.
+- Li, Y., et al. (2022). Competition-level code generation with AlphaCode. *Science*, 378(6624). DOI 10.1126/science.abq1158.
+- Liu, J., Xia, C. S., Wang, Y., Zhang, L. (2023). Is your code generated by ChatGPT really correct? Rigorous evaluation of LLMs for code (EvalPlus). *NeurIPS 2023 Datasets and Benchmarks*.
+- Mozannar, H., Sontag, D. (2020). Consistent estimators for learning to defer to an expert. *ICML 2020*. PMLR v119.
+- Rahman, A., Chapagain, A., Parnin, C., Williams, L. (2021). Security smells in Ansible and Chef scripts: A replication study. *IEEE/ACM TOSEM*, 30. DOI 10.1145/3408897.
