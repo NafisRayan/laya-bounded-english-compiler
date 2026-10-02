@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: max_mcqs_cap
 input: 'Owners can reject bad actors.'
-features: {}
+features:
+  roles: true
 parameters: {}
-roles: []
+roles: ['owner']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Rejecting 'bad actors' names an owner capability but no feature in the list is clearly required; could relate to booking approval or moderation — not pinned."

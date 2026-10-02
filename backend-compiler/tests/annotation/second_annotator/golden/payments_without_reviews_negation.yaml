@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: payments_without_reviews_negation
 input: 'Vendors can charge for their services. There will be no review system.'
-features: {}
+features:
+  payments: true
+  reviews: false
+  roles: true
 parameters: {}
-roles: []
+roles: ['vendor']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Charge = payments; reviews explicitly excluded."

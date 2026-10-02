@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: laya_high_decides
 input: 'Use stripe for payments and email password for login'
-features: {}
-parameters: {}
+features:
+  payments: true
+  authentication: true
+parameters:
+  payments.provider: stripe
+  authentication.method: email_password
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Identical text to alias_and_phrase_decide; same reading."

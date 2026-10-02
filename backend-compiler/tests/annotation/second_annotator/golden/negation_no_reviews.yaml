@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: negation_no_reviews
 input: 'We let renters book each equipment item. There is no review system.'
-features: {}
+features:
+  bookings: true
+  reviews: false
+  roles: true
 parameters: {}
-roles: []
+roles: ['renter']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Reviews explicitly excluded."

@@ -3,9 +3,19 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: fully_answered_no_questions
 input: 'A site where renters book each item, chat with each other, pay through stripe, leave a review, upload a photo, complete an id check, get live updates, and keep a favorite list.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
+features:
+  bookings: true
+  messaging: true
+  payments: true
+  reviews: true
+  file_storage: true
+  verification: true
+  realtime: true
+  favorites: true
+  roles: true
+parameters:
+  payments.provider: stripe
+roles: ['renter']
+buckets: ['photos']
 edge_functions: []
-notes: ""
+notes: "Only 'renters' named as a role; chat counterpart unspecified. 'Id check' = verification; method not pinned."

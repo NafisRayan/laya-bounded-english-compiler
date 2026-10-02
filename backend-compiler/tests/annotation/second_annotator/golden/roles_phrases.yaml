@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: roles_phrases
 input: 'An admin can manage the platform.'
-features: {}
+features:
+  roles: true
 parameters: {}
-roles: []
+roles: ['admin']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Admin role; vague capability, no feature pinned."

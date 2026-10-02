@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: id_check_verification
 input: 'We run an id check on every renter before approval.'
-features: {}
+features:
+  verification: true
+  roles: true
 parameters: {}
-roles: []
+roles: ['renter']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Approval of what is ambiguous (booking approval implied but not stated) — verification only."

@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: negation_resolved_by_answer
 input: 'Buyers can pay for services. There are no payments.'
-features: {}
+features:
+  payments: false
+  roles: true
 parameters: {}
-roles: []
+roles: ['buyer']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Contradiction: paying vs 'no payments'. Conservative: explicit negation wins → payments false."

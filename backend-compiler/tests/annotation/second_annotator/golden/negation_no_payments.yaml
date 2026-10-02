@@ -2,10 +2,12 @@
 # Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
 # Omit a feature if the input is silent on it; do not guess.
 case: negation_no_payments
-input: "Users can book each item. We don't take payments."
-features: {}
+input: Users can book each item. We don't take payments.
+features:
+  bookings: true
+  payments: false
 parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Payments explicitly forbidden; bookings required."

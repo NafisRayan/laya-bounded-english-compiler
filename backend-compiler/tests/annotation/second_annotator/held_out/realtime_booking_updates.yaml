@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: realtime_booking_updates
 input: 'Renters book items and get live updates the moment their booking status changes.'
-features: {}
+features:
+  bookings: true
+  realtime: true
 parameters: {}
-roles: []
+roles: ['renter']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Live booking-status updates = realtime."

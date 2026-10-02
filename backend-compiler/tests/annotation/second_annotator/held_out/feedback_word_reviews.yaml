@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: feedback_word_reviews
 input: 'Customers give feedback after each rental.'
-features: {}
+features:
+  reviews: true
 parameters: {}
-roles: []
+roles: ['customer']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "'Feedback after each rental' read as post-rental reviews; rental implies a booking-like flow but booking itself is not explicitly requested, so omitted."

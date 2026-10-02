@@ -16,9 +16,9 @@ precision with zero omissions and zero hallucinations** — in-sample and on
 the frozen held-out set — while the strongest LLM baseline reaches 0.906 /
 0.850 with 6 omissions on the same cases. The decision-model slot, a
 421M ModernBERT checkpoint, is measured to be well-calibrated on the
-cleaned gold (ECE 0.0341) yet adds no fidelity beyond an operator-free
+cleaned gold (ECE 0.0381) yet adds no fidelity beyond an operator-free
 recall lift (0.667 → 0.807); with a temperature refit it approaches
-perfection (1.000 / 0.990, one hallucination). Three real e2e sessions
+perfection (1.000 / 0.982, one hallucination). Three real e2e sessions
 (nine deployment operations: marketplace, minimal, idempotent re-deploy)
 succeeded first-attempt; the first session completed in 39 s. The gold
 itself is the paper's second contribution: engine-pinned
@@ -123,7 +123,7 @@ plus platform configuration; the vocabulary is bounded by a versioned
 ontology with a never-silently-omit invariant (§3.1, §3.4); deployment
 through the platform API is part of the measured task (§5.4) — and rather
 than compare on their benchmarks, we run the LLM baselines on ours, where
-direct-to-SQL generation recovers 0.413 table recall and the spec-space
+direct-to-SQL generation recovers 0.419 table recall and the spec-space
 baseline holds the precision edge (§5.1).
 
 **Program synthesis with intermediate representations.** Synthesis over
@@ -192,7 +192,7 @@ coverage–correctness curve measured on the golden corpus: 87.8% of decisions
 auto-accept at 80.0% correctness, and the curve is non-monotone, so raising
 the threshold is not monotonically safer (§5.3). One finding is consistent
 with label noise as a first-order confounder (Frénay and Verleysen 2014):
-successive cleanups of the gold labels moved measured ECE 0.0951 → 0.0341
+successive cleanups of the gold labels moved measured ECE 0.0951 → 0.0381
 while accuracy rose 0.784 → 0.896 — in-sample (§5.3), and most of the
 apparent miscalibration lived in the labels.
 
@@ -210,7 +210,7 @@ best LLM achieves only 19.36% pass@1 against 86.6% on ordinary Python
 DbSmash, an AI CLI that turns a
 plain-text app description into a schema (DbSmash 2026); we benchmarked it on
 our corpus through its non-interactive CLI path: schema artifacts in 15 of 50
-runs, table recall 0.079 / precision 0.179 (§5.1) — stated with the fairness
+runs, table recall 0.081 / precision 0.179 (§5.1) — stated with the fairness
 caveat that the tool's intended interactive flow is stronger than the path
 our harness drives, so the number prices the non-interactive mode, not the
 tool at its best. Our delta: the pipeline produces a validated, reviewable
@@ -553,11 +553,11 @@ dbsmash through its non-interactive path. Parse counts: the baseline emitted par
 | System (golden 35, cleaned human gold, de-contaminated operator) | pooled R / P | omissions | hallucinations |
 |---|---|---|---|
 | **Compiler rules + MCQ** | **1.000 / 1.000** | **0** | **0** |
-| **Compiler hybrid + MCQ (real ckpt)** | 1.000 / 0.950 | 0 | 3 |
-| **Compiler hybrid + MCQ, refit T = 1.40** | 1.000 / **0.990** | 0 | **1** |
+| **Compiler hybrid + MCQ (real ckpt)** | 1.000 / 0.949 | 0 | 3 |
+| **Compiler hybrid + MCQ, refit T = 1.40** | 1.000 / **0.982** | 0 | **1** |
 | LLM → spec → same composer (n=32 parsed) | 0.906 / 0.850 | 6 | 10 |
-| LLM → direct SQL (table R / P) | 0.413 / 0.268 | — | — |
-| dbsmash CLI (table R / P) | 0.079 / 0.179 | — | — |
+| LLM → direct SQL (table R / P) | 0.419 / 0.268 | — | — |
+| dbsmash CLI (table R / P) | 0.081 / 0.179 | — | — |
 
 Parse convention: the spec baseline emitted parseable specs for 45 of 50
 inputs in its single pinned run (32 within the golden 35); unparseable
@@ -696,17 +696,17 @@ re-derivation (golden 35, real checkpoint):
 | Config (golden 35) | pooled R / P | omissions | hallucinations |
 |---|---|---|---|
 | **rules + MCQ** | **1.000 / 1.000** | **0** | **0** |
-| hybrid + MCQ | 1.000 / 0.950 | 0 | 3 |
-| hybrid + MCQ, refit T = 1.40 | 1.000 / **0.990** | 0 | **1** |
+| hybrid + MCQ | 1.000 / 0.949 | 0 | 3 |
+| hybrid + MCQ, refit T = 1.40 | 1.000 / **0.982** | 0 | **1** |
 | hybrid, MCQ-off (operator-free) | 0.807 / 0.939 | 11 | 3 |
 | rules, MCQ-off (operator-free) | 0.667 / 1.000 | 19 | 0 |
 
 | Config (held-out 15 — scored once, frozen) | pooled R / P | omissions | hallucinations |
 |---|---|---|---|
 | **rules + MCQ** | **1.000 / 1.000** | **0** | **0** |
-| hybrid + MCQ | 1.000 / 0.929 | 0 | 2 |
+| hybrid + MCQ | 1.000 / 0.926 | 0 | 2 |
 | hybrid + MCQ, refit T = 1.40 | 0.933 / 0.911 | 0 | 2 |
-| hybrid, MCQ-off (operator-free) | 0.769 / 0.909 | 6 | 2 |
+| hybrid, MCQ-off (operator-free) | 0.800 / 0.909 | 5 | 2 |
 
 8. **The de-contaminated result is the strongest claim in the paper, and
    it belongs to rules + MCQ:** perfect recall, perfect precision, zero
@@ -724,7 +724,7 @@ re-derivation (golden 35, real checkpoint):
    hallucinations and no recall. The R2 strong form is therefore
    architecture-level, not model-level: tiered interpretation plus
    clarification achieves perfect fidelity, the protective design makes
-   the model slot safe to include (refit hybrid: 1.000 / 0.990, one
+   the model slot safe to include (refit hybrid: 1.000 / 0.982, one
    hallucination), and the calibrated checkpoint is strictly optional.
 10. **Against the spec baseline (§5.1) the compiler sweeps the point
     estimates** — 1.000 / 1.000 vs 0.906 / 0.850, zero omissions vs six,
@@ -745,7 +745,7 @@ golden cases; each feature-item answer yields one
 Against the engine-pinned gold: accuracy 0.784, ECE 0.0951 (gate PASS,
 fit 0.0425 @ T = 1.40). Against the first human gold: 0.824 / 0.0727.
 Against the **fully cleaned** gold (clash adjudication + linter-ruling
-removals): **accuracy 0.896, ECE 0.0341 — gate PASS, fit 0.0168 @
+removals): **accuracy 0.896, ECE 0.0381 — gate PASS, fit 0.0208 @
 T = 0.88**. Each cleanup raised the model's measured accuracy and lowered
 its ECE: most of what earlier rounds called model miscalibration lived in
 the labels.
@@ -884,7 +884,7 @@ the frozen held-out set. The decision-model slot is measured to be
 strictly optional there (it adds 2-3 hallucinations with no recall gain);
 its measured value is operator-free recall lift (rules 0.667 → hybrid
 0.807 golden; 0.615 → 0.769 held-out), and with the calibration refit the
-hybrid reaches 1.000 / 0.990 at one hallucination. The architecture
+hybrid reaches 1.000 / 0.982 at one hallucination. The architecture
 protects its model slot; the operator protocol makes the rule layer
 sufficient.
 
@@ -899,7 +899,7 @@ well-calibrated checkpoint.
 **R1 (baselines).** On the same golden cases the compiler sweeps every
 external baseline at the point estimates — 1.000 / 1.000 vs the best
 LLM's 0.906 / 0.850 (6 omissions, 10 hallucinations), direct-SQL table
-recall 0.413, dbsmash 0.079 — with the n = 35 significance caveat
+recall 0.419, dbsmash 0.081 — with the n = 35 significance caveat
 disclosed (no compiler-vs-compiler difference is significant; the
 baseline gaps are 40+ points wide).
 

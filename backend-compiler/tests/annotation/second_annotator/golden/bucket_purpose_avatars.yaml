@@ -3,9 +3,11 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: bucket_purpose_avatars
 input: 'Hosts upload a profile photo when they sign up.'
-features: {}
+features:
+  file_storage: true
+  roles: true
 parameters: {}
-roles: []
-buckets: []
+roles: ['host']
+buckets: ['avatars']
 edge_functions: []
-notes: ""
+notes: "Profile photo bucket. 'Sign up' hints at authentication but no method stated; omitted."

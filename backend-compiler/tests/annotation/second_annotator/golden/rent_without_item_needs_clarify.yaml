@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: rent_without_item_needs_clarify
 input: 'The site shows available equipment to renters.'
-features: {}
+features:
+  roles: true
 parameters: {}
-roles: []
+roles: ['renter']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Only browsing/visibility stated — no booking, payment, or other feature requested. Browsing alone is not in the feature list."

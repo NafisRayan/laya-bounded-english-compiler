@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: booking_mode_request_then_approval
 input: 'Renters can request a booking and the owner approves first.'
-features: {}
-parameters: {}
-roles: []
+features:
+  bookings: true
+  roles: true
+parameters:
+  booking.mode: owner_approval
+roles: ['renter', 'owner']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Request-then-owner-approval = owner_approval booking mode."

@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: contradiction_resolved
 input: 'Admins can manage the platform'
-features: {}
+features:
+  roles: true
 parameters: {}
-roles: []
+roles: ['admin']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "'Manage the platform' is vague; no specific capability (bookings/payments/etc.) is stated."

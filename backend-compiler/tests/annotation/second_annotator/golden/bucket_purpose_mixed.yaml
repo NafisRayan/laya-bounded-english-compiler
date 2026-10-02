@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: bucket_purpose_mixed
 input: 'The app stores avatars, listing photos, and personal documents.'
-features: {}
+features:
+  file_storage: true
 parameters: {}
 roles: []
-buckets: []
+buckets: ['avatars', 'listing_photos', 'documents']
 edge_functions: []
-notes: ""
+notes: "Three distinct storage purposes named."

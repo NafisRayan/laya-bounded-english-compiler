@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: realtime_all_channels
 input: 'Everything should update live: new messages, booking changes, and notifications.'
-features: {}
+features:
+  realtime: true
+  messaging: true
+  bookings: true
 parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "'New messages' implies messaging; 'booking changes' implies bookings exist."

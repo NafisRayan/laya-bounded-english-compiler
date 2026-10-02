@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: role_names_two_roles
 input: 'A senior team checks every id document.'
-features: {}
+features:
+  verification: true
 parameters: {}
 roles: []
 buckets: []
 edge_functions: []
-notes: ""
+notes: "'Senior team' implies some reviewing staff but no concrete role name; conservative: no role recorded. Ambiguous."

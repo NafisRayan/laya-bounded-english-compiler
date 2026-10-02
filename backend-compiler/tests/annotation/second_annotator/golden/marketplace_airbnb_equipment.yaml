@@ -3,9 +3,16 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: marketplace_airbnb_equipment
 input: 'Build an Airbnb-like marketplace where owners list equipment and renters book each item. Owners need verification, users can message each other, payments use Stripe. Owners upload photos of their gear.'
-features: {}
-parameters: {}
-roles: []
-buckets: []
+features:
+  bookings: true
+  verification: true
+  messaging: true
+  payments: true
+  file_storage: true
+  roles: true
+parameters:
+  payments.provider: stripe
+roles: ['owner', 'renter']
+buckets: ['photos']
 edge_functions: []
-notes: ""
+notes: "'Airbnb-like' not treated as implying reviews/favorites — only explicit sentences count."

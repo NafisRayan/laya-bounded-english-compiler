@@ -191,7 +191,7 @@
 {"case": "id_check_verification", "item": "authentication", "noul": 0.8571, "answer_confidence": 0.8571, "predicted": true, "truth": false, "label": 0}
 {"case": "id_check_verification", "item": "bookings", "noul": 0.2082, "answer_confidence": 0.7918, "predicted": false, "truth": false, "label": 1}
 {"case": "id_check_verification", "item": "favorites", "noul": 0.108, "answer_confidence": 0.892, "predicted": false, "truth": false, "label": 1}
-{"case": "id_check_verification", "item": "file_storage", "noul": 0.0003, "answer_confidence": 0.9997, "predicted": false, "truth": true, "label": 0}
+{"case": "id_check_verification", "item": "file_storage", "noul": 0.0003, "answer_confidence": 0.9997, "predicted": false, "truth": false, "label": 1}
 {"case": "id_check_verification", "item": "messaging", "noul": 0.1167, "answer_confidence": 0.8833, "predicted": false, "truth": false, "label": 1}
 {"case": "id_check_verification", "item": "payments", "noul": 0.0545, "answer_confidence": 0.9455, "predicted": false, "truth": false, "label": 1}
 {"case": "id_check_verification", "item": "realtime", "noul": 0.0942, "answer_confidence": 0.9058, "predicted": false, "truth": false, "label": 1}
@@ -221,7 +221,7 @@
 {"case": "kyc_government_id", "item": "authentication", "noul": 0.6945, "answer_confidence": 0.6945, "predicted": true, "truth": false, "label": 0}
 {"case": "kyc_government_id", "item": "bookings", "noul": 0.193, "answer_confidence": 0.807, "predicted": false, "truth": false, "label": 1}
 {"case": "kyc_government_id", "item": "favorites", "noul": 0.2581, "answer_confidence": 0.7419, "predicted": false, "truth": false, "label": 1}
-{"case": "kyc_government_id", "item": "file_storage", "noul": 0.0282, "answer_confidence": 0.9718, "predicted": false, "truth": true, "label": 0}
+{"case": "kyc_government_id", "item": "file_storage", "noul": 0.0282, "answer_confidence": 0.9718, "predicted": false, "truth": false, "label": 1}
 {"case": "kyc_government_id", "item": "messaging", "noul": 0.1798, "answer_confidence": 0.8202, "predicted": false, "truth": false, "label": 1}
 {"case": "kyc_government_id", "item": "payments", "noul": 0.1565, "answer_confidence": 0.8435, "predicted": false, "truth": false, "label": 1}
 {"case": "kyc_government_id", "item": "realtime", "noul": 0.0986, "answer_confidence": 0.9014, "predicted": false, "truth": false, "label": 1}

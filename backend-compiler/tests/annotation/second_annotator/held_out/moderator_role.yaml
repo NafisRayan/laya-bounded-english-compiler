@@ -3,9 +3,10 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: moderator_role
 input: 'A moderator can suspend listings.'
-features: {}
+features:
+  roles: true
 parameters: {}
-roles: []
+roles: ['moderator']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "Moderator role named; suspending listings implies listings exist but listings are not a feature in the valid list."

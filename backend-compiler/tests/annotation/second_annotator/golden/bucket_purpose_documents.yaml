@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: bucket_purpose_documents
 input: 'Renters upload their id document during verification.'
-features: {}
+features:
+  verification: true
+  file_storage: true
+  roles: true
 parameters: {}
-roles: []
-buckets: []
+roles: ['renter']
+buckets: ['documents']
 edge_functions: []
-notes: ""
+notes: "ID documents uploaded as part of verification."

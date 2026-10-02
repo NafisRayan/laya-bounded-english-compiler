@@ -228,16 +228,16 @@ spec (idempotency), then deletes the project. Runs on every push to
 | system | pooled recall / precision | omissions | hallucinations |
 |---|---|---|---|
 | **compiler rules + MCQ (real checkpoint)** | **1.000 / 1.000** | **0** | **0** |
-| compiler hybrid + MCQ (real checkpoint) | 1.000 / 0.950 | 0 | 3 |
-| compiler hybrid + MCQ, refit T = 1.40 | 1.000 / 0.990 | 0 | 1 |
+| compiler hybrid + MCQ (real checkpoint) | 1.000 / 0.949 | 0 | 3 |
+| compiler hybrid + MCQ, refit T = 1.40 | 1.000 / 0.982 | 0 | 1 |
 | LLM → spec → same composer (n=32 parsed of 35) | 0.906 / 0.850 | 6 | 10 |
-| LLM → direct SQL (table-level R / P) | 0.413 / 0.268 | — | — |
-| dbsmash CLI (table-level R / P) | 0.079 / 0.179 | — | — |
+| LLM → direct SQL (table-level R / P) | 0.419 / 0.268 | — | — |
+| dbsmash CLI (table-level R / P) | 0.081 / 0.179 | — | — |
 
 Held-out (15 cases, scored once, frozen): rules + MCQ **1.000 / 1.000,
 zero omissions, zero hallucinations**; hybrid + MCQ 1.000 / 0.929 with
-2 hallucinations. Calibration (cleaned gold): ECE 0.0341 on the shipped
-confidence (gate < 0.1 passes), 0.0168 after refit. Deployment: a
+2 hallucinations. Calibration (cleaned gold): ECE 0.0381 on the shipped
+confidence (gate < 0.1 passes), 0.0208 after refit. Deployment: a
 10-session battery (30 deployment operations across fresh projects) —
 **30/30 first-attempt**, rate 1.000, Wilson 95% CI [0.886, 1.000],
 idempotent re-deploy verified.

@@ -3,9 +3,12 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: github_auth_alias
 input: 'Developers sign in with github auth.'
-features: {}
-parameters: {}
-roles: []
+features:
+  authentication: true
+  roles: true
+parameters:
+  authentication.method: github
+roles: ['developer']
 buckets: []
 edge_functions: []
-notes: ""
+notes: "GitHub sign-in = OAuth provider github."

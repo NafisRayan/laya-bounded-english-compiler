@@ -3,9 +3,13 @@
 # Omit a feature if the input is silent on it; do not guess.
 case: payments_and_uploads
 input: 'Renters pay owners to rent each item, and upload photos of it.'
-features: {}
+features:
+  bookings: true
+  payments: true
+  file_storage: true
+  roles: true
 parameters: {}
-roles: []
-buckets: []
+roles: ['renter', 'owner']
+buckets: ['photos']
 edge_functions: []
-notes: ""
+notes: "'Rent each item' with payment implies rentals/bookings."

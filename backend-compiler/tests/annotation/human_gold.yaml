@@ -170,7 +170,6 @@ fully_answered_no_questions:
     reviews: true
     verification: true
   parameters:
-    file_storage.bucket_purpose: mixed
     payments.provider: stripe
   roles:
   - renter
@@ -183,14 +182,11 @@ github_auth_alias:
     authentication.method: oauth_github
   roles: []
 id_check_verification:
-  buckets:
-  - documents
+  buckets: []
   edge_functions: []
   features:
-    file_storage: true
     verification: true
-  parameters:
-    file_storage.bucket_purpose: documents
+  parameters: {}
   roles:
   - renter
 kitchen_sink_marketplace:
@@ -225,14 +221,11 @@ kyc_avoided_negation:
   parameters: {}
   roles: []
 kyc_government_id:
-  buckets:
-  - documents
+  buckets: []
   edge_functions: []
   features:
-    file_storage: true
     verification: true
   parameters:
-    file_storage.bucket_purpose: documents
     verification.method: government_id
   roles:
   - owner
@@ -424,8 +417,7 @@ role_names_two_roles:
     verification: true
   parameters:
     file_storage.bucket_purpose: documents
-  roles:
-  - verifier
+  roles: []
 role_staff_and_admin_dedupe:
   buckets: []
   edge_functions: []
