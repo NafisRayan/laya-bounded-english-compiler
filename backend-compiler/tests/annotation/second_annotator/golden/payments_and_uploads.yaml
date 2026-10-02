@@ -1,0 +1,11 @@
+# Annotation worksheet — payments_and_uploads (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: payments_and_uploads
+input: 'Renters pay owners to rent each item, and upload photos of it.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

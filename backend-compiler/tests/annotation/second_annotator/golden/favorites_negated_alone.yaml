@@ -1,0 +1,11 @@
+# Annotation worksheet — favorites_negated_alone (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: favorites_negated_alone
+input: 'We skip the bookmark feature to keep the app lean.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

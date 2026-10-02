@@ -1,0 +1,11 @@
+# Annotation worksheet — bucket_purpose_avatars (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: bucket_purpose_avatars
+input: 'Hosts upload a profile photo when they sign up.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

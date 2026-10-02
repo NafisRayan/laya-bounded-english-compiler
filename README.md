@@ -237,8 +237,10 @@ spec (idempotency), then deletes the project. Runs on every push to
 Held-out (15 cases, scored once, frozen): rules + MCQ **1.000 / 1.000,
 zero omissions, zero hallucinations**; hybrid + MCQ 1.000 / 0.929 with
 2 hallucinations. Calibration (cleaned gold): ECE 0.0341 on the shipped
-confidence (gate < 0.1 passes), 0.0168 after refit. Deployment: three e2e
-sessions (9 deployment operations), all first-attempt, idempotent
+confidence (gate < 0.1 passes), 0.0168 after refit. Deployment: a
+10-session battery (30 deployment operations across fresh projects) —
+**30/30 first-attempt**, rate 1.000, Wilson 95% CI [0.886, 1.000],
+idempotent re-deploy verified.
 re-deploy verified. Full detail, caveats, and the authoring-bias
 analysis: `Paper.md` §5.
 

@@ -1,0 +1,12 @@
+resuming: 0 done, 10 to run (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+session 1: create=True ops=3/3 ok teardown=True wall=66.2s 
+session 2: create=True ops=3/3 ok teardown=True wall=73.4s 
+session 3: create=True ops=3/3 ok teardown=True wall=68.5s 
+session 4: create=True ops=3/3 ok teardown=True wall=66.9s 
+session 5: create=True ops=3/3 ok teardown=True wall=110.8s 
+session 6: create=True ops=3/3 ok teardown=True wall=65.2s 
+session 7: create=True ops=3/3 ok teardown=True wall=70.2s 
+session 8: create=True ops=3/3 ok teardown=True wall=108.6s 
+session 9: create=True ops=3/3 ok teardown=True wall=56.2s 
+session 10: create=True ops=3/3 ok teardown=True wall=72.7s 
+battery written to tests\experiments\results\e2e_battery.jsonl

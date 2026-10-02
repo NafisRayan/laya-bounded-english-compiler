@@ -798,8 +798,12 @@ creation to verified tables was **39 s** in the first session (n=1 for
 that single-operation timing). The interpreter ran against
 the mock Laya persona, so this measures deployment, not model latency; the
 organization is free-tier, so the marginal monetary cost is $0. All three
-sessions (9 deployment operations) succeeded first-attempt — a consistent
-deployability record, though still too few to estimate a rate.
+sessions (9 deployment operations) succeeded first-attempt — and a
+dedicated 10-session deployment battery (30 deployment operations across
+fresh projects, sequential create → deploy ×3 → verify → teardown)
+succeeded **30/30**, a first-attempt success rate of 1.000 with Wilson
+95% CI [0.886, 1.000] (`results/e2e_battery.jsonl`) — the deployability
+claim is now a measured rate, not an anecdote.
 
 **Deployment is API-drift sensitive.** First contact with the live API
 surfaced five breaks that no mock could have caught, each fixed in the
@@ -899,10 +903,11 @@ recall 0.413, dbsmash 0.079 — with the n = 35 significance caveat
 disclosed (no compiler-vs-compiler difference is significant; the
 baseline gaps are 40+ points wide).
 
-**Deployment.** Three e2e sessions (nine deployment operations:
-marketplace, minimal, idempotent re-deploy), all first-attempt, 39 s
-create-to-verified on first contact, five live-API drift points found and
-fixed by running it.
+**Deployment.** A 10-session deployment battery (30 operations across
+fresh projects: marketplace, minimal, idempotent re-deploy) succeeded
+**30/30 first-attempt** — rate 1.000, Wilson 95% CI [0.886, 1.000] — at
+56-111 s per session, with five live-API drift points found and fixed
+along the way.
 
 **Honest costs.** The gold took three corrections and still carries two
 disclosed limits: the annotator self-adjudicated (the third reader saw

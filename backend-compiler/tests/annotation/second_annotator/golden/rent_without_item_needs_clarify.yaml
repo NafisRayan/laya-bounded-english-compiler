@@ -1,0 +1,11 @@
+# Annotation worksheet — rent_without_item_needs_clarify (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: rent_without_item_needs_clarify
+input: 'The site shows available equipment to renters.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

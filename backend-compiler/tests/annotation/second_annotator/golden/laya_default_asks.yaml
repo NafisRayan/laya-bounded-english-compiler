@@ -1,0 +1,11 @@
+# Annotation worksheet — laya_default_asks (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: laya_default_asks
+input: 'We need bookings and messaging'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""
