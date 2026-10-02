@@ -1,4 +1,4 @@
-# Literature Review: 30 Curated Publications for the NL-to-Backend Compiler Paper
+# Literature Review: 50 Curated Publications for the NL-to-Backend Compiler Paper
 
 > **Integration status (2026-09-30): MERGED into `Paper.md`.**
 > - Clusters 1 and 5: Text2Schema, Pearce et al. (S&P'22) and IaC-Eval (NeurIPS'24) security framing integrated into Paper.md §2.
@@ -18,7 +18,7 @@
 
 ## Executive Summary & Literature Map
 
-The 30 publications are organized across five foundational clusters that border this compiler architecture, mapping directly to the related work taxonomy in `Paper Outline.md` §2 and `Paper.md` §2. Papers #1–20 are the core set; papers #21–30 are the **extended set — every one published at a reputed peer-reviewed venue** (ACM DL, IEEE Xplore, ACL Anthology, PVLDB; no arXiv-only preprints):
+The 50 publications are organized across five foundational clusters that border this compiler architecture, mapping directly to the related work taxonomy in `Paper Outline.md` §2 and `Paper.md` §2. Papers #1–20 are the core set; #21–30 are the extended set; #31–50 are the **third wave — exclusively Q1/Q2 journals and top-tier proceedings** (Science, ACM TOSEM/CSUR-class journals, TACL, PMLR/NeurIPS/ICLR/ICML, ICSE/FSE, SIGIR/ACL/EMNLP). No arXiv-only preprints anywhere in this wave; every entry cites its publisher of record.
 
 ```
                                  [NL-to-Backend Task]
@@ -40,7 +40,7 @@ Text2Schema (ACM'25)  TypeConstrained(PLDI'25)Luitel et al. (RE'24)    Cherian e
 
 ---
 
-## Comparative Matrix: 30 Core Papers at a Glance
+## Comparative Matrix: 50 Core Papers at a Glance
 
 | # | Key Paper | Venue & Year | Primary Cluster | Addressed Failure Mode | Relation to Paper Claims | Target Section |
 |---|---|---|---|---|---|---|
@@ -74,6 +74,26 @@ Text2Schema (ACM'25)  TypeConstrained(PLDI'25)Luitel et al. (RE'24)    Cherian e
 | **28** | **ACP Extraction from NL Docs** (Narouei et al.) | IEEE TDSC 2020 | Cluster 5 (Security) | Manual access-control authoring | NL→policy extraction lineage | §2.5, §3.1 |
 | **29** | **NL Specs → Access Control Policies** (Lawal et al.) | IEEE TPS-ISA 2024 | Cluster 5 (Security) | LLM policy translation accuracy | NL→policy evaluation method | §2.5, §5.1 |
 | **30** | **Do Users Write More Insecure Code with AI Assistants?** (Sandoval et al.) | ACM CCS 2023 | Cluster 5 (Security) | Human+AI insecure output | Security user-study evidence | §1, §2.5, §7 |
+| **31** | **SQLizer** (Yaghmazadeh et al.) | PACMPL/OOPSLA 2017 | Cluster 2 (Synthesis) | Fragments-from-prose search | Sketch refinement precursor | §2.2 |
+| **32** | **SMCalFlow** (Andreas et al.) | TACL 2020 | Cluster 1 (Parsing) | Black-box dialogue state | Dataflow-graph IR cousin | §2.1, §3.1 |
+| **33** | **RAT-SQL** (Wang et al.) | ACL 2020 | Cluster 1 (Parsing) | Schema linking errors | Schema-aware encoding precedent | §2.1 |
+| **34** | **Program Synthesis Using NL** (Desai et al.) | ICSE 2016 | Cluster 2 (Synthesis) | Ambiguous NL→DSL mapping | NL→DSL tiering precedent (R2) | §2.2 |
+| **35** | **Program Synthesis** (Gulwani et al.) | FnT PL 2017 | Cluster 2 (Synthesis) | Unbounded synthesis search | Canonical synthesis survey | §2.2 |
+| **36** | **AlphaCode** (Li et al.) | Science 2022 | Cluster 2 (Synthesis) | Sample reliability | Massive-sampling alternative rejected | §2.2, §6 |
+| **37** | **Grammar-Aligned Decoding** (Park et al.) | NeurIPS 2024 | Cluster 2 (Synthesis) | Constraint-distorted distributions | Constrained-decoding SOTA | §2.2 |
+| **38** | **EvalPlus** (Liu et al.) | NeurIPS 2023 | Cluster 3 (Evaluation) | Weak benchmark test suites | Rigorous-execution evaluation | §4.3 |
+| **39** | **SWE-bench** (Jimenez et al.) | ICLR 2024 | Cluster 3 (Evaluation) | Toy-problem evaluation | Real-task difficulty evidence | §4.1, §6 |
+| **40** | **ClassEval** (Du et al.) | FSE 2023 | Cluster 3 (Evaluation) | Function-level myopia | Coarser-granularity eval | §4.3 |
+| **41** | **LLM4SE SLR** (Hou et al.) | TOSEM 2024 | Survey | Fragmented LLM4SE field | Field-wide evidence base | §2 |
+| **42** | **LLM4SE Survey** (Fan et al.) | ICSE 2024 | Survey | Missing open-problem map | Open-problem alignment | §2, §6 |
+| **43** | **Hallucination Survey** (Ji et al.) | ACM CSUR 2023 | Survey | Unnamed hallucination modes | Taxonomy backing R1 metrics | §2, §4.3 |
+| **44** | **Verified Uncertainty Calibration** (Kumar et al.) | NeurIPS 2019 | Cluster 4 (Calibration) | Fragile calibration metrics | Calibration-measurement rigor (R3) | §2.4, §3.6 |
+| **45** | **Learning to Defer** (Mozannar & Sontag) | ICML 2020 | Cluster 4 (Calibration) | When to abstain | Deferral-theoretic backing (R3) | §2.4, §3.6 |
+| **46** | **Security Smells in Ansible/Chef** (Rahman et al.) | TOSEM 2021 | Cluster 5 (Security/IaC) | Insecure IaC idioms | IaC security-fragility evidence | §2.5, §7 |
+| **47** | **ABAC Policies via LLM KD** | ACM SACMAT 2025 | Cluster 5 (Security) | Brittle direct LLM extraction | Policy-extraction distillation | §2.5 |
+| **48** | **Clarifying Questions SIGIR** (Aliannejadi et al.) | SIGIR 2019 | Cluster 3 (Disambiguation) | When to ask | Clarification-selection theory | §2.3, §3.4 |
+| **49** | **ClariQ Corpora** (Aliannejadi et al.) | EMNLP 2021 | Cluster 3 (Disambiguation) | No clarification ground truth | Clarification datasets | §2.3 |
+| **50** | **Ambiguous Queries Survey** (Keyvan & Huang) | ACM CSUR 2022 | Survey | Scattered ambiguity literature | Ambiguity-handling taxonomy | §2.3 |
 
 ---
 
@@ -402,6 +422,190 @@ Text2Schema (ACM'25)  TypeConstrained(PLDI'25)Luitel et al. (RE'24)    Cherian e
 ### Snippet 6 (new): For §2 (Security and Access-Control Policy Synthesis)
 > Beyond insecure code generation itself, the policy-synthesis line documents the human factor and the security community's verdict on generative translation: a 47-participant CCS study found that developers with AI assistants produced significantly less secure code while feeling more confident in it (Sandoval et al. 2023), and IEEE TDSC and TPS-ISA work on extracting access-control policies from natural language (Narouei et al. 2020; Lawal et al. 2024) shows both that NL→policy is a longstanding hard problem and that current LLM translation falls materially short of enforceable accuracy. Our compiler takes the security community's conclusion as a design constraint: access-control decisions are classified against a fixed option set and expanded into pre-verified RLS fragments — never free-form generated.
 
+
+---
+
+## Third Wave (#31–50): Detailed Profiles — Q1/Q2 Journals and Top-Tier Proceedings Only
+
+> Sourcing note (wave 3): every entry cites its publisher of record — *Science*, ACM Digital Library (TOSEM, CSUR, SIGIR, SACMAT), ACL Anthology (TACL, EMNLP), PMLR (ICML), NeurIPS/ICLR proceedings, IEEE/ACM (ICSE, FSE), PACMPL (OOPSLA), now Publishers (FnTPL). arXiv mirrors exist for some but are never the cited version. Venue-prestige flags where a reviewer might push back: SACMAT is CCF-B (specialized access-control venue — cited for domain fit, not prestige); FnTPL is a monograph journal (the field's canonical synthesis survey).
+
+### Cluster 1 additions — Semantic Parsing and Dataflow IRs
+
+#### 31. SQLizer: Query Synthesis from Natural Language
+- **Authors:** Navid Yaghmazadeh, Yuepeng Wang, Isil Dillig, Thomas Dillig (UT Austin)
+- **Venue:** *Proceedings of the ACM on Programming Languages (PACMPL), Vol. 1, OOPSLA 2017*
+- **Identifiers:** [DOI: 10.1145/3133887](https://doi.org/10.1145/3133887)
+- **Core Contribution:** Synthesizes SQL from English by deriving candidate *query fragments* via semantic parsing, then iteratively combining them under type constraints — decomposition as the answer to NL ambiguity.
+- **Key Relevance:** The fragment-based decomposition philosophy predates and mirrors our tiered mechanisms (A/B/C proposing fragments of the final `BackendSpec`).
+- **Delta vs. Our Compiler:** SQLizer's target space is one SELECT query over a known schema; ours is a whole validated backend configuration, and ambiguity is surfaced to the user rather than resolved by search.
+
+#### 32. Task-Oriented Dialogue as Dataflow Synthesis (SMCalFlow)
+- **Authors:** Jacob Andreas, John Bufe, David Burkett, et al. (Microsoft Semantic Machines)
+- **Venue:** *Transactions of the Association for Computational Linguistics (TACL), Vol. 8, 2020*
+- **Identifiers:** [ACL Anthology: 2020.tacl-1.36](https://aclanthology.org/2020.tacl-1.36/)
+- **Core Contribution:** Represents dialogue state as a *dataflow graph*; each utterance maps to a program extending the graph — compositional semantic parsing where "metacomputation" lets the system ask about the utterance it could not parse.
+- **Key Relevance:** The closest published cousin of our architecture: typed graph-structured IR + explicit clarification for uninterpretable input. Their metacomputation ≈ our `clarify_unparsed`.
+- **Delta vs. Our Compiler:** SMCalFlow parses calendar utterances with trained models; our IR is a product configuration validated by a constraint graph, and downstream synthesis is fully deterministic.
+
+#### 33. RAT-SQL: Relation-Aware Schema Encoding and Linking for Text-to-SQL Parsers
+- **Authors:** Bailin Wang, Richard Shin, Xiaodong Liu, Oleksandr Polozov, Matthew Richardson (Microsoft)
+- **Venue:** *ACL 2020*
+- **Identifiers:** [ACL Anthology: 2020.acl-main.677](https://aclanthology.org/2020.acl-main.677/)
+- **Core Contribution:** Unified relation-aware self-attention jointly encoding schema and question, solving schema linking (which table/column does "they" refer to) — the long-standing bottleneck of text-to-SQL.
+- **Key Relevance:** Schema linking is exactly our mechanism-C classification problem: mapping NL mentions onto ontology entities/parameters.
+- **Delta vs. Our Compiler:** RAT-SQL learns linking end-to-end over Spider's schemas; our linking is bounded to a fixed 10-feature ontology, making exact aliases + phrase rules viable and auditable.
+
+### Cluster 2 additions — Synthesis Foundations and Constrained Decoding
+
+#### 34. Program Synthesis Using Natural Language
+- **Authors:** Aditya Desai, Sumit Gulwani, Vineet Hingorani, Nidhi Jain, Amey Karkare, Mark Marron, Sailesh R, Subhajit Roy
+- **Venue:** *ICSE 2016* (ACM/IEEE)
+- **Identifiers:** [DOI: 10.1145/2884781.2884786](https://doi.org/10.1145/2884781.2884786)
+- **Core Contribution:** General framework for NL→DSL synthesizers that *tiers* interpretation: domain-specific recognizers for well-phrased input, then conditional-probability ranking, then user queries for the rest — with the insight that precision-critical fragments should not be guessed.
+- **Key Relevance:** The direct intellectual ancestor of our exact-alias (A) → phrase-rule (B) → classifier (C) → MCQ tiering. Published at our own target venue, ICSE.
+- **Delta vs. Our Compiler:** Their DSLs are small (dates, flights); ours is a full backend ontology, and their ranking layer is replaced by a calibrated typed-decision classifier with a measured ECE gate.
+
+#### 35. Program Synthesis (Foundations and Trends monograph)
+- **Authors:** Sumit Gulwani, Oleksandr Polozov, Rishabh Singh
+- **Venue:** *Foundations and Trends in Programming Languages, Vol. 4, No. 1–2, pp. 1–119, 2017* (now Publishers)
+- **Identifiers:** [DOI: 10.1561/2500000010](https://doi.org/10.1561/2500000010)
+- **Core Contribution:** The canonical survey of program synthesis: user-intent specification forms (examples, NL, logical specs), search strategies (enumerative, constraint-based, stochastic), and the universality of *restriction* — bounded languages make intent inference tractable.
+- **Key Relevance:** Supplies the theoretical vocabulary for §2 and §3.1: our ontology is a deliberate restriction along every axis the monograph identifies (language, sketch, grammar).
+- **Delta vs. Our Compiler:** The monograph's programs compute; our artifact *configures* — verification is ontology-constraint validation, not I/O equivalence.
+
+#### 36. Competition-Level Code Generation with AlphaCode
+- **Authors:** Yujia Li et al. (DeepMind)
+- **Venue:** *Science, Vol. 378, No. 6624, pp. 1092–1097, December 2022*
+- **Identifiers:** [DOI: 10.1126/science.abq1158](https://doi.org/10.1126/science.abq1158)
+- **Core Contribution:** Achieved top-54% human-percentile competitive programming by generating *millions* of samples per problem and filtering/clustering by execution against example tests — scale-and-filter as a correctness strategy.
+- **Key Relevance:** The strongest published statement of the alternative we reject: when per-sample correctness cannot be trusted, buy reliability with six orders of magnitude more compute.
+- **Delta vs. Our Compiler:** AlphaCode's filtering needs executable tests and vast sampling; our compiler needs neither — the ontology bounds the output space so tightly that a single deterministic pass suffices, and untestable artifacts (RLS policies) are never sampled at all.
+
+#### 37. Grammar-Aligned Decoding
+- **Authors:** Kanghee Park, Jiayu Wang, Taylor Berg-Kirkpatrick, Nadia Polikarpova, Loris D'Antoni (UCSD)
+- **Venue:** *NeurIPS 2024*
+- **Identifiers:** [NeurIPS Proceedings 37](https://proceedings.neurips.cc/paper_files/paper/2024/hash/2bdc2267c3d7d01523e2e17ac0a754f3-Abstract-Conference.html)
+- **Core Contribution:** Shows that standard constrained decoding (masking tokens to satisfy a grammar) systematically *distorts* the model's distribution — semantically valid continuations are suppressed — and introduces alignment loss to preserve both validity and distribution.
+- **Key Relevance:** The current frontier of the constrained-generation line (Synchromesh/PICARD/SynCode in wave 1), and its sharpest critique: constraint satisfaction alone can degrade semantic quality.
+- **Delta vs. Our Compiler:** Their constraints live at token level during generation; our constraint satisfaction happens at spec level after classification, so no distribution distortion — the generator is never asked to satisfy grammar, only to pick among ontology options.
+
+### Cluster 3 additions — Rigorous Code-Generation Evaluation
+
+#### 38. Is Your Code Generated by ChatGPT Really Correct? (EvalPlus)
+- **Authors:** Jiawei Liu, Chunqiu Steven Xia, Yuyao Wang, Lingming Zhang (UIUC)
+- **Venue:** *NeurIPS 2023 (Datasets and Benchmarks)*
+- **Identifiers:** [NeurIPS Proceedings 36](https://proceedings.neurips.cc/paper_files/paper/2023/hash/43e9d647ccd3e4b7b5baab53f0368686-Abstract.html)
+- **Core Contribution:** Augments HumanEval/MBPP with type- and mutation-amplified test suites, exposing that models scoring 90%+ on original benchmarks drop sharply under rigorous testing — benchmark saturation was measurement error.
+- **Key Relevance:** Methodological anchor for our evaluation-honesty stance (§4.3): if you measure with weak gold, you will over-claim. Our annotation-protocol story (engine-pinned vs. cleaned human gold) is the configuration-artifact analogue.
+- **Delta vs. Our Compiler:** EvalPlus hardens tests for function synthesis; we hardened the *gold labels* for spec synthesis — our §5.1 numbers moved the same direction when measurement got rigorous.
+
+#### 39. SWE-bench: Can Language Models Resolve Real-World GitHub Issues?
+- **Authors:** Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, Karthik Narasimhan (Princeton)
+- **Venue:** *ICLR 2024*
+- **Identifiers:** [ICLR Proceedings](https://proceedings.iclr.cc/paper_files/paper/2024/hash/edac78c3e300629acfe6cbe9ca88fb84-Abstract-Conference.html)
+- **Core Contribution:** 2,294 real repository tasks from 12 Python projects; even the best 2023-era models resolved only the simplest issues — real software engineering is drastically harder than benchmark toys.
+- **Key Relevance:** Grounds our claim that direct-to-artifact LLM generation under-delivers exactly where it matters (real, constraint-heavy tasks), supporting R1's framing.
+- **Delta vs. Our Compiler:** SWE-bench proves difficulty; our answer is to shrink the task to a versioned ontology where correctness becomes checkable by construction — the "issue" space becomes MCQ decisions.
+
+#### 40. ClassEval: A Manually-Crafted Benchmark for Evaluating LLMs on Class-Level Code Generation
+- **Authors:** Xueying Du, Mingwei Liu, Binyuan Hui, et al. (Fudan)
+- **Venue:** *ESEC/FSE 2023* (ACM)
+- **Identifiers:** [DOI: 10.1145/3597503.3639219](https://doi.org/10.1145/3597503.3639219)
+- **Core Contribution:** 100 class-level tasks (skeleton + dependencies + interdependent methods) showing all 11 evaluated LLMs degrade substantially beyond single-function generation — granularity is a first-class difficulty axis.
+- **Key Relevance:** Our task is inherently coarse-granular (a whole backend = many interdependent artifacts); ClassEval is the SE-venue evidence that coarse granularity breaks naive generation.
+- **Delta vs. Our Compiler:** ClassEval measures the degradation; we sidestep it by assembling interdependent artifacts deterministically from a validated spec rather than asking the model to hold the dependency structure itself.
+
+### Survey additions — Field Framing
+
+#### 41. Large Language Models for Software Engineering: A Systematic Literature Review
+- **Authors:** Xinyi Hou, Yanjie Zhao, Yue Liu, Zhou Yang, Kailong Wang, Haoyu Wang, Zhiyuan Feng, David Lo, John Grundy
+- **Venue:** *ACM TOSEM, Vol. 33, No. 8, 2024*
+- **Identifiers:** [DOI: 10.1145/3695988](https://doi.org/10.1145/3695988)
+- **Core Contribution:** 395-paper SLR (2020–2023) mapping LLM4SE across requirements, design, code, testing, maintenance; documents that *requirement understanding* remains the least-mature application area.
+- **Key Relevance:** Q1-journal warrant that our problem — NL requirement → validated artifact — sits in the field's acknowledged gap.
+- **Delta vs. Our Compiler:** The SLR catalogs prompt-scale experiments; we contribute a compiler-grade protocol (determinism, calibration gate, omission metric) to that gap.
+
+#### 42. Large Language Models for Software Engineering: Survey and Open Problems
+- **Authors:** Angela Fan, Beliz Gokkaya, Mark Harman, Mitesh Lytvyn, et al. (Meta) + Jie M. Zhang, Shin Yoo
+- **Venue:** *ICSE 2024 (SEIP track)* — IEEE
+- **Identifiers:** [IEEE Xplore: 10449667](https://ieeexplore.ieee.org/document/10449667)
+- **Core Contribution:** Industry+academia survey enumerating open problems — data, evaluation, trust/reliability, deployment — and flags *reliability of generated artifacts* and *evaluation validity* as core unsolved issues.
+- **Key Relevance:** Our R1 (fidelity with zero silent omission) and R3 (calibration gate) answer, in one narrow domain, two of their named open problems.
+- **Delta vs. Our Compiler:** Where the survey calls for reliability research at large, we demonstrate a fully scoped, measured instance: 0.947 recall, 3 omissions, ECE-gated auto-accept.
+
+#### 43. Survey of Hallucination in Natural Language Generation
+- **Authors:** Ziwei Ji, Nayeon Lee, Rita Frieske, Tiezheng Yu, Dan Su, Yan Xu, Etsuko Ishii, Ye Jin Bang, Andrea Madotto, Pascale Fung (HKUST)
+- **Venue:** *ACM Computing Surveys (CSUR), Vol. 55, No. 12, 2023*
+- **Identifiers:** [DOI: 10.1145/3571730](https://doi.org/10.1145/3571730)
+- **Core Contribution:** The definitive taxonomy of hallucination in NLG — intrinsic vs. extrinsic, data-driven vs. training/objective-driven causes — and mitigation families.
+- **Key Relevance:** Gives our *hallucinated-artifact rate* metric (§4.3) its scientific name and taxonomy; our "operator-answer contamination" findings map onto their data-driven causes.
+- **Delta vs. Our Compiler:** Their mitigations modify training/inference; ours removes the generation surface entirely for security-critical artifacts.
+
+### Cluster 4 additions — Calibration and Deferral Theory
+
+#### 44. Verified Uncertainty Calibration
+- **Authors:** Ananya Kumar, Percy Liang, Tengyu Ma (Stanford)
+- **Venue:** *NeurIPS 2019 (Spotlight)*
+- **Identifiers:** [NeurIPS Proceedings 32](https://proceedings.neurips.cc/paper_files/paper/2019/hash/f8c0c968632845cd133308b1a494967f-Abstract.html)
+- **Core Contribution:** Proves standard calibration metrics (including binned ECE) can *increase* under miscalibration correction and are sensitive to binning choices; introduces differentiable, distribution-free calibration measures with verification.
+- **Key Relevance:** Direct methodological caution for our R3: our 10-bin ECE gate must state binning sensitivity — exactly the critique Kumar et al. formalize, and our non-monotone coverage-correctness curve is an instance.
+- **Delta vs. Our Compiler:** They fix the metric; we adopt a conservative gate (fail → refit, never pass-by-metric-quirk) and report the sweep rather than a single operating point.
+
+#### 45. Consistent Estimators for Learning to Defer to an Expert
+- **Authors:** Hussein Mozannar, David Sontag (MIT)
+- **Venue:** *ICML 2020* — PMLR Vol. 119
+- **Identifiers:** [PMLR v119/mozannar20b](https://proceedings.mlr.press/v119/mozannar20b.html)
+- **Core Contribution:** Foundational learning-to-defer theory: consistent surrogate losses for predictors that may *defer to an expert*, unifying rejection-option learning with cost-sensitive classification.
+- **Key Relevance:** Our auto-accept (≥0.75) vs. MCQ-deferral is a defer-to-expert system where the expert is the user; Mozannar–Sontag supplies the loss-theoretic view of that threshold.
+- **Delta vs. Our Compiler:** Their expert labels are training data; our "expert" is queried at inference time through structured MCQs whose options the ontology enumerates — deferral with zero free-form interaction cost.
+
+### Cluster 5 additions — IaC Security and Policy Extraction
+
+#### 46. Security Smells in Ansible and Chef Scripts: A Replication Study
+- **Authors:** Akond Rahman, Amrit Chapagain, Chris Parnin, Laurie Williams, et al.
+- **Venue:** *ACM TOSEM, Vol. 30, 2021*
+- **Identifiers:** [DOI: 10.1145/3408897](https://doi.org/10.1145/3408897)
+- **Core Contribution:** Large-scale empirical study of 1,466 Ansible/ Chef repositories: security smells (hardcoded secrets, no integrity checks, admin-by-default) pervade real IaC at scale; ships the SLAC static detector.
+- **Key Relevance:** Documents that hand-written infrastructure scripts — the artifacts naive NL→IaC generation imitates — are themselves security-fragile; motivates pre-verified fragments over imitated idioms.
+- **Delta vs. Our Compiler:** SLAC detects smells post-hoc; our composer cannot emit them (hardcoded secrets, permissive RLS) because templates are parameterized and reviewed once, not regenerated per request.
+
+#### 47. Extraction of Machine Enforceable ABAC Policies from Natural Language Text using LLM Knowledge Distillation
+- **Authors:** Aditya Nangia, Sriya Ayachitula, Chinmay Kundu (per ACM DL; sacmat.org lists a different author group for a similarly titled sibling paper — the DOI's DL entry is authoritative)
+- **Venue:** *ACM SACMAT 2025*
+- **Identifiers:** [DOI: 10.1145/3734436.3734447](https://doi.org/10.1145/3734436.3734447)
+- **Core Contribution:** Distills LLM capability into a student model that extracts enforceable ABAC policies from NL, trading scale for auditability — access control's answer to our small-classifier design.
+- **Key Relevance:** Independent, same-direction evidence (from the access-control community) that a bounded model + fixed policy schema is preferable to raw LLM policy generation. *Venue note: SACMAT is CCF-B; cited for domain fit.*
+- **Delta vs. Our Compiler:** Their student extracts attribute rules; our classifier decides role/bucket/RLS options, and the enforceable artifact is composed from verified SQL fragments, not serialized from model output.
+
+### Cluster 3 additions — Clarifying-Question Selection and Ambiguity
+
+#### 48. Asking Clarifying Questions in Open-Domain Information-Seeking Conversations
+- **Authors:** Mohammad Aliannejadi, Hamed Zamani, Fabio Crestani, W. Bruce Croft
+- **Venue:** *SIGIR 2019* (full paper)
+- **Identifiers:** [DOI: 10.1145/3331184.3331265](https://doi.org/10.1145/3331184.3331265)
+- **Core Contribution:** Formalizes clarifying-question *selection* as retrieval over a question bank, showing when asking beats guessing in open-domain conversations — the decision theory our MCQ trigger implements.
+- **Key Relevance:** Together with Horvitz (#14): the interaction-cost-vs-error-cost framework, now with modern empirical grounding at SIGIR scale.
+- **Delta vs. Our Compiler:** Their question bank is pre-authored corpus-wide; ours is *derived per input* from the partial spec's unresolved decisions — no bank, no free-form generation.
+
+#### 49. Building and Evaluating Open-Domain Dialogue Corpora with Clarifying Questions
+- **Authors:** Mohammad Aliannejadi, Julia Kiseleva, et al.
+- **Venue:** *EMNLP 2021*
+- **Identifiers:** [ACL Anthology: 2021.emnlp-main.367](https://aclanthology.org/2021.emnlp-main.367/)
+- **Core Contribution:** Releases and evaluates ClariQ-style corpora with human-judged clarification utility — ground truth that asking the *right* question measurably improves downstream answers.
+- **Key Relevance:** Supports our measured-MCQ-burden design (§5.2: ≈2.3–7 questions per input) with the finding that question quality, not count, drives value.
+- **Delta vs. Our Compiler:** Their utility is judged post-hoc by annotators; our MCQ utility is structural — each answered question resolves a specific spec decision the validator re-derives.
+
+#### 50. How to Approach Ambiguous Queries in Conversational Search: A Survey of Techniques, Approaches, Tools, and Challenges
+- **Authors:** Kimiya Keyvan, Jimmy Xiangji Huang (York University)
+- **Venue:** *ACM Computing Surveys (CSUR), 2022*
+- **Identifiers:** [DOI: 10.1145/3534965](https://doi.org/10.1145/3534965)
+- **Core Contribution:** Systematizes ambiguity handling across search and dialogue: ambiguity *detection*, *interpretation*, and *resolution* strategies (ask, hedge, profile, proactive).
+- **Key Relevance:** Gives §2.3 its organizing vocabulary: our MCQ loop is detection + explicit-ask resolution under a hard budget; the survey frames the alternative strategies we don't use and why (hedging is unacceptable when output is a deployed backend).
+- **Delta vs. Our Compiler:** Search systems can hedge (show multiple results); a compiler deploys one project — resolution must be categorical, which is why we ask instead of rank.
+
+### Snippet 7 (new): For §2 (Synthesis Foundations and Rigorous Evaluation)
+> The synthesis tradition itself supplies both our ancestry and our contrast. Tiered NL→DSL interpretation — precise recognizers first, probabilistic ranking second, user queries last — was established at ICSE (Desai et al. 2016) and systematized in the canonical synthesis monograph (Gulwani, Polozov, and Singh 2017), whose central lesson is that restriction makes intent inference tractable; our ontology is that restriction, applied to a backend product space. The LLM era's flagship alternative is scale-and-filter (AlphaCode; Li et al. 2022, *Science*) — millions of samples, filtered by execution — while the constrained-decoding line (most recently grammar-aligned decoding; Park et al. 2024) shows that even syntactic constraints distort generation distributions. Meanwhile, evaluation research has shown how far optimistic measurement sits from reality: benchmark saturation deflated under rigorous tests (EvalPlus; Liu et al. 2023), coarse-granularity generation collapses (ClassEval; Du et al. 2023), and real repository tasks remain near-unsolved (SWE-bench; Jimenez et al. 2024). Our compiler occupies the gap these lines leave open: a task space restricted enough that correctness is checkable by construction, and a measurement protocol (cleaned human gold, omission-first metrics) built to the rigor the evaluation literature demands.
+
 ## Ready-to-Use Prose Snippets for `Paper.md` §2
 
 You can review and copy these synthesized paragraphs directly into `Paper.md` §2:
@@ -425,7 +629,7 @@ You can review and copy these synthesized paragraphs directly into `Paper.md` §
 
 ## Action Items & Integration Checklist
 
-1. [ ] **Review Paper Candidates:** Verify that the 30 selections match the intended framing for the ICSE/FSE submission.
+1. [ ] **Review Paper Candidates:** Verify that the 50 selections match the intended framing for the JSS submission.
 2. [ ] **Update `Paper.md` §2:** Replace the skeletal notes in Section 2 with the synthesized prose snippets provided above.
-3. [ ] **Update `Paper.md` References:** Copy the 30 verified bibliographic references into the bibliography at the end of `Paper.md`.
+3. [ ] **Update `Paper.md` References — cite-what-you-discuss only.** §2's bibliography carries only the papers the prose actually discusses (~31 of 50). Do NOT bulk-copy all 50: citing 19 undiscussed papers is padding, and JSS reviewers flag it. The full 50-paper set remains this file's review backing, not the paper's bibliography.
 4. [ ] **Cross-Reference in §1, §3, §4, §5:** Add citations to Spiess et al. (ICSE'25) in §5.3, Pearce et al. (S&P'22) in §1, Mu et al. (FSE'24) in §3.4, and Kon et al. (NeurIPS'24) in §5.4.

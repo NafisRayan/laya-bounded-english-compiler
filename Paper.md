@@ -106,7 +106,10 @@ bounded target languages is a mature discipline: sketching (Solar-Lezama
 2008), syntax-guided synthesis (Alur et al. 2013), DSL-bounded induction
 shipped at consumer scale in FlashFill (Gulwani 2011), neural prior guidance
 over DSLs in DeepCoder (Balog et al. 2017), and solver-aided host languages
-(Torlak and Bodík 2013). Its recurrent finding is ours by adoption:
+(Torlak and Bodík 2013) — and the tiered NL→DSL shape has an ICSE-published
+ancestor (Desai et al. 2016): precise recognizers first, probabilistic
+ranking second, user queries for the remainder — our A→B→C→MCQ order
+exactly. Its recurrent finding is ours by adoption:
 restricting the target to a typed intermediate representation makes search
 tractable and the result checkable. Our delta: the IR here is not a program
 space to be searched but a domain-typed product spec — correctness is not
@@ -117,7 +120,11 @@ as an invariant rather than an aspiration (§3.1). The generate-then-verify
 counterpart exists in specification generation — SpecGen (Dong et al. 2025)
 and AutoReSpec (Ayon et al. 2026) iterate LLM output until a formal
 verifier accepts it — whereas here the validator sits inside the compiler
-and no free-form artifact ever exists to repair.
+and no free-form artifact ever exists to repair. The strongest published
+alternative is the one we reject: scale-and-filter — AlphaCode (Li et al.
+2022) bought competitive-programming reliability with millions of samples
+filtered by execution, a strategy unusable here where the output includes
+artifacts no test suite can grade, like RLS policies.
 
 **Human-in-the-loop disambiguation.** Mixed-initiative interaction
 principles (Horvitz 1999), clarifying-question retrieval in open-domain
@@ -136,13 +143,23 @@ the interpreter could not read (§3.4). The dialogue-precedent line — CoSQL
 (Yu et al. 2019), PRACTIQ (Dong et al. 2025) — established that database
 interfaces must model clarification and unanswerable queries; those systems
 resolve through free-text dialogue, where ours presents bounded,
-ontology-grounded multiple-choice options.
+ontology-grounded multiple-choice options. Learning-to-defer theory
+(Mozannar and Sontag 2020) supplies the loss-theoretic view of that
+threshold — our "expert" is the user, queried at inference time through
+options the ontology enumerates — and SMCalFlow (Andreas et al. 2020) is
+the closest published cousin: a typed dataflow IR with explicit
+clarification for uninterpretable utterances, their metacomputation being
+our `clarify_unparsed`.
 
 **Model calibration and selective prediction.** Expected calibration error
 (Naeini et al. 2015), temperature scaling (Guo et al. 2017), and the
 reject-option / risk-coverage line (Chow 1970; Geifman and El-Yaniv 2017)
 form the standard toolkit: measure calibration post hoc, rescale, and trade
-coverage against accuracy at a chosen operating point. Our delta is the
+coverage against accuracy at a chosen operating point — with the metric
+itself handled conservatively, since binned ECE is sensitive to binning
+choices and can shift under correction (Kumar et al. 2019), which is why
+the gate fails conservative and reports the full sweep rather than a
+single operating point (§5.3). Our delta is the
 deployment shape: calibration as an *in-compiler gate* — 10-bin ECE measured
 on the model's shipped `answer_confidence`, a temperature fitted only when
 ECE ≥ 0.1, feeding a fixed 0.75 auto-accept threshold (§3.6) — with the
@@ -422,7 +439,12 @@ fixed in the next gold generation. The re-review's blind attestation was
 corrected post-hoc (original negative → confirmed positive after the
 reviewer's edit and content corroboration); the full trail is in
 `tests/annotation/AGREEMENT_REVIEW_VALIDATION.md`. Held-out cases were
-scored exactly once, after measurement code and gold were frozen.
+scored exactly once, after measurement code and gold were frozen. This
+stance follows the code-generation evaluation literature's own correction:
+benchmark saturation deflated under rigorous testing (EvalPlus — Liu et al.
+2023; ClassEval — Du et al. 2023), and real-repository tasks remain
+near-unsolved (SWE-bench — Jimenez et al. 2024) — weak gold over-claims,
+which is precisely what the annotation rounds here repaired.
 
 ### 4.2 Baselines
 
@@ -458,7 +480,9 @@ configuration produces (`tests/experiments/metrics.py`, runnable via
   |gold enabled|`. A case with no gold-enabled features (pure-negation case)
   scores 1.0 iff nothing was enabled.
 - **Silent-omission rate** (R1's primary endpoint) and **hallucinated-feature
-  count** = `|gold enabled \ predicted|` and `|predicted \ gold enabled|`.
+  count** = `|gold enabled \ predicted|` and `|predicted \ gold enabled|` —
+  the second is the artifact-level instance of the hallucination taxonomy
+  (Ji et al. 2023).
   Note the asymmetry: the golden suite's partial submatch (§18.13) asserts
   presence but *cannot* catch additions — the precision half of this metric
   is what surfaces them.
@@ -844,7 +868,10 @@ side labels, and still flipped 21 of 77), and the re-review was a single
 fast pass whose blind attestation was corrected post-hoc (§4.1).
 The hybrid hallucinates 30-32 requirements per 35 cases under operator-answer
 scoring — mostly the operator layer contradicting the cleaned gold, and
-exactly why the MCQ loop exists. Every number here carries its setting,
+exactly why the MCQ loop exists. Hand-written infrastructure-as-code —
+the artifact naive generation would imitate — is itself security-fragile at
+scale (Rahman et al. 2021), which is why the composer emits parameterized,
+once-reviewed fragments instead. Every number here carries its setting,
 and every number regenerates from committed artifacts.
 
 
@@ -895,3 +922,13 @@ and every number regenerates from committed artifacts.
 - Sandoval, N., Pearce, H., Lapelsohn, S., et al. (2023). Do users write more insecure code with AI assistants? *ACM CCS 2023*. DOI 10.1145/3576915.3623157.
 - Tian, Y., Zhang, Z., Ning, Z., Li, T. J. J., Kummerfeld, J. K., Zhang, T. (2023). Interactive text-to-SQL generation via editable step-by-step explanations. *EMNLP 2023*.
 - Yu, T., Zhang, R., Er, H., et al. (2019). CoSQL: A conversational text-to-SQL challenge towards cross-domain natural language interfaces to databases. *EMNLP-IJCNLP 2019*.
+- Andreas, J., Bufe, D., Burkett, D., et al. (2020). Task-oriented dialogue as dataflow synthesis. *TACL*, 8.
+- Desai, A., Gulwani, S., Hingorani, V., et al. (2016). Program synthesis using natural language. *ICSE 2016*. DOI 10.1145/2884781.2884786.
+- Du, X., Liu, M., Hui, B., et al. (2023). ClassEval: A manually-crafted benchmark for evaluating LLMs on class-level code generation. *ESEC/FSE 2023*. DOI 10.1145/3597503.3639219.
+- Ji, Z., Lee, N., Frieske, R., et al. (2023). Survey of hallucination in natural language generation. *ACM Computing Surveys*, 55(12). DOI 10.1145/3571730.
+- Jimenez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., Press, O., Narasimhan, K. (2024). SWE-bench: Can language models resolve real-world GitHub issues? *ICLR 2024*.
+- Kumar, A., Liang, P., Ma, T. (2019). Verified uncertainty calibration. *NeurIPS 2019 (Spotlight)*.
+- Li, Y., et al. (2022). Competition-level code generation with AlphaCode. *Science*, 378(6624). DOI 10.1126/science.abq1158.
+- Liu, J., Xia, C. S., Wang, Y., Zhang, L. (2023). Is your code generated by ChatGPT really correct? Rigorous evaluation of LLMs for code (EvalPlus). *NeurIPS 2023 Datasets and Benchmarks*.
+- Mozannar, H., Sontag, D. (2020). Consistent estimators for learning to defer to an expert. *ICML 2020*. PMLR v119.
+- Rahman, A., Chapagain, A., Parnin, C., Williams, L. (2021). Security smells in Ansible and Chef scripts: A replication study. *IEEE/ACM TOSEM*, 30. DOI 10.1145/3408897.
