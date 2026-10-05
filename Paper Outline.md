@@ -50,7 +50,8 @@ the repo, at `../../laya/`.
 checkpoint, one pair per golden-case feature item, labels derived from the
 engine-pinned gold (`python -m tests.experiments.run_calibration`). ECE
 0.0951 < 0.1 passes the gate **in-sample against the contract-test corpus**;
-it is not independent human annotation and not held out, and the 0.0951
+it is scored against the cleaned human gold (three readings; κ reported;
+35 rows reconciled), not a third-party-annotated standard, and the 0.0951
 margin is thin. The deliberately-miscalibrated fit-demo set stays synthetic
 by design. `ontology/versions/v1/calibration.json` remains pass-through
 T = 1.0 per the spec's rule (fit only when the gate fails); the measured

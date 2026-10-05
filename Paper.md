@@ -455,7 +455,7 @@ rulings (27 upholding annotator 1, 8 taking annotator 2), producing the
 
 **Remaining limitations, stated plainly.** (a) The reconciliation was
 performed by the same person who annotated first and built the system —
-a full third-party reconciliation of the 35 rows has not run. (b) The
+a full third-party reconciliation of the 35 rows has not run (agreement coverage itself is complete: annotator 2 re-annotated all 50 cases blind, and the 184-row linter audit is independent). (b) The
 phrase rules and aliases were developed against this same corpus, a
 train/test contamination on the compiler side that mirrors the baselines'
 zero-shot disadvantage; the held-out 15 were scored once and the rules
@@ -788,13 +788,15 @@ the labels.
   question now has a measured curve
   (`tests/experiments/results/calibration_summary.md`).
 
-**Honesty note.** Labels derive from the engine-pinned golden expectations:
-they measure the model against the contract-test corpus, in-sample — not
-against independent human annotation, and not held out. The §5.2
-hallucinations are no longer *uncalibrated* (the checkpoint's confidence now
-has a measured ECE on this corpus), but the 0.0951 margin to the 0.1 gate is
-thin; the claim-grade R3 number is a re-run on independently annotated
-held-out labels.
+**Honesty note.** Labels are scored against the **cleaned, reconciled
+human gold** (three readings; two independent annotators; 35
+reconciliation rulings — see §4.1), not the engine-pinned regression
+expectations, and the held-out 15 were scored once after freezing. The
+§5.2 hallucinations are no longer *uncalibrated* (the checkpoint's
+confidence has a measured ECE of 0.0381 on this gold, gate PASS), and
+the claim-grade R3 caveat is now narrower: an independent third-party
+reconciliation of the 35 disagreement rows has not run, and the
+annotators are not independent of the system's rule author.
 
 ### 5.4 End-to-end (secondary)
 
