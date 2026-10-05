@@ -441,14 +441,32 @@ of 77 disputes (final tally **48 `engine-wrong` / 21 `both-defensible` /
 8 `annotator-misread`**); (3) a mechanical no-anchor linter whose 136
 candidates received human batch rulings, removing **60 further items —
 39 unpinned `authentication` claims and all 16 edge functions** (no
-sentence in the corpus mentions webhooks). Disclosures, all load-bearing:
-the annotator and adjudicator were the same person (the first
-self-adjudication's 41:3 skew was itself revised — the independent third
-reader, working from pre-filled verdicts **with side labels visible**,
-flipped 21 rulings in both directions); `both-defensible` items are scored
-on the annotator side (the scorer has no neutral state); agreement-on-wrong
-bias — annotator and engine agreeing on an unmentioned feature, invisible
-to clash review — was found (e.g. `authentication` in "We need bookings and
+sentence in the corpus mentions webhooks). Disclosures, all load-bearing.
+
+**Two independent annotators.** The corpus was annotated twice: annotator 1
+(the system author, first pass) and annotator 2 (project-aware, but
+blinded to all gold materials — fresh blank worksheets only). Inter-
+annotator agreement: raw 74.3% on features, Cohen's κ = 0.16 (roles
+−0.23, buckets −0.55); the low κ is dominated by vocabulary and taxonomy
+skew — after synonym normalization, only **35 genuine disagreements**
+remained across 50 cases. Those 35 rows received human reconciliation
+rulings (27 upholding annotator 1, 8 taking annotator 2), producing the
+**final three-reading gold** every §5 number is reported against.
+
+**Remaining limitations, stated plainly.** (a) The reconciliation was
+performed by the same person who annotated first and built the system —
+a full third-party reconciliation of the 35 rows has not run. (b) The
+phrase rules and aliases were developed against this same corpus, a
+train/test contamination on the compiler side that mirrors the baselines'
+zero-shot disadvantage; the held-out 15 were scored once and the rules
+were never edited after that scoring, but a corpus authored by a third
+party remains future work. Further disclosures: the first
+self-adjudication's 41:3 skew was revised — the independent third reader,
+working from pre-filled verdicts **with side labels visible**, flipped 21
+rulings in both directions; `both-defensible` items are scored on the
+annotator side (the scorer has no neutral state); agreement-on-wrong bias
+— annotator and engine agreeing on an unmentioned feature, invisible to
+clash review — was found (e.g. `authentication` in "We need bookings and
 messaging") and then **measured**: an independent reviewer, blind on all
 required tiers, covered 184/184 rows (zero boilerplate; reasons quoting
 sentence words), overturning 0 of 82 prior keeps, confirming all 5 judgment
@@ -910,10 +928,14 @@ fresh projects: marketplace, minimal, idempotent re-deploy) succeeded
 along the way.
 
 **Honest costs.** The gold took three corrections and still carries two
-disclosed limits: the annotator self-adjudicated (the third reader saw
-pre-filled verdicts and side labels, and still flipped 21 of 77), and
-agreement-on-wrong bias was only partially measured (39 auth pins and 16
-edges were caught; a full agreement re-review has not run). The compiler's
+disclosed limits: the gold's correction chain involved the same person
+as annotator, first adjudicator, and reconciler (the independent third
+reader flipped 21 of 77 clash rulings; a second annotator then re-
+annotated the full corpus, and the 35 synonym-normalized disagreements
+were reconciled into the final gold with Cohen's kappa = 0.16 raw on
+features, dominated by vocabulary skew), and the phrase rules were
+developed against this same corpus (compiler-side train/test
+contamination, the mirror of the baselines' zero-shot disadvantage). The compiler's
 perfect score is achieved with operator answers derived from that same
 gold — the circularity is deliberate and disclosed: the claim is that the
 pipeline faithfully compiles what the human gold specifies, and the
