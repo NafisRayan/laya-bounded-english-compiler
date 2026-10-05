@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="767.7pt" height="568.8pt" viewBox="0 0 767.7 568.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-05T12:49:31.133947</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 568.8 
+L 767.7 568.8 
+L 767.7 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 26.451 106.981612 
+L 242.03175 106.981612 
+Q 245.37975 106.981612 245.37975 103.655212 
+L 245.37975 37.9692 
+Q 245.37975 34.6428 242.03175 34.6428 
+L 26.451 34.6428 
+Q 23.103 34.6428 23.103 37.9692 
+L 23.103 103.655212 
+Q 23.103 106.981612 26.451 106.981612 
+z
+" clip-path="url(#p9736ce5fab)" style="fill: #f8fafc; stroke: #64748b; stroke-width: 1.1; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 400.311 106.981612 
+L 634.833 106.981612 
+Q 638.181 106.981612 638.181 103.655212 
+L 638.181 37.9692 
+Q 638.181 34.6428 634.833 34.6428 
+L 400.311 34.6428 
+Q 396.963 34.6428 396.963 37.9692 
+L 396.963 103.655212 
+Q 396.963 106.981612 400.311 106.981612 
+z
+" clip-path="url(#p9736ce5fab)" style="fill: #f0f9ff; stroke: #0284c7; stroke-width: 1.1; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 400.311 270.964816 
+L 624.753 270.964816 
+Q 628.101 270.964816 628.101 267.638416 
+L 628.101 193.2012 
+Q 628.101 189.8748 624.753 189.8748 
+L 400.311 189.8748 
+Q 396.963 189.8748 396.963 193.2012 
+L 396.963 267.638416 
+Q 396.963 270.964816 400.311 270.964816 
+z
+" clip-path="url(#p9736ce5fab)" style="fill: #fff1f2; stroke: #e11d48; stroke-width: 1.1; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 26.451 279.71602 
+L 284.013 279.71602 
+Q 287.361 279.71602 287.361 276.38962 
+L 287.361 193.2012 
+Q 287.361 189.8748 284.013 189.8748 
+L 26.451 189.8748 
+Q 23.103 189.8748 23.103 193.2012 
+L 23.103 276.38962 
+Q 23.103 279.71602 26.451 279.71602 
+z
+" clip-path="url(#p9736ce5fab)" style="fill: #fffbeb; stroke: #d97706; stroke-width: 1.1; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 26.451 426.196816 
+L 325.773 426.196816 
+Q 329.121 426.196816 329.121 422.870416 
+L 329.121 348.4332 
+Q 329.121 345.1068 325.773 345.1068 
+L 26.451 345.1068 
+Q 23.103 345.1068 23.103 348.4332 
+L 23.103 422.870416 
+Q 23.103 426.196816 26.451 426.196816 
+z
+" clip-path="url(#p9736ce5fab)" style="fill: #faf5ff; stroke: #7c3aed; stroke-width: 1.1; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 400.311 426.196816 
+L 636.35925 426.196816 
+Q 639.70725 426.196816 639.70725 422.870416 
+L 639.70725 348.4332 
+Q 639.70725 345.1068 636.35925 345.1068 
+L 400.311 345.1068 
+Q 396.963 345.1068 396.963 348.4332 
+L 396.963 422.870416 
+Q 396.963 426.196816 400.311 426.196816 
+z
+" clip-path="url(#p9736ce5fab)" style="fill: #f0fdf4; stroke: #059669; stroke-width: 1.1; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'DejaVu Sans', sans-serif; text-anchor: middle; fill: #0f172a" x="383.85" y="18.633656" transform="rotate(-0 383.85 18.633656)">Figure 2: The Six-Stage Gold-Correction Flow and Evaluator Visibility</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #64748b" x="31.752" y="47.302594" transform="rotate(-0 31.752 47.302594)">Stage 1: Engine-Pinned Initial Gold (v1)</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="81.97691" transform="rotate(-0 31.752 81.97691)">50 hand-crafted inputs covering the ontology surface</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="90.728114" transform="rotate(-0 31.752 90.728114)">Expected specs pinned to early compiler outputs</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="99.479318" transform="rotate(-0 31.752 99.479318)">Serves as regression base, but reflects author assumptions</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 6.6px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0f766e" x="31.752" y="107.284181" transform="rotate(-0 31.752 107.284181)">Visibility: engine-generated; author-assumed mappings</text>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0284c7" x="405.612" y="47.302594" transform="rotate(-0 405.612 47.302594)">Stage 2: Independent Blind Annotation (v2)</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="81.97691" transform="rotate(-0 405.612 81.97691)">50 inputs annotated independently from scratch</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="90.728114" transform="rotate(-0 405.612 90.728114)">Standardized protocol; zero visibility into engine output</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="99.479318" transform="rotate(-0 405.612 99.479318)">Produced the independent worksheets (second_annotator/)</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 6.6px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0f766e" x="405.612" y="107.284181" transform="rotate(-0 405.612 107.284181)">Visibility: NL inputs only; blinded to engine predictions &amp; prior gold</text>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #e11d48" x="405.612" y="202.534594" transform="rotate(-0 405.612 202.534594)">Stage 3: Clash Adjudication (77 Disputes)</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="237.20891" transform="rotate(-0 405.612 237.20891)">77 disputes where engine and annotator disagreed</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="245.960114" transform="rotate(-0 405.612 245.960114)">Pass A: self-adjudication, skewed 41:3 (COI identified)</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="254.711318" transform="rotate(-0 405.612 254.711318)">Pass B: third reader, side labels visible, flipped 21 rulings</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="263.462522" transform="rotate(-0 405.612 263.462522)">Final: 48 engine-wrong / 21 both-defensible / 8 misread</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 6.6px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0f766e" x="405.612" y="271.267385" transform="rotate(-0 405.612 271.267385)">Visibility: disputed rows only; verdicts pre-filled &amp; side labels visible</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #d97706" x="31.752" y="202.534594" transform="rotate(-0 31.752 202.534594)">Stage 4: Mechanical No-Anchor Linter &amp; Rulings</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="237.20891" transform="rotate(-0 31.752 237.20891)">Linter flagged 136 claims with no input-text anchor</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="245.960114" transform="rotate(-0 31.752 245.960114)">Human batch rulings (LINTER_RULINGS.md) dropped 60:</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="254.711318" transform="rotate(-0 31.752 254.711318)">39 spurious authentication pins removed</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="263.462522" transform="rotate(-0 31.752 263.462522)">all 16 edge functions removed (never requested)</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="272.213726" transform="rotate(-0 31.752 272.213726)">5 other ungrounded assumptions dropped</text>
+   </g>
+   <g id="text_24">
+    <text style="font-weight: 700; font-size: 6.6px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0f766e" x="31.752" y="280.018589" transform="rotate(-0 31.752 280.018589)">Visibility: mechanical token anchor check against raw input</text>
+   </g>
+   <g id="text_25">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #7c3aed" x="31.752" y="357.766594" transform="rotate(-0 31.752 357.766594)">Stage 5: Independent Agreement Re-Review (184 Rows)</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="392.44091" transform="rotate(-0 31.752 392.44091)">Reviewer audited all 184 linter candidate rows</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="401.192114" transform="rotate(-0 31.752 401.192114)">Measured agreement-on-wrong bias directly</text>
+   </g>
+   <g id="text_28">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="409.943318" transform="rotate(-0 31.752 409.943318)">0 of 82 keeps overturned; 5 judgment drops confirmed</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="31.752" y="418.694522" transform="rotate(-0 31.752 418.694522)">1 held defect found: kitchen_sink role_names=[admin]</text>
+   </g>
+   <g id="text_30">
+    <text style="font-weight: 700; font-size: 6.6px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0f766e" x="31.752" y="426.499385" transform="rotate(-0 31.752 426.499385)">Visibility: row evidence quoting sentence words; attestation re-checked</text>
+   </g>
+   <g id="text_31">
+    <text style="font-weight: 700; font-size: 9px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #059669" x="405.612" y="357.766594" transform="rotate(-0 405.612 357.766594)">Stage 6: Reconciliation &amp; Frozen Gold (v4)</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="392.44091" transform="rotate(-0 405.612 392.44091)">35 residual disputes reconciled (27 a1 / 8 a2 rulings)</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="401.192114" transform="rotate(-0 405.612 401.192114)">operator answers re-derived from clean gold</text>
+   </g>
+   <g id="text_34">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="409.943318" transform="rotate(-0 405.612 409.943318)">(removed engine-era contamination causing false hallucinations)</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #1e293b" x="405.612" y="418.694522" transform="rotate(-0 405.612 418.694522)">human_gold.yaml frozen; 15 held-out scored exactly once</text>
+   </g>
+   <g id="text_36">
+    <text style="font-weight: 700; font-size: 6.6px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #0f766e" x="405.612" y="426.499385" transform="rotate(-0 405.612 426.499385)">Visibility: full comparative matrix across annotators, linter, rulings</text>
+   </g>
+   <g id="patch_8">
+    <path d="M 371.899182 57.096 
+Q 383.848906 57.096 394.45699 57.096 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 389.65699 54.696 
+L 394.45699 57.096 
+L 389.65699 59.496 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 570.78 120.080496 
+Q 570.78 129.165876 570.78 136.909616 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 573.18 132.109616 
+L 570.78 136.909616 
+L 568.38 132.109616 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 395.800818 217.872 
+Q 383.851094 217.872 373.24301 217.872 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 378.04301 220.272 
+L 373.24301 217.872 
+L 378.04301 215.472 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 196.92 275.312496 
+Q 196.92 284.397876 196.92 292.141616 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 199.32 287.341616 
+L 196.92 292.141616 
+L 194.52 287.341616 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 371.899182 373.104 
+Q 383.848906 373.104 394.45699 373.104 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+    <path d="M 389.65699 370.704 
+L 394.45699 373.104 
+L 389.65699 375.504 
+" style="fill: none; stroke: #334155; stroke-width: 1.2; stroke-linecap: round"/>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p9736ce5fab">
+   <rect x="7.2" y="7.2" width="753.3" height="554.4"/>
+  </clipPath>
+ </defs>
+</svg>
