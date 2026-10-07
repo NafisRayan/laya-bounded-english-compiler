@@ -8,13 +8,17 @@ fixed vocabulary), composes pre-tested SQL/RLS/auth/storage fragments,
 and deploys the result to a real Supabase project — with a human-in-the-loop
 question flow so nothing is ever silently omitted.
 
-The research question it answers: **does a layered compiler beat
-end-to-end LLM generation on fidelity?** Measured answer (cleaned,
-adjudicated human gold, de-contaminated operator): **yes — the
-rules-plus-clarification configuration scores perfect 1.000 recall /
-1.000 precision with zero omissions and zero hallucinations** (golden 35
-and frozen held-out 15), vs the strongest LLM baseline at 0.906 / 0.850
-with 6 omissions on the same cases. Full write-up:
+Two questions, answered separately (Paper.md §5.1, §7):
+
+- *Compile-faithfulness* — with clarification answers taken from the gold
+  (oracle MCQ), the rules-plus-clarification configuration reconstructs
+  that gold at **1.000 recall / 1.000 precision, zero omissions, zero
+  hallucinations** (golden 35 and frozen held-out 15). A reconstruction
+  result: it measures compilation of a specified spec.
+- *Unaided interpretation* — operator-free, the comparison against a
+  zero-shot LLM→spec baseline is a precision-for-omissions trade-off:
+  compiler 0.807 / 0.939 (11 omissions) vs baseline 0.906 / 0.850 (6
+  omissions, unparseable excluded). Full write-up:
 [`Paper.md`](Paper.md). Evidence ledger: [`Paper Outline.md`](Paper%20Outline.md).
 
 ## Quick start
@@ -223,26 +227,34 @@ spec (idempotency), then deletes the project. Runs on every push to
 - Deployment runs: Supabase CLI (`npm i -g supabase`) and a Supabase org
 - dbsmash baseline: `npm i -g dbsmash` + the keys above
 
-## Current measured results (cleaned human gold, golden 35, de-contaminated operator)
+## Measured results (golden 35, cleaned human gold — see Paper.md §5.1)
+
+**Compile-faithfulness (oracle operator: MCQ answers per gold).**
 
 | system | pooled recall / precision | omissions | hallucinations |
 |---|---|---|---|
 | **compiler rules + MCQ (real checkpoint)** | **1.000 / 1.000** | **0** | **0** |
 | compiler hybrid + MCQ (real checkpoint) | 1.000 / 0.949 | 0 | 3 |
 | compiler hybrid + MCQ, refit T = 1.40 | 1.000 / 0.982 | 0 | 1 |
+
+**Unaided interpretation (operator-free compiler vs zero-shot baselines).**
+
+| system | pooled recall / precision | omissions | hallucinations |
+|---|---|---|---|
 | LLM → spec → same composer (n=32 parsed of 35) | 0.906 / 0.850 | 6 | 10 |
+| compiler hybrid, MCQ-off | 0.807 / 0.939 | 11 | 3 |
+| compiler rules, MCQ-off | 0.667 / 1.000 | 19 | 0 |
 | LLM → direct SQL (table-level R / P) | 0.419 / 0.268 | — | — |
 | dbsmash CLI (table-level R / P) | 0.081 / 0.179 | — | — |
 
 Held-out (15 cases, scored once, frozen): rules + MCQ **1.000 / 1.000,
 zero omissions, zero hallucinations**; hybrid + MCQ 1.000 / 0.929 with
 2 hallucinations. Calibration (cleaned gold): ECE 0.0381 on the shipped
-confidence (gate < 0.1 passes), 0.0208 after refit. Deployment: a
-10-session battery (30 deployment operations across fresh projects) —
-**30/30 first-attempt**, rate 1.000, Wilson 95% CI [0.886, 1.000],
-idempotent re-deploy verified.
-re-deploy verified. Full detail, caveats, and the authoring-bias
-analysis: `Paper.md` §5.
+confidence (gate < 0.1 passes), 0.0208 after refit — the refit is not
+shipped (it degrades held-out). Deployment: a 10-session battery (30
+deployment operations across fresh projects) — **30/30 first-attempt**,
+rate 1.000, Wilson 95% CI [0.886, 1.000], idempotent re-deploy verified.
+Full detail, caveats, and the authoring-bias analysis: `Paper.md` §5 and §7.
 
 ## Testing
 
