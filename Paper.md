@@ -642,7 +642,9 @@ Two measurement settings, one corpus: the mock personas first (the
 contract-test setting the golden suite pins), then the real checkpoint
 (`python -m tests.experiments.run_ablation --real-laya`; summaries in
 `tests/experiments/results/ablation_summary.md` and
-`ablation_real_summary.md`). Mock-persona table:
+`ablation_real_summary.md`). Mock-persona ablation:
+
+Table: Mock-persona ablation across ten mechanism configs (golden 50; feature-exact out of 50, MCQ count and runtime are means).
 | Config | macro R / P | pooled R / P | omissions | hallucinations | feature-exact | params (pinned) | MCQ count (mean) | ms (mean) |
 |---|---|---|---|---|---|---|---|---|
 | A only + MCQ | 0.702 / 0.960 | 0.550 / 1.000 | 58 | 0 | 21/50 | 16/26 | 6.58 | 0.3 |
@@ -741,6 +743,8 @@ reconstructs the gold exactly.** Re-measured after the full gold cleanup (48/21/
 adjudication + 60 linter-ruling removals) *and* the operator-answer
 re-derivation (golden 35, real checkpoint):
 
+Table: Compile-faithfulness on the golden 35 (oracle operator, real checkpoint)
+
 | Config (golden 35) | pooled R / P | omissions | hallucinations |
 |---|---|---|---|
 | **rules + MCQ** | **1.000 / 1.000** | **0** | **0** |
@@ -748,6 +752,8 @@ re-derivation (golden 35, real checkpoint):
 | hybrid + MCQ, refit T = 1.40 | 1.000 / **0.982** | 0 | **1** |
 | hybrid, MCQ-off (operator-free) | 0.807 / 0.939 | 11 | 3 |
 | rules, MCQ-off (operator-free) | 0.667 / 1.000 | 19 | 0 |
+
+Table: Compile-faithfulness on the frozen held-out 15 (scored once)
 
 | Config (held-out 15 — scored once, frozen) | pooled R / P | omissions | hallucinations |
 |---|---|---|---|
