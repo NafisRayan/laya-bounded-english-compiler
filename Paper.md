@@ -1,13 +1,13 @@
 # From Bounded English to a Working Backend: A Deterministic, Ontology-Bounded Compiler
 
-*Draft — all sections drafted (§1–§8, measured results on cleaned human-verified
+*Draft: all sections drafted (§1–§8, measured results on cleaned human-verified
 gold, frozen held-out split). Evidence ledger and per-section status:
-`Paper Outline.md`. Bibliography is generated from `submission/references.bib` — add entries there, not in a list here.*
+`Paper Outline.md`. Bibliography is generated from `submission/references.bib`; add entries there, not in a list here.*
 
 **Abstract.** A common belief in AI-assisted software engineering is that natural-language
 tasks require large language models. This paper argues, and measures, a narrower
 claim: against a fixed ontology, deterministic compilation of a specified spec
-replaces free-form generation for the deployable artifact — not for unaided
+replaces free-form generation for the deployable artifact; not for unaided
 interpretation, where a zero-shot LLM wins recall. We present a deterministic,
 ontology-bounded compiler for Supabase backends: three interpretation mechanisms
 (exact aliases, span-clamped phrase rules, and a 421M-parameter typed-decision
@@ -23,17 +23,17 @@ its temperature refit helps in-sample, degrades held-out, and is not shipped.
 Deployment reliability: 30/30 first-attempt operations (Wilson CI [0.886,
 1.000]); three live e2e sessions (nine operations), the first in 39 s. The
 supporting gold is author-curated, dual-annotated, author-reconciled (raw
-κ = 0.16), linted, re-reviewed 184/184; its limitations — authoring bias,
-self-adjudication, operator-answer contamination — are consolidated as threats
+κ = 0.16), linted, re-reviewed 184/184; its limitations (authoring bias,
+self-adjudication, operator-answer contamination) are consolidated as threats
 to validity.
 **Keywords.** Natural language to backend; Deterministic compilation; Software specification; Program synthesis; Calibration; Human-in-the-loop clarification
 ---
 
 ## 1. Introduction
 
-Building the backend of a web application — database schema, row-level
+Building the backend of a web application (database schema, row-level
 security, authentication, file storage, realtime channels, and edge functions
-— is a well-bounded engineering task that is nonetheless inaccessible to many
+) is a well-bounded engineering task that is nonetheless inaccessible to many
 people who can describe it precisely in a paragraph of English. This paper
 studies the task of compiling that paragraph into a working Supabase project:
 the input is a 1–500 word natural-language description of a backend, and the
@@ -42,16 +42,16 @@ compiled into pre-tested SQL migrations, RLS policies, auth configuration,
 storage buckets, and edge functions, then deployed programmatically through
 the Supabase Management API and CLI.
 
-The obvious approach — prompting a large language model to emit the schema and
-policies directly — fails in ways that matter for this task. End-to-end
+The obvious approach, prompting a large language model to emit the schema and
+policies directly, fails in ways that matter for this task. End-to-end
 generation is nondeterministic: the same prompt can yield different schemas on
 different runs, so the build cannot be audited or reproduced. It hallucinates
 tables and policies that no requirement asked for. Most importantly, its worst
 failure mode is silent: a requirement that the model simply drops never
 appears in the output, and nothing marks the omission. A malformed generated
-RLS policy is not a cosmetic bug but a security risk — the difference between
+RLS policy is not a cosmetic bug but a security risk: the difference between
 "owner can read their rows" and "everyone can read everyone's rows" is one
-prompt drift away — and security audits of LLM-generated code find exactly
+prompt drift away, and security audits of LLM-generated code find exactly
 this class of failure at scale [@pearce2022asleep].
 
 We instead treat NL-to-backend as a *compilation* problem over an explicit,
@@ -59,9 +59,9 @@ versioned task vocabulary. A fixed ontology enumerates the features,
 parameters, entities, roles, and storage buckets the platform knows how to
 build; the ontology bounds expressiveness by construction, and requirements
 outside the vocabulary are *flagged as unsupported* rather than guessed.
-Three interpretation mechanisms — exact alias matching, character-span phrase
+Three interpretation mechanisms, exact alias matching, character-span phrase
 rules with sentence-clamped negation detection, and a small (421M-parameter)
-typed-decision model — propose typed decisions against the ontology; a tiered
+typed-decision model, propose typed decisions against the ontology; a tiered
 conflict resolver merges them; a bounded multiple-choice clarification loop
 surfaces exactly the residual ambiguity, including any sentence the
 interpreter could not map to a capability, which is the structural mechanism
@@ -78,18 +78,18 @@ This paper's contributions are:
    question, or is flagged (R1).
 2. **A hybrid interpretation design** that combines exact aliases, phrase
    rules with span-limited negation handling, and a small typed-decision
-   model, gated by targeted MCQ clarification — with the small model used
+   model, gated by targeted MCQ clarification, with the small model used
    strictly as a *classifier against a fixed option set*, never as a
    generator (R2).
-3. **A closed-form calibration gate — and its measured limits**: ECE on
+3. **A closed-form calibration gate, and its measured limits**: ECE on
    the model's shipped `answer_confidence`, with temperature fitting
    applied only when the gate (ECE ≥ 0.1) demands it, feeding the 0.75
    auto-accept threshold. Measured honestly: the shipped confidence passes
    every gold generation, the refit helps in-sample but degrades held-out
    and is not shipped, and the checkpoint is strictly optional (R3).
-4. **An evaluation protocol** for NL-to-backend fidelity — silent-omission
+4. **An evaluation protocol** for NL-to-backend fidelity: silent-omission
    rate, hallucination counts, exact-match on the typed IR, MCQ burden,
-   and deployment success — with ablations that isolate the IR, the
+   and deployment success, with ablations that isolate the IR, the
    rules, and the model, external baselines reported under disclosed run
    limits (§4.4), plus a dual-annotated, author-reconciled gold whose
    limitations are consolidated as threats to validity (§4, §7).
@@ -115,15 +115,15 @@ then moved execution accuracy sharply upward via DIN-SQL [@pourreza2023dinsql] a
 surveyed in [@kamath2019survey], and prompt-design itself is benchmarked in
 DAIL-SQL [@gao2024dailsql]. Text2Schema [@wang2025text2schema] begins to
 close the gap on our side of the line, generating table structures from
-unstructured intent. The line validates a premise we build on —
+unstructured intent. The line validates a premise we build on:
 constrained, schema-aware decoding beats free-form generation for structured
-output — but its schema is an *input* (Text2Schema's output stops at bare
+output, but its schema is an *input* (Text2Schema's output stops at bare
 relational DDL), and none of it, to our knowledge,
 scores requirement omission as a first-class metric. Our delta: the target is
 not SQL text but a typed `BackendSpec` covering schema plus security policy
 plus platform configuration; the vocabulary is bounded by a versioned
 ontology with a never-silently-omit invariant (§3.1, §3.4); deployment
-through the platform API is part of the measured task (§5.4) — and rather
+through the platform API is part of the measured task (§5.4), and rather
 than compare on their benchmarks, we run the LLM baselines on ours, where
 direct-to-SQL generation recovers 0.419 table recall and the spec-space
 baseline holds the precision edge (§5.1).
@@ -132,22 +132,22 @@ baseline holds the precision edge (§5.1).
 bounded target languages is a mature discipline: sketching [@solarlezama2008sketching], syntax-guided synthesis [@alur2013syntax], grammar-augmented generation [@ugare2024syncode], DSL-bounded induction
 shipped at consumer scale in FlashFill [@gulwani2011flashfill], neural prior guidance
 over DSLs in DeepCoder [@balog2017deepcoder], and solver-aided host languages
-[@torlak2013rosette] — and the tiered NL→DSL shape has an ICSE-published
+[@torlak2013rosette], and the tiered NL→DSL shape has an ICSE-published
 ancestor [@desai2016program]: precise recognizers first, probabilistic
-ranking second, user queries for the remainder — our A→B→C→MCQ order
+ranking second, user queries for the remainder: our A→B→C→MCQ order
 exactly. Its recurrent finding is ours by adoption:
 restricting the target to a typed intermediate representation [@mundler2025type] makes search
 tractable and the result checkable. Our delta: the IR here is not a program
-space to be searched but a domain-typed product spec — correctness is not
+space to be searched but a domain-typed product spec; correctness is not
 established by a solver over candidate programs but by a validator that
 re-derives the spec from its decisions and rejects any mismatch (§3.5), and
 specification misunderstanding is a documented failure mode [@tian2025fixing], and the closed vocabulary is precisely what makes *flag-don't-guess* expressible
 as an invariant rather than an aspiration (§3.1). The generate-then-verify
-counterpart exists in specification generation — SpecGen [@dong2025specgen]
+counterpart exists in specification generation: SpecGen [@dong2025specgen]
 and AutoReSpec [@ayon2026autorespec] iterate LLM output until a formal
-verifier accepts it — whereas here the validator sits inside the compiler
+verifier accepts it, whereas here the validator sits inside the compiler
 and no free-form artifact ever exists to repair. The strongest published
-alternative is the one we reject: scale-and-filter — AlphaCode [@li2022alphacode] bought competitive-programming reliability with millions of samples
+alternative is the one we reject: scale-and-filter; AlphaCode [@li2022alphacode] bought competitive-programming reliability with millions of samples
 filtered by execution, a strategy unusable here where the output includes
 artifacts no test suite can grade, like RLS policies.
 
@@ -156,7 +156,7 @@ principles [@horvitz1999mixed], clarifying-question retrieval in open-domain
 conversational QA [@aliannejadi2019asking], and question selection under
 uncertainty in active learning [@settles2009active] establish that targeted
 questions outperform both silence and over-asking. Our delta: the questions
-are neither authored in advance nor free-form generated — they are
+are neither authored in advance nor free-form generated; they are
 multiple-choice items *derived from the partial spec itself* (contradiction
 and negation resolutions, capability confirms, parameter choices, and
 unparsed-sentence clarification), ordered by a dependency graph and hard-
@@ -164,14 +164,14 @@ capped, with the burden measured rather than asserted: ≈6.5–7 questions per
 input for the human-answerable configurations and ≈2.3 for the
 interpretation-only floor (§5.2). Automated assistance for requirements completeness is an established line [@luitel2024improving]. The unparsed-sentence item is what makes
 never-silently-omit structural: the user is asked about exactly the sentence
-the interpreter could not read (§3.4). The dialogue-precedent line — CoSQL
-[@yu2019cosql], PRACTIQ [@dong2025practiq], and ambiguity benchmarks such as AMBROSIA [@saparina2024ambrosia] — established that database
+the interpreter could not read (§3.4). The dialogue-precedent line, CoSQL
+[@yu2019cosql], PRACTIQ [@dong2025practiq], and ambiguity benchmarks such as AMBROSIA [@saparina2024ambrosia], established that database
 interfaces must model clarification and unanswerable queries; those systems
 resolve through free-form dialogue with editable step-by-step explanations [@tian2023interactive], where ours presents bounded,
 ontology-grounded multiple-choice options. Learning-to-defer theory
 [@mozannar2020consistent] supplies the loss-theoretic view of that
-threshold — our "expert" is the user, queried at inference time through
-options the ontology enumerates — and SMCalFlow [@andreas2020task] is
+threshold (our "expert" is the user, queried at inference time through
+options the ontology enumerates), and SMCalFlow [@andreas2020task] is
 the closest published cousin: a typed dataflow IR with explicit
 clarification for uninterpretable utterances, their metacomputation being
 our `clarify_unparsed`.
@@ -179,21 +179,21 @@ our `clarify_unparsed`.
 **Model calibration and selective prediction.** Expected calibration error
 [@naeini2015obtaining], temperature scaling [@guo2017calibration], and the
 reject-option / risk-coverage line [@chow1970optimum; @geifman2017selective]
-form the standard toolkit — since extended to LLM validity by conformal prediction [@cherian2024large]: measure calibration post hoc, rescale, and trade
-coverage against accuracy at a chosen operating point — with the metric
+form the standard toolkit, since extended to LLM validity by conformal prediction [@cherian2024large]: measure calibration post hoc, rescale, and trade
+coverage against accuracy at a chosen operating point, with the metric
 itself handled conservatively, since binned ECE is sensitive to binning
 choices and can shift under correction [@kumar2019verified], which is why
 the gate fails conservative and reports the full sweep rather than a
 single operating point (§5.3). Our delta is the
-deployment shape: calibration as an *in-compiler gate* — 10-bin ECE measured
+deployment shape: calibration as an *in-compiler gate* (10-bin ECE measured
 on the model's shipped `answer_confidence`, a temperature fitted only when
-ECE ≥ 0.1, feeding a fixed 0.75 auto-accept threshold (§3.6) — with the
+ECE ≥ 0.1, feeding a fixed 0.75 auto-accept threshold (§3.6)), with the
 coverage–correctness curve measured on the golden corpus: 87.8% of decisions
 auto-accept at 80.0% correctness, and the curve is non-monotone, so raising
 the threshold is not monotonically safer (§5.3). One finding is consistent
 with label noise as a first-order confounder [@frenay2014classification]:
 successive cleanups of the gold labels moved measured ECE 0.0951 → 0.0381
-while accuracy rose 0.784 → 0.896 — in-sample (§5.3), and most of the
+while accuracy rose 0.784 → 0.896 in-sample (§5.3), and most of the
 apparent miscalibration lived in the labels.
 
 **Backend and schema generator tooling.** Managed-backend platforms supply
@@ -209,24 +209,24 @@ IaC-Eval [@kon2024iaceval]. The closest published-tool neighbor is
 DbSmash, an AI CLI that turns a
 plain-text app description into a schema [@reddy2025dbsmash]; we benchmarked it on
 our corpus through its non-interactive CLI path: schema artifacts in 15 of 50
-runs, table recall 0.081 / precision 0.179 (§5.1) — stated with the fairness
+runs, table recall 0.081 / precision 0.179 (§5.1), stated with the fairness
 caveat that the tool's intended interactive flow is stronger than the path
 our harness drives, so the number prices the non-interactive mode, not the
 tool at its best. Our delta: the pipeline produces a validated, reviewable
 typed spec that a human approves before anything deploys (§3.2); its RLS
 policies and auth rules are synthesized from pre-verified parameterized
-fragments rather than generated text — the direct answer to the access-control
-failure modes Pearce et al. document — and the pipeline is
-deterministic and idempotent downstream of interpretation — byte-identical
+fragments rather than generated text, the direct answer to the access-control
+failure modes Pearce et al. document; the pipeline is
+deterministic and idempotent downstream of interpretation, with byte-identical
 migrations for identical input, 595-pair fragment matrix against a live
-PostgreSQL (§3.5) — measured end to end against cleaned human gold:
+PostgreSQL (§3.5), measured end to end against cleaned human gold:
 with the oracle operator it reconstructs the gold exactly, while
 operator-free it trades omissions for precision against the best
 zero-shot baseline (§5.1).
 The security literature closes the loop: developers assisted by AI write
 significantly less secure code while feeling more confident in it [@sandoval2023users], the same pattern predates LLMs in infrastructure-as-code, where security smells in Ansible and Chef scripts replicate [@rahman2021security], and extracting enforceable access-control policy from natural
 language has been a recognized hard problem since before LLMs [@narouei2020automatic], with current LLM translation still falling short of enforceable
-accuracy [@lawal2024translating] — the reason this compiler classifies policy
+accuracy [@lawal2024translating]: the reason this compiler classifies policy
 decisions against a fixed option set and expands pre-verified fragments
 rather than generating policy text.
 
@@ -256,7 +256,7 @@ is the deployer. Both are deterministic.
 
 The workflow is
 `interpret → classify → clarify → specify → validate → approve → compile →
-deploy → remediate → retry`. Interpretation produces *candidates* — typed
+deploy → remediate → retry`. Interpretation produces *candidates*: typed
 decisions over ontology capabilities. Classification assigns each candidate a
 confidence taken from the decision model's ECE-calibrated
 `answer_confidence` (never the raw score; §3.6). Clarification (§3.4) resolves
@@ -267,28 +267,28 @@ without it. Compilation, deployment, and remediation are §3.5–§3.6.
 
 ### 3.3 Interpreter: three mechanisms and a tiered merge
 
-**Mechanism A — exact aliases.** A hand-authored alias table maps unambiguous
+**Mechanism A: exact aliases.** A hand-authored alias table maps unambiguous
 surface forms (`stripe`, `email password`, `magic link`, `google auth`,
 `github auth`) to capability values with confidence 1.0. Aliases are exact
 matches, so they cannot misfire on morphological variants.
 
-**Mechanism B — phrase rules with negation spans.** Regex phrase rules map
+**Mechanism B: phrase rules with negation spans.** Regex phrase rules map
 verb-object patterns to feature enablements (`book/reserve/rent` +
 `item/listing/property` → bookings; `message/chat/contact` + `each
 other/user/owner/renter` → messaging; and so on for payments, reviews, file
 storage, verification, favorites, and admin-role mentions). Each match is
 checked for negation cues (`no`, `not`, `don't`, `without`, `avoid`, `skip`,
-…) within a ±40-character window *clamped at sentence boundaries* — a match
+…) within a ±40-character window *clamped at sentence boundaries*; a match
 inside a negated span becomes a proposal of `false` rather than being
 dropped, so "there is no review system" decides reviews *off* deterministically
 instead of silently doing nothing. Sentence clamping keeps a trailing "but we
 won't do X" from negating the feature asserted in the previous sentence.
 
-**Mechanism C — typed-decision model.** Laya (421M ModernBERT-large, English
+**Mechanism C: typed-decision model.** Laya (421M ModernBERT-large, English
 checkpoint, 512-token context) scores yes/no (`needs_X`) questions over the
 union of feature and entity names against the running partial state. It is
-used strictly as a classifier over a fixed option set — it cannot invent a
-label — which is what bounds its failure mode: an unsure model produces a
+used strictly as a classifier over a fixed option set (it cannot invent a
+label), which is what bounds its failure mode: an unsure model produces a
 low-confidence candidate that the clarification loop converts into a
 question, not a hallucinated feature.
 
@@ -308,7 +308,7 @@ threshold is the knob R3's calibration work defends (§3.6).
 
 ### 3.4 Clarification: the MCQ loop
 
-Residual ambiguity becomes a bounded multiple-choice session — the
+Residual ambiguity becomes a bounded multiple-choice session, the
 structured counterpart to the free-form clarification conversation
 ClarifyGPT [@mu2024clarifygpt] generates around LLM code generation. The engine
 generates six question kinds: feature confirmation, parameter choice,
@@ -316,7 +316,7 @@ negation resolution, contradiction resolution, *unparsed-sentence
 clarification*, and (ordering-reserved) weak confirmation. Every input
 sentence must be covered by some candidate's evidence span; a sentence that
 maps to nothing becomes `clarify_unparsed` offering the ontology's feature
-list as answers — this is the never-silently-omit invariant's structural
+list as answers; this is the never-silently-omit invariant's structural
 guarantee: the user is *asked about the sentence the machine could not read*,
 and their answer decides the feature. Questions are ordered by a dependency
 graph (contradictions first, then negations, then unparsed coverage, then
@@ -356,14 +356,14 @@ Composition is: select fragments per spec feature → topologically sort by
 `requires` (stable Kahn; byte-identical output for identical input) → run
 six conflict detectors (duplicate fragment ids, duplicate object names, RLS
 policy-name collisions, trigger collisions, foreign-key cycles, duplicate
-buckets) → emit `{ordinal}_{fragment_id}.sql`. Generated SQL is idempotent —
+buckets) → emit `{ordinal}_{fragment_id}.sql`. Generated SQL is idempotent (
 `CREATE … IF NOT EXISTS`, drop-before-create policies and triggers,
-`ON CONFLICT DO NOTHING` bucket inserts — so re-applying a composition to a
+`ON CONFLICT DO NOTHING` bucket inserts), so re-applying a composition to a
 live database is a no-op. Edge functions are deliberately *not* migrations;
 they ship as Deno templates scaffolded by the deployer. Two properties are
 verified continuously: compiling the same spec twice yields byte-identical
-migrations (the determinism test), and *every pair* of the 35 fragments — 595
-combinations — composes to SQL that applies cleanly twice against a live
+migrations (the determinism test), and *every pair* of the 35 fragments, 595
+combinations, composes to SQL that applies cleanly twice against a live
 PostgreSQL 15 (the pairwise composition test), which is what makes the pairwise
 ablation in §5.2 trustworthy at the SQL layer.
 
@@ -385,8 +385,8 @@ orphaned silently.
 
 **Calibration gate.** The compiler consumes the model's shipped
 `answer_confidence` and never fits a temperature by default. A pinned test
-measures 10-bin ECE — Σ over non-empty bins of bin share × |mean confidence
-− mean accuracy| — on a held-out `(answer_confidence, label)` set; only when
+measures 10-bin ECE, Σ over non-empty bins of bin share × |mean confidence
+− mean accuracy|, on a held-out `(answer_confidence, label)` set; only when
 measured ECE ≥ 0.1 does the fitter run, applying
 `calibrated = sigmoid(logit(clip(p, 1e-6, 1−1e-6)) / T)`. The gate exists
 because the vendor's shipped calibration for the base checkpoint is far from
@@ -398,7 +398,7 @@ whether the scalar refit reproduces their measured 0.47 → 0.08 improvement is
 an open experimental question (§5.3, R3). **Honesty note:** the gate
 fixture is now 500 measured pairs (real `english` checkpoint on the golden
 corpus, §5.3); the deliberately-miscalibrated fit-demo set stays synthetic
-on purpose — a well-calibrated real set cannot demo the fit.
+on purpose: a well-calibrated real set cannot demo the fit.
 
 ### 3.7 Evidence state
 
@@ -411,8 +411,8 @@ account in three live sessions plus a ten-session deployment battery
 (§5.4), the baseline harness has been
 exercised against a live LLM through its real code path (§5.1), and the real
 pinned checkpoint has been measured two ways: calibration (§5.3) and the
-full ablation grid (§5.2). The full baseline sweep — including the
-off-the-shelf generator — is measured (§5.1), and every §5 number is
+full ablation grid (§5.2). The full baseline sweep, including the
+off-the-shelf generator, is measured (§5.1), and every §5 number is
 reported against the author-curated, dual-annotated, author-reconciled gold with a frozen
 held-out split (§4.1). The agreement-bias re-review has also run: an
 independent blind reviewer covered all 184 gold rows (a confirmation
@@ -426,7 +426,7 @@ by decision (§4.1).
 
 The task (§3.1) is `compile : NL → BackendSpec → deployed project`. The
 golden corpus is **50 hand-crafted inputs** (`tests/golden/cases/`) covering
-the full ontology surface — every feature, parameter branch,
+the full ontology surface: every feature, parameter branch,
 bucket purpose, derived edge function, role combination, and the display
 cases for negation and contradiction resolution. Each case pins: the input
 text; a Laya *persona* (`none` = empty model envelope, `default` = 0.5 noul
@@ -439,80 +439,80 @@ regression truth and went through three corrections to become the scoring
 gold: (1) blind human annotation of all 50 inputs; (2) clash adjudication
 of 77 disputes (final tally **48 `engine-wrong` / 21 `both-defensible` /
 8 `annotator-misread`**); (3) a mechanical no-anchor linter whose 136
-candidates received human batch rulings, removing **60 further items —
+candidates received human batch rulings, removing **60 further items:
 39 unpinned `authentication` claims and all 16 edge functions** (no
 sentence in the corpus mentions webhooks). Disclosures, all load-bearing.
 
 **Two annotators.** The corpus was annotated twice: annotator 1
 (the system author, first pass) and annotator 2 (project-aware, but
-blinded to all gold materials — fresh blank worksheets only). Inter-
+blinded to all gold materials: fresh blank worksheets only). Inter-
 annotator agreement: raw 74.3% on features, Cohen's κ = 0.16 (roles
 −0.23, buckets −0.55); the low κ is dominated by vocabulary and taxonomy
-skew — after synonym normalization, only **35 genuine disagreements**
+skew; after synonym normalization, only **35 genuine disagreements**
 remained across 50 cases. Those 35 rows received human reconciliation
 rulings (27 upholding annotator 1, 8 taking annotator 2), producing the
 **final three-reading gold** every §5 number is reported against.
 
 **Remaining limitations, stated plainly.** (a) The reconciliation was
-performed by the same person who annotated first and built the system —
+performed by the same person who annotated first and built the system;
 a full third-party reconciliation of the 35 rows has not run (agreement
 coverage itself is complete: annotator 2 re-annotated all 50 cases
 blind). (b) Phrase rules and aliases were developed against this same
-corpus — a train/test contamination on the compiler side that mirrors the
+corpus, a train/test contamination on the compiler side that mirrors the
 baselines' zero-shot disadvantage; the held-out 15 were scored once and
 the rules were never edited after that scoring, but a corpus authored by
 a third party remains future work. Further disclosures: the first
-self-adjudication's 41:3 skew was revised — the independent third reader,
+self-adjudication's 41:3 skew was revised: the independent third reader,
 working from pre-filled verdicts **with side labels visible**, flipped 21
 rulings in both directions; `both-defensible` items are scored on the
 annotator side (the scorer has no neutral state); agreement-on-wrong bias
-— annotator and engine agreeing on an unmentioned feature, invisible to
-clash review — was found (e.g. `authentication` in "We need bookings and
+(annotator and engine agreeing on an unmentioned feature, invisible to
+clash review) was found (e.g. `authentication` in "We need bookings and
 messaging") and then **measured**: an independent reviewer, blind on all
 required tiers, covered 184/184 rows (zero boilerplate; reasons quoting
 sentence words), overturning 0 of 82 prior keeps, confirming all 5 judgment
-drops, and disagreeing 4 times — two concurred soft calls (`mixed` read as
+drops, and disagreeing 4 times: two concurred soft calls (`mixed` read as
 a two-inference stack, `verifier` as canonicalization), one self-
 contradictory sentence read as ambiguous, and one concurred defect on a
 never-ruled row: `kitchen_sink_marketplace` · `roles.role_names = [admin]`
 pins admin-only while the sentence names owners, renters, and admins. The
 defect sits in a once-scored held-out case and is **held and disclosed by
-decision** — mutating a frozen scored set to fix one parameter row was
+decision**; mutating a frozen scored set to fix one parameter row was
 ruled not worth breaking the score-once protocol; it is named here and
 fixed in the next gold generation. The re-review's blind attestation was
 corrected post-hoc (original negative → confirmed positive after the
 reviewer's edit and content corroboration); the full trail is in
 `tests/annotation/AGREEMENT_REVIEW_VALIDATION.md`. Held-out cases were
-scored exactly once, after measurement code and gold were frozen — and
+scored exactly once, after measurement code and gold were frozen, and
 after the fixtures' engine-era operator answers were re-derived from the
 human gold itself, removing the operator-answer contamination that had
 inflated hallucination counts in an intermediate measurement round (§5.1).
 This
 stance follows the code-generation evaluation literature's own correction:
 benchmark saturation deflated under rigorous testing on EvalPlus [@liu2023evalplus] and ClassEval [@du2023classeval], and real-repository tasks remain
-near-unsolved on SWE-bench [@jimenez2024swebench] — weak gold over-claims,
+near-unsolved on SWE-bench [@jimenez2024swebench]; weak gold over-claims,
 which is precisely what the annotation rounds here repaired.
 
 ### 4.2 Baselines
 
 Five baselines; their harness states today:
 
-1. **End-to-end LLM direct-to-SQL** — *measured.* `DirectSqlBaseline`
+1. **End-to-end LLM direct-to-SQL** (*measured*). `DirectSqlBaseline`
    prompts a Gemini / OpenAI / Anthropic model (or any OpenAI-compatible
    gateway; §4.4) for a Supabase migration and
    scores artifact-level CREATE TABLE presence against the case's gold
    entities. Measured 50/50 (§5.1) through an OpenAI-compatible gateway.
-2. **LLM → `BackendSpec` → same composer** — *measured.*
+2. **LLM → `BackendSpec` → same composer** (*measured*).
    `BackendSpecBaseline` prompts the model
    (bounded to the ontology vocabulary) for a `BackendSpec` JSON, parses it,
    runs it through the *same* `recompute_spec` and fragment composer as
-   Mechanism C's output, and scores with the same fidelity metrics —
+   Mechanism C's output, and scores with the same fidelity metrics,
    isolating the contribution of the IR from the generator. Measured 50/50,
    45 parseable (§5.1). The parse → spec → score
    path is unit-tested offline with injected completers.
-3. **Rules-only** — *measured* (§5.2, mechanisms `A+B`).
-4. **Laya-only** — *measured* (§5.2, mechanism `C`, mock persona).
-5. **DbSmash / off-the-shelf generator** — measured through its
+3. **Rules-only** (*measured*; §5.2, mechanisms `A+B`).
+4. **Laya-only** (*measured*; §5.2, mechanism `C`, mock persona).
+5. **DbSmash / off-the-shelf generator**: measured through its
    non-interactive CLI path (table R / P 0.081 / 0.179, §5.1); the
    in-compiler adapter surface reports `skipped` by design for external
    tools, matching the e2e tier's behavior.
@@ -528,11 +528,11 @@ configuration produces (`tests/experiments/metrics.py`, runnable via
   |gold enabled|`. A case with no gold-enabled features (pure-negation case)
   scores 1.0 iff nothing was enabled.
 - **Silent-omission rate** (R1's primary endpoint) and **hallucinated-feature
-  count** = `|gold enabled \ predicted|` and `|predicted \ gold enabled|` —
+  count** = `|gold enabled \ predicted|` and `|predicted \ gold enabled|`;
   the second is the artifact-level instance of the hallucination taxonomy
   [@ji2023survey].
   Note the asymmetry: the golden suite's partial submatch (`spec_matches`) asserts
-  presence but *cannot* catch additions — the precision half of this metric
+   presence but *cannot* catch additions; the precision half of this metric
   is what surfaces them.
 - **Dimension exactness** for parameters, roles, entities, buckets, edge
   functions, each scored only when the case pins that dimension; the empty
@@ -556,7 +556,7 @@ with ≥ 3 seeds and a paired per-requirement comparison. As executed,
 budget constraints reduced the LLM→spec baseline to a **single zero-shot
 run through one OpenAI-compatible gateway**
 (`antigravity/gemini-3.8-flash-tiered`), scored once and never re-run
-after gold corrections — its pinned outputs were re-scored against each
+after gold corrections; its pinned outputs were re-scored against each
 corrected gold (§5.1). The baseline comparison is therefore reported as
 indicative point estimates under the disclosed parse convention, not as a
 seed-averaged significance result; the significance machinery runs on the
@@ -572,18 +572,18 @@ measurements replace the persona on the same cases in the same JSON schema
 **Measured against cleaned human gold (2026-09-30).** The gold went through
 three corrections: clash adjudication (48/21/8 of 77 disputes), a no-anchor
 linter pass whose rulings removed 60 more items (39 `authentication` pins,
-all 16 edge functions, 5 others — every edge function is now absent from
+all 16 edge functions, 5 others; every edge function is now absent from
 gold, since no sentence in the corpus mentions webhooks), and a batch
 human ruling on the linter's candidates (`LINTER_RULINGS.md`, 82 keep /
 54 drop + 6 consistency). Baselines ran zero-shot through an
 OpenAI-compatible gateway (`antigravity/gemini-3.8-flash-tiered`);
-dbsmash through its non-interactive path. Parse counts: the baseline emitted parseable specs for 45 of 50 inputs in the original pinned run; 32 of those fall in the golden 35 (13 in held-out) — the baseline was never re-run, its pinned outputs were only re-scored against the corrected gold.
+dbsmash through its non-interactive path. Parse counts: the baseline emitted parseable specs for 45 of 50 inputs in the original pinned run; 32 of those fall in the golden 35 (13 in held-out); the baseline was never re-run, its pinned outputs were only re-scored against the corrected gold.
 
 **Claim structure.** Two questions, two tables. *Compile-faithfulness*
 (oracle operator: MCQ answers taken per the gold) asks whether the
 pipeline builds exactly what the gold specifies. *Unaided
 interpretation* (operator-free compiler vs zero-shot baselines) asks
-what the system does when nobody supplies answers — the honest basis
+what the system does when nobody supplies answers: the honest basis
 for comparison against the LLM.
 
 **Compile-faithfulness (golden 35, cleaned human gold; oracle operator).**
@@ -607,14 +607,14 @@ for comparison against the LLM.
 Parse convention: the spec baseline emitted parseable specs for 45 of 50
 inputs in its single pinned run (32 within the golden 35); unparseable
 outputs are excluded from the metric means and reported as the parse rate
-— a stricter convention would score them as total omission, which moves
+; a stricter convention would score them as total omission, which moves
 every baseline number down, never up. The baselines were never re-run;
 their pinned outputs were re-scored against each corrected gold.
 
 **Read this table with the significance results (exact McNemar on paired
 per-case outcomes, Wilcoxon signed-rank on per-case recall, percentile
 bootstrap CIs, n = 35):** with the oracle operator, rules + MCQ is
-*perfect* —
+*perfect*:
 no statistical difference exists between hybrid and rules on recall
 (Wilcoxon p = 0.617; pooled recall difference +0.000, CI [0.000, 0.000]);
 the hybrid's residual hallucinations (3 cases) are not significant at
@@ -622,10 +622,10 @@ case level (exact McNemar p = 0.250); the pooled precision difference is
 −0.050 with CI [−0.117, +0.000] touching zero. The only interval
 excluding zero in the compiler's favor is the **operator-free recall
 lift** (MCQ-off: hybrid 0.807 / 0.939 pooled vs rules 0.667 / 1.000;
-recall-lift CI [+0.049, +0.261], Wilcoxon p = 0.421 — suggestive, not
+recall-lift CI [+0.049, +0.261], Wilcoxon p = 0.421, suggestive, not
 conventionally significant at n = 35). The strong form of R1 that
 survives: **with an oracle operator, the pipeline reconstructs the gold
-perfectly, deterministically, and deploys** — a reconstruction result:
+perfectly, deterministically, and deploys**: a reconstruction result;
 it scores faithful compilation of a specified spec, not unaided
 interpretation. The honest comparison against the LLM baseline is the
 operator-free one, and it is a trade-off at the point estimates: the
@@ -662,25 +662,25 @@ Four findings, each honest to its measurement setting (mock personas):
 1. **The clarification loop carries the completeness.** Across every
    mechanism subset, disabling MCQ collapses recall (hybrid pooled recall
    0.496 → 1.000 with MCQ on) and multiplies omissions (65 → 0). The loop's
-   residual question burden is low — ~6.5–6.9 questions per input for the
-   human-answerable configs, 2.34 for the interpretation-only floor — which
+   residual question burden is low (~6.5–6.9 questions per input for the
+   human-answerable configs, 2.34 for the interpretation-only floor), which
    is the case for the always-ask-vs-auto-accept trade (§6).
 2. **Mechanism A (aliases) is a parameter supplier, not a feature detector.**
    Alone it decides nothing (pooled recall 0.000 without MCQ) but lifts
-   parameters from 19/26 to 25/26 when added to B — provider, auth-method,
+   parameters from 19/26 to 25/26 when added to B (provider, auth-method,
    and lifetime params arrive only via exact matches.
 3. **Mechanism B (phrases) is the workhorse** on its own vocabulary: 0.922
    pooled recall with MCQ, zero hallucinations, 48/50 feature-exact. This
-   corroborates the R2 risk — on a bounded vocabulary rules carry
+   corroborates the R2 risk: on a bounded vocabulary rules carry
    most of the load.
-4. **Mechanism C contributes exactly the residual—and that contribution has
+4. **Mechanism C contributes exactly the residual, and that contribution has
    two faces.** The hybrid's superiority over rules-only (0 omissions vs 10,
    pooled recall 1.000 vs 0.922, 26/26 vs 25/26 params) is entirely carried
    by the two `high`-persona cases, where features exist in the gold spec
    that *no rule and no alias can see*: mechanism C genuinely extends
    coverage. But the same two cases produce all 8 hallucinations: the
-   model proposes *every* capability at 0.95, and — this is the important
-   part — the golden suite's partial submatch does not catch the additions,
+   model proposes *every* capability at 0.95, and (this is the important
+   part) the golden suite's partial submatch does not catch the additions,
    while the precision metric does (`laya_high_decides` enables ten
    features for an input that names two). Under the design, this is R3's
    job: 0.95 *raw* confidence must not survive as 0.95 *answer_confidence*
@@ -689,7 +689,7 @@ Four findings, each honest to its measurement setting (mock personas):
 **Real-checkpoint rerun: same corpus, same gold, the real `english` model**
 (`python -m tests.experiments.run_ablation --real-laya`; rows in
 `tests/experiments/results/ablation_real_summary.md`). The rule-only rows
-reproduce the table above byte-identically — they never touch the model —
+reproduce the table above byte-identically (they never touch the model)
 which isolates exactly what changes when the persona becomes the checkpoint.
 Three states were measured:
 
@@ -709,7 +709,7 @@ Three states were measured:
 
 5. **The unfixed rerun falsified the persona headline, and the harness was
    at fault, not just the model.** Swapping the checkpoint in dropped
-   hybrid+MCQ from 0 omissions to 36 while rules+MCQ held at 10 — and the
+   hybrid+MCQ from 0 omissions to 36 while rules+MCQ held at 10, and the
    excess traced to a real merge defect: candidates grouped by raw
    `capability_id`, so a laya `needs_payments` twinned a rule
    `payments.enabled` into the fold, whose distinct-value check fired a
@@ -722,11 +722,11 @@ Three states were measured:
    `answer_confidence >= 0.75` decided features *off*, suppressing the
    clarifying question (measured: question burden 6.98 → 2.36 with the gate
    removed). The fix is asymmetric: laya-sourced negatives never auto-decide
-   off — the loop asks; rules keep deciding off. With both fixes,
+   off: the loop asks; rules keep deciding off. With both fixes,
    **hybrid+MCQ recovers to rules-parity: 0.922 pooled recall, 10 omissions**
    (from 36), and the model's yes-side still lifts no-MCQ recall
    0.419 → 0.481.
-7. **The calibration refit closes most of the remaining gap — measured.**
+7. **The calibration refit closes most of the remaining gap, measured.**
    Two wiring fixes let the §5.3 fit reach the fold: `candidates_from_laya_response`
    now consumes the client's *calibrated* confidence (the ECE-gated
    quantity), and the client honors a run-scoped `LAYA_TEMPERATURE`
@@ -735,7 +735,7 @@ Three states were measured:
    **0.930 → 0.967**, feature-exact **39/50 → 44/50**, at unchanged recall
    and omissions (`results/ablation_real_fit_summary.md`). Softening
    over-confident yes-answers below the 0.75 auto-accept bar converts them
-   back into questions — the MCQ backstop absorbing exactly the decisions
+   back into questions: the MCQ backstop absorbing exactly the decisions
    calibration does not trust.
 
 **Compile-faithfulness (cleaned human gold, oracle operator): the pipeline
@@ -755,7 +755,7 @@ Table: Compile-faithfulness on the golden 35 (oracle operator, real checkpoint)
 
 Table: Compile-faithfulness on the frozen held-out 15 (scored once)
 
-| Config (held-out 15 — scored once, frozen) | pooled R / P | omissions | hallucinations |
+| Config (held-out 15, scored once, frozen) | pooled R / P | omissions | hallucinations |
 |---|---|---|---|
 | **rules + MCQ** | **1.000 / 1.000** | **0** | **0** |
 | hybrid + MCQ | 1.000 / 0.926 | 0 | 2 |
@@ -765,14 +765,14 @@ Table: Compile-faithfulness on the frozen held-out 15 (scored once)
 8. **The oracle-MCQ result is a reconstruction result, and it belongs to
     rules + MCQ:** with the operator answering exactly per the adjudicated
     gold, the rule layer plus clarification reproduces the gold with
-    nothing invented and nothing omitted — in-sample and on the frozen
+    nothing invented and nothing omitted, in-sample and on the frozen
     held-out set. This measures compile-faithfulness of a specified spec
     (§7), not unaided interpretation; the operator-free rows above are the
     interpretation numbers. Statistics (n = 35): rules vs hybrid recall shows no
     significant difference (Wilcoxon p = 0.617; pooled difference +0.000);
     the hybrid's residual hallucinations are not significant at case level
     (exact McNemar p = 0.250); no between-config interval excludes zero.
-9. **The model slot's measured value is operator-free recall lift — and
+9. **The model slot's measured value is operator-free recall lift, and
    nothing else.** MCQ-off, the checkpoint lifts pooled recall 0.667 →
    0.807 (lift CI [+0.049, +0.261], Wilcoxon p = 0.421) while adding 3
    hallucinations; MCQ-on with a clean operator, it adds 2-3
@@ -782,8 +782,8 @@ Table: Compile-faithfulness on the frozen held-out 15 (scored once)
    the model slot safe to include (refit hybrid: 1.000 / 0.982, one
    hallucination), and the calibrated checkpoint is strictly optional.
 10. **Against the spec baseline (§5.1) the compiler sweeps the point
-     estimates on precision and hallucinations** — 1.000 / 1.000 vs
-     0.906 / 0.850, zero hallucinations vs ten — with the significance
+     estimates on precision and hallucinations** (1.000 / 1.000 vs
+     0.906 / 0.850, zero hallucinations vs ten), with the significance
      caveat above applying to compiler-vs-compiler gaps, not to the
      40-point gaps against the baseline. Operator-free, the picture
      inverts on omissions: the hybrid's 11 trail the baseline's 6. The
@@ -793,46 +793,46 @@ Table: Compile-faithfulness on the frozen held-out 15 (scored once)
 ### 5.3 → R3. Calibration and the auto-accept gate
 
 **Measured (real `english` checkpoint; both golds, then cleaned gold).**
-This gate matters because code LLMs are in fact badly miscalibrated —
+This gate matters because code LLMs are in fact badly miscalibrated (
 token probabilities diverge from functional correctness across models and
-benchmarks [@spiess2025calibration] — and our auto-accept
+benchmarks [@spiess2025calibration]), and our auto-accept
 threshold gates deployment on exactly that quantity. With the vendored
 `laya` 0.3.20 installed in the venv (torch 2.14 CPU,
 transformers 5.17) and the pinned `english` checkpoint (421M ModernBERT,
 fetched from the Hub), Mechanism C's actual noul questions ran on all 50
 golden cases; each feature-item answer yields one
-`(answer_confidence, label)` pair — **500 pairs** per gold setting.
+`(answer_confidence, label)` pair: **500 pairs** per gold setting.
 Against the engine-pinned gold: accuracy 0.784, ECE 0.0951 (gate PASS,
 fit 0.0425 @ T = 1.40). Against the first human gold: 0.824 / 0.0727.
 Against the **fully cleaned** gold (clash adjudication + linter-ruling
-removals): **accuracy 0.896, ECE 0.0381 — gate PASS, fit 0.0208 @
+removals): **accuracy 0.896, ECE 0.0381, gate PASS, fit 0.0208 @
 T = 0.88**. Each cleanup raised the model's measured accuracy and lowered
 its ECE: most of what earlier rounds called model miscalibration lived in
 the labels.
 
-- **Raw ECE = 0.0951 < 0.1 — the §3.6 gate passes** on the shipped
+- **Raw ECE = 0.0951 < 0.1, so the §3.6 gate passes** on the shipped
   `answer_confidence` (the vendor benchmark reports 0.175 for this
   checkpoint on typed decisions; this task's binary noul questions
   calibrate better). The committed gate fixture is now these 500 measured
   pairs, so the gate test measures the model, not a hand-authored set.
-- The temperature fit moves 0.0951 → **0.0425 at T = 1.40** — inside the
+- The temperature fit moves 0.0951 → **0.0425 at T = 1.40**, inside the
   vendor's [0.5, 5.0] clamp, unlike the earlier synthetic demo's boundary
   T = 10.0. Per the spec's decision rule (fit only when the gate fails),
-  the shipped `calibration.json` stays at pass-through T = 1.0 — and the
+  the shipped `calibration.json` stays at pass-through T = 1.0, and the
   refit's *downstream* value is now measured too: with T = 1.40 applied,
   hybrid+MCQ hallucinations halve (9 → 4) at unchanged recall (§5.2,
   finding 7).
 - **Auto-accept sweep:** at the shipped 0.75 threshold, 87.8% of decisions
   auto-accept at **80.0% correctness** among them; the curve peaks at 0.85
   (70.6% coverage, 82.4% correctness) and decays by 0.95 (18.6% coverage,
-  78.5%) — the highest-confidence bin is not the most accurate, so raising
+  78.5%): the highest-confidence bin is not the most accurate, so raising
   the threshold is not monotonically safer. The §6 coverage-vs-correctness
   question now has a measured curve
   (`tests/experiments/results/calibration_summary.md`).
 
 **Honesty note.** Labels are scored against the **cleaned, reconciled
 human gold** (three readings; two independent annotators; 35
-reconciliation rulings — see §4.1), not the engine-pinned regression
+reconciliation rulings; see §4.1), not the engine-pinned regression
 expectations, and the held-out 15 were scored once after freezing. The
 §5.2 hallucinations are no longer *uncalibrated* (the checkpoint's
 confidence has a measured ECE of 0.0381 on this gold, gate PASS), and
@@ -843,9 +843,9 @@ annotators are not independent of the system's rule author.
 ### 5.4 End-to-end (secondary)
 
 **Measured: three e2e sessions, all first-attempt success.** Deployment is
-where generative approaches measurably collapse — on cloud
+where generative approaches measurably collapse: on cloud
 infrastructure-as-code tasks the best LLM reaches 19.36% pass@1 against
-86.6% on ordinary Python IaC-Eval [@kon2024iaceval] — which is why this
+86.6% on ordinary Python IaC-Eval [@kon2024iaceval], which is why this
 pipeline deploys by deterministic API compilation instead. Each session
 performs three deployment operations against a real, subsequently
 torn-down project (marketplace compile+deploy, minimal-spec deploy,
@@ -860,11 +860,11 @@ creation to verified tables was **39 s** in the first session (n=1 for
 that single-operation timing). The interpreter ran against
 the mock Laya persona, so this measures deployment, not model latency; the
 organization is free-tier, so the marginal monetary cost is $0. All three
-sessions (9 deployment operations) succeeded first-attempt — and a
+sessions (9 deployment operations) succeeded first-attempt, and a
 dedicated 10-session deployment battery (30 deployment operations across
 fresh projects, sequential create → deploy ×3 → verify → teardown)
 succeeded **30/30**, a first-attempt success rate of 1.000 with Wilson
-95% CI [0.886, 1.000] (`results/e2e_battery.jsonl`) — the deployability
+95% CI [0.886, 1.000] (`results/e2e_battery.jsonl`): the deployability
 claim is now a measured rate, not an anecdote.
 
 **Deployment is API-drift sensitive.** First contact with the live API
@@ -885,12 +885,12 @@ mock-based deployer coverage cannot see any of it.
 
 ## 6. Discussion
 
-**The MCQ burden is the price of zero omission — and the curve now exists.**
+**The MCQ burden is the price of zero omission, and the curve now exists.**
 Interpretation alone reaches pooled recall 0.496 on these 50 inputs; the
 clarification loop closes the remaining 54% of recall at a cost of ~6.5
 questions per input (human-answerable). The measured coverage-vs-correctness
 curve (§5.3) prices the alternative: at the shipped 0.75 auto-accept, 87.8%
-of model decisions skip the question but only 80.0% of them are right —
+of model decisions skip the question but only 80.0% of them are right:
 one in five auto-accepted decisions is wrong, far from the ≥ 99% agreement
 that would make the marginal questions "residual ambiguity users actually
 have". The measured curve says the opposite: on this checkpoint and corpus,
@@ -902,13 +902,13 @@ trade, but the current numbers argue for asking.
 **Rules win the bounded vocabulary; calibration is what makes the model
 pay.** On 48/50 cases rules+aliases alone reconstruct the spec (0.922
 pooled recall, zero hallucinations). The checkpoint rerun (§5.2, findings
-5–7) first falsified the persona headline — then traced the loss to two
+5–7) first falsified the persona headline, then traced the loss to two
 harness defects (merge twinning, symmetric negative gate), both fixed;
 the model reached parity. The final measured step is calibration: with the
 §5.3 refit applied, hybrid+MCQ holds rules-parity on recall while
-hallucinations halve (9 → 4, precision 0.967). The architecture's promise —
+hallucinations halve (9 → 4, precision 0.967). The architecture's promise (
 a protected model slot, an MCQ backstop, and ECE-gated confidence gating
-the slot — is now measured end to end: in-sample, the refit halves
+the slot) is now measured end to end: in-sample, the refit halves
 hallucinations, but the held-out refit degrades (0.933 / 0.911 vs
 1.000 / 0.926), so the shipped configuration keeps T = 1.0, and the
 remaining route (fine-tuning) is scoped by the same harness.
@@ -919,7 +919,7 @@ output the gold set doesn't name. Eight hallucinated features passed the
 golden suite and were caught only by the experiment tier's precision half.
 Two consequences: (i) golden expectations should gain absence pinning
 (the empty-`features` convention the metrics module implements), and (ii)
-the paper must treat precision and recall as equally first-class — a purely
+the paper must treat precision and recall as equally first-class; a purely
 recall-driven metric on this corpus would over-credit an over-confident
 model.
 
@@ -929,7 +929,7 @@ to the model, and if the model is below the majority-class baseline (vendor
 benchmarks), fallback is MCQ or silence-flagging. The never-silently-omit
 invariant is preserved structurally (unparsed sentences become
 `clarify_unparsed`), but the *precision* of that guarantee scales with the
-rule tables and the calibrated coverage — never with raw generation. That
+rule tables and the calibrated coverage, never with raw generation. That
 is the paper's central trade, and it is the R1 sub-clause worth stating
 loudest: unsupported requirements are flagged, not guessed.
 
@@ -937,7 +937,7 @@ loudest: unsupported requirements are flagged, not guessed.
 
 **Construct.** The headline 1.000 / 1.000 is obtained with operator
 answers re-derived from the same gold: oracle-MCQ reconstruction,
-measuring whether the pipeline compiles a specified spec faithfully —
+measuring whether the pipeline compiles a specified spec faithfully, not
 not whether it interprets unaided English (§5.1, §5.2). The gold itself
 is author-curated: annotator 1 is the system author, reconciliation of
 the 35 synonym-normalized disputes was performed by the same person
@@ -948,13 +948,13 @@ has not run (§4.1). *Verified* would overstate this process;
 *dual-annotated, author-reconciled* is the accurate label.
 
 **Internal.** Phrase rules and aliases were developed against the same
-corpus they are scored on — compiler-side train/test contamination that
+corpus they are scored on, compiler-side train/test contamination that
 mirrors the baselines' zero-shot disadvantage. The held-out 15 were
 scored once under the score-once protocol and the rules were never
 edited after, but the same author wrote both splits. One known held-out
 parameter defect is held and disclosed by decision rather than fixed.
-Agreement-on-wrong bias — annotator and engine concurring on an
-unmentioned feature — is invisible to clash review and was found at
+Agreement-on-wrong bias (annotator and engine concurring on an
+unmentioned feature) is invisible to clash review and was found at
 least once (§4.1).
 
 **External.** One ontology of ten features, one platform, 50
@@ -986,7 +986,7 @@ What survives, claim by claim:
 **R1/R2 (fidelity and architecture).** Under the cleaned gold **with
 oracle operator answers**, the
 rules-plus-clarification configuration is **perfect: 1.000 recall,
-1.000 precision, zero omissions, zero hallucinations** — in-sample and on
+1.000 precision, zero omissions, zero hallucinations**, in-sample and on
 the frozen held-out set. That is a reconstruction result: it establishes
 that the pipeline faithfully compiles a specified spec. The decision-model slot is measured to be
 strictly optional there (it adds 2-3 hallucinations with no recall gain);
@@ -999,8 +999,8 @@ architecture protects its model slot; the operator protocol makes the
 rule layer sufficient.
 
 **R3 (calibration).** The shipped confidence passes the ECE < 0.1 gate
-under every gold generation — 0.0951 (engine), 0.0727 (first human),
-0.0381 (cleaned; accuracy 0.896) — with a fit at an enforceable temperature
+under every gold generation (0.0951 engine, 0.0727 first human,
+0.0381 cleaned, accuracy 0.896), with a fit at an enforceable temperature
 (T = 0.88). Each gold cleanup raised the model's measured accuracy
 and lowered its ECE: most of what earlier rounds called model
 miscalibration lived in the labels, and the gate now measures a
@@ -1008,9 +1008,9 @@ well-calibrated checkpoint.
 
 **Baselines.** On the same golden cases the compiler sweeps every
 external baseline on precision and hallucinations at the point
-estimates — 1.000 / 1.000 vs the best
+estimates (1.000 / 1.000 vs the best
 LLM's 0.906 / 0.850 (6 omissions, 10 hallucinations), direct-SQL table
-recall 0.419, dbsmash 0.081 — with the n = 35 significance caveat
+recall 0.419, dbsmash 0.081), with the n = 35 significance caveat
 disclosed (no compiler-vs-compiler difference is significant; the
 baseline gaps are 40+ points wide). Operator-free, omissions invert
 (11 vs 6): the honest baseline comparison is a precision-for-omissions
@@ -1018,7 +1018,7 @@ trade-off against a single zero-shot run (§4.4, §7).
 
 **Deployment.** A 10-session deployment battery (30 operations across
 fresh projects: marketplace, minimal, idempotent re-deploy) succeeded
-**30/30 first-attempt** — rate 1.000, Wilson 95% CI [0.886, 1.000] — at
+**30/30 first-attempt** (rate 1.000, Wilson 95% CI [0.886, 1.000]) at
 56-111 s per session, with five live-API drift points found and fixed
 along the way.
 
@@ -1032,7 +1032,7 @@ features, dominated by vocabulary skew), and the phrase rules were
 developed against this same corpus (compiler-side train/test
 contamination, the mirror of the baselines' zero-shot disadvantage). The compiler's
 perfect score is achieved with operator answers derived from that same
-gold — the circularity is deliberate and disclosed: the claim is that the
+gold; the circularity is deliberate and disclosed: the claim is that the
 pipeline faithfully compiles what the human gold specifies, and the
 remaining open question is how the human gold itself generalizes. Every
 number carries its setting, and every number regenerates from committed
