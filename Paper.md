@@ -32,8 +32,8 @@ to validity.
 ## 1. Introduction
 
 Building the backend of a web application (database schema, row-level
-security, authentication, file storage, realtime channels, and edge functions
-) is a well-bounded engineering task that is nonetheless inaccessible to many
+security, authentication, file storage, realtime channels, and edge functions)
+is a well-bounded engineering task that is nonetheless inaccessible to many
 people who can describe it precisely in a paragraph of English. This paper
 studies the task of compiling that paragraph into a working Supabase project:
 the input is a 1–500 word natural-language description of a backend, and the
