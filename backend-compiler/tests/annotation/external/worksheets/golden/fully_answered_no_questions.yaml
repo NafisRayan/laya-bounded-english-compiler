@@ -1,0 +1,11 @@
+# Annotation worksheet — fully_answered_no_questions (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: fully_answered_no_questions
+input: 'A site where renters book each item, chat with each other, pay through stripe, leave a review, upload a photo, complete an id check, get live updates, and keep a favorite list.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

@@ -1,0 +1,11 @@
+# Annotation worksheet — bucket_purpose_documents (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: bucket_purpose_documents
+input: 'Renters upload their id document during verification.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

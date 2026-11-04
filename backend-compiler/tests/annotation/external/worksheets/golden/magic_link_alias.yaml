@@ -1,0 +1,11 @@
+# Annotation worksheet — magic_link_alias (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: magic_link_alias
+input: 'Login uses magic link.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

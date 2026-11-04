@@ -1,0 +1,11 @@
+# Annotation worksheet — unparsed_coverage_resolved (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: unparsed_coverage_resolved
+input: 'Owners can reject bad actors.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

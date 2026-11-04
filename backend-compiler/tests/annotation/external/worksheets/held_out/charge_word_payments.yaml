@@ -1,0 +1,11 @@
+# Annotation worksheet — charge_word_payments (held_out set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: charge_word_payments
+input: 'We charge renters for each booking.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

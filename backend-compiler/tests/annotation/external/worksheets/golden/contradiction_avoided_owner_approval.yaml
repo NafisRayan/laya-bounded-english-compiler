@@ -1,0 +1,11 @@
+# Annotation worksheet — contradiction_avoided_owner_approval (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: contradiction_avoided_owner_approval
+input: 'An admin can manage the platform.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

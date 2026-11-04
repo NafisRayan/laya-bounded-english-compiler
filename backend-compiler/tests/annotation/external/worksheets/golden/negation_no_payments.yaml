@@ -1,0 +1,11 @@
+# Annotation worksheet — negation_no_payments (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: negation_no_payments
+input: "Users can book each item. We don't take payments."
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

@@ -1,0 +1,11 @@
+# Annotation worksheet — realtime_booking_updates (held_out set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: realtime_booking_updates
+input: 'Renters book items and get live updates the moment their booking status changes.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

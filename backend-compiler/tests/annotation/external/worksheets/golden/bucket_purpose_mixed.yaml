@@ -1,0 +1,11 @@
+# Annotation worksheet — bucket_purpose_mixed (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: bucket_purpose_mixed
+input: 'The app stores avatars, listing photos, and personal documents.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

@@ -1,0 +1,11 @@
+# Annotation worksheet — messaging_anytime_warning_only (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: messaging_anytime_warning_only
+input: 'Users message each other whenever they want.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

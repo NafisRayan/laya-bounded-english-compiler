@@ -1,0 +1,11 @@
+# Annotation worksheet — contradiction_resolved (held_out set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: contradiction_resolved
+input: 'Admins can manage the platform'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

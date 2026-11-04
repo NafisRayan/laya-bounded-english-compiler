@@ -1,0 +1,11 @@
+# Annotation worksheet — bucket_purpose_listings (held_out set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: bucket_purpose_listings
+input: 'Sellers upload photos of their property listings.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""

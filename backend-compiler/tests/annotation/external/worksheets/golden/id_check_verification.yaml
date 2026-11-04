@@ -1,0 +1,11 @@
+# Annotation worksheet — id_check_verification (golden set)
+# Protocol: docs/annotation-protocol.md. Fill ONLY from the input text.
+# Omit a feature if the input is silent on it; do not guess.
+case: id_check_verification
+input: 'We run an id check on every renter before approval.'
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ""
