@@ -1,0 +1,12 @@
+case: realtime_booking_updates
+features:
+  bookings: true
+  realtime: true
+parameters:
+  realtime.channels: '[''bookings'']'
+roles: []
+buckets: []
+edge_functions: []
+notes: Only renters are mentioned without distinct user types, so roles is omitted
+  per Rule 3. Booking status changes are described, but no booking mode is explicitly
+  pinned.

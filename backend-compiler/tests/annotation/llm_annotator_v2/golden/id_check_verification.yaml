@@ -1,0 +1,12 @@
+case: id_check_verification
+features:
+  verification: true
+parameters:
+  verification.method: government_id
+roles: []
+buckets: []
+edge_functions: []
+notes: Renter is the only named user type so roles is left empty. 'id check' specifies
+  verification via government_id. 'before approval' is ambiguous as to whether it
+  means admin approval of the account or an unstated booking approval, so adhering
+  conservatively to government_id and omitting bookings.

@@ -1,0 +1,11 @@
+case: contradiction_surfaced
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''admins'']'
+roles:
+- admins
+buckets: []
+edge_functions: []
+notes: Only 'admins' is mentioned as a user type; no other roles, authentication,
+  or platform management details are specified.

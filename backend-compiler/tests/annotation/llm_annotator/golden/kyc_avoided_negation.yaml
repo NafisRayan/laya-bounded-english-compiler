@@ -1,0 +1,8 @@
+case: kyc_avoided_negation
+features:
+  verification: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

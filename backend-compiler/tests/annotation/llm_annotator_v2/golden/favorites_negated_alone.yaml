@@ -1,0 +1,8 @@
+case: favorites_negated_alone
+features:
+  favorites: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

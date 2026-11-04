@@ -1,0 +1,11 @@
+case: role_names_two_roles
+features:
+  verification: true
+parameters:
+  verification.method: government_id_and_admin
+roles: []
+buckets: []
+edge_functions: []
+notes: The case name suggests two roles, but the text only describes identity verification
+  ('A senior team checks every id document') without defining distinct user types.
+  Roles is omitted per the non-inference rules.

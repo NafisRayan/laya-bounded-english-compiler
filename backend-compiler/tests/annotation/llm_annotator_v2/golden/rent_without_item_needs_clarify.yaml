@@ -1,0 +1,8 @@
+case: rent_without_item_needs_clarify
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only a single actor ('renters') is mentioned viewing equipment. No booking,
+  authentication, roles, or other features are explicitly described.

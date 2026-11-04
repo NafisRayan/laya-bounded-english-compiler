@@ -1,0 +1,10 @@
+case: feedback_word_reviews
+features:
+  reviews: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Interpreted 'feedback after each rental' as reviews. 'Rental' is mentioned
+  as context, but booking/reserving functionality is not explicitly described, so
+  bookings is omitted.

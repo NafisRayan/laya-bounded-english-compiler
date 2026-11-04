@@ -1,0 +1,10 @@
+case: staff_role
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''staff'']'
+roles:
+- staff
+buckets: []
+edge_functions: []
+notes: ''

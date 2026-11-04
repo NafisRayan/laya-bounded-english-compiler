@@ -1,0 +1,10 @@
+case: bucket_purpose_listings
+features:
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: listings
+roles: []
+buckets:
+- listings
+edge_functions: []
+notes: ''

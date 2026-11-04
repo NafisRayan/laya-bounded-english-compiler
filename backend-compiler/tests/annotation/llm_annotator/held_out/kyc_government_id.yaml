@@ -1,0 +1,11 @@
+case: kyc_government_id
+features:
+  verification: true
+parameters:
+  verification.method: government_id
+roles: []
+buckets: []
+edge_functions: []
+notes: Text mentions 'Sellers', which could be read as defining a role or merely naming
+  the actor without distinct user types (like 'Guests can review'); conservatively
+  omitted roles.

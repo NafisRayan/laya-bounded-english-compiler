@@ -1,0 +1,12 @@
+case: contact_owners_messaging
+features:
+  messaging: true
+  roles: true
+parameters:
+  roles.role_names: '[''buyers'', ''owners'']'
+roles:
+- buyers
+- owners
+buckets: []
+edge_functions: []
+notes: Trigger event for messaging is not pinned by the text.

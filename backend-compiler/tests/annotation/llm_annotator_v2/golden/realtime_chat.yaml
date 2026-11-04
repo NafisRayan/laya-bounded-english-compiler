@@ -1,0 +1,12 @@
+case: realtime_chat
+features:
+  messaging: true
+  realtime: true
+parameters:
+  realtime.channels: '[''messages'']'
+roles: []
+buckets: []
+edge_functions: []
+notes: messaging.trigger_event is omitted because the text does not explicitly state
+  when messaging is permitted (e.g. anytime). roles is omitted because 'users' is
+  a single actor type with no distinct capabilities described.

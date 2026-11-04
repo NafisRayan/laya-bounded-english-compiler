@@ -1,0 +1,12 @@
+case: contact_owners_messaging
+features:
+  messaging: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: The text mentions 'Buyers' and 'owners', but does not describe different capabilities
+  for both (only buyers contacting owners is stated; owners have no explicit capabilities).
+  Per the instructions ('When unsure, leave roles off and say why in notes'), roles
+  is left off. Messaging trigger event is not explicitly pinned to before_booking,
+  after_request, after_approval, or anytime, so parameters is left empty.

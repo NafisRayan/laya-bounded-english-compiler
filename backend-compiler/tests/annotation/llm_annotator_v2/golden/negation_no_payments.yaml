@@ -1,0 +1,9 @@
+case: negation_no_payments
+features:
+  bookings: true
+  payments: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

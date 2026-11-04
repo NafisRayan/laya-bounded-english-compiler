@@ -1,0 +1,9 @@
+case: github_auth_alias
+features:
+  authentication: true
+parameters:
+  authentication.method: oauth_github
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

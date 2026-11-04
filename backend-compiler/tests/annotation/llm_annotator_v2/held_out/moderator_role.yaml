@@ -1,0 +1,9 @@
+case: moderator_role
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only a single actor ('moderator') is named in the text. Per instructions, two
+  or more user types with different capabilities are required for roles; a single
+  actor named once is not roles, so roles is left off.

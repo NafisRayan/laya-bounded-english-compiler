@@ -1,0 +1,9 @@
+case: staff_role
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only a single actor ('staff') is mentioned without a second user type or differing
+  capabilities. Per instructions, two or more user types with different capabilities
+  are required for roles; a single actor is not roles, so roles is left off.

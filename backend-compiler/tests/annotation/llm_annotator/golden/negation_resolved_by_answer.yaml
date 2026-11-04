@@ -1,0 +1,11 @@
+case: negation_resolved_by_answer
+features:
+  payments: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: 'The text directly contradicts itself: ''Buyers can pay for services'' suggests
+  payments: true, while ''There are no payments'' explicitly forbids them (payments:
+  false). Per study instructions for contradictions, recorded both readings and selected
+  the more conservative reading (payments: false).'

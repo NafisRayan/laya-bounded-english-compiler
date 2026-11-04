@@ -1,0 +1,10 @@
+case: saved_items_favorites
+features:
+  favorites: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Profile could imply user accounts/authentication, but it is not explicitly
+  stated as sign-in or accounts; conservatively omitted. 'Shoppers' is a single user
+  type, so roles is omitted.

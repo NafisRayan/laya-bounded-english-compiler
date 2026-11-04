@@ -1,0 +1,23 @@
+case: kitchen_sink_marketplace
+features:
+  bookings: true
+  favorites: true
+  file_storage: true
+  messaging: true
+  payments: true
+  reviews: true
+  roles: true
+  verification: true
+parameters:
+  file_storage.bucket_purpose: listings
+  payments.provider: stripe
+  roles.role_names: '[''owners'', ''renters'', ''admins'']'
+  verification.method: government_id_and_admin
+roles:
+- owners
+- renters
+- admins
+buckets:
+- listings
+edge_functions: []
+notes: ''

@@ -1,0 +1,8 @@
+case: contradiction_resolved
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only a single actor ('Admins') is mentioned; per instructions, two or more
+  user types with different capabilities are required for roles, so roles is omitted.

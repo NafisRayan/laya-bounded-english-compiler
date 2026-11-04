@@ -1,0 +1,20 @@
+case: marketplace_airbnb_equipment
+features:
+  roles: true
+  bookings: true
+  verification: true
+  messaging: true
+  payments: true
+  file_storage: true
+parameters:
+  roles.role_names: '[''owners'', ''renters'']'
+  payments.provider: stripe
+  file_storage.bucket_purpose: listings
+roles:
+- owners
+- renters
+buckets:
+- listings
+edge_functions: []
+notes: Booking mode, messaging trigger event, and verification method are not specified
+  in the text.

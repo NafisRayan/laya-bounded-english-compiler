@@ -1,0 +1,10 @@
+case: charge_word_payments
+features:
+  bookings: true
+  payments: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only renters are mentioned without distinct multi-role capabilities, so roles
+  is omitted. Payment provider and booking mode are not specified.

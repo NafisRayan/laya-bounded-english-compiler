@@ -1,0 +1,9 @@
+case: laya_high_enables_everything
+features:
+  bookings: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Single actor 'renters' named, so roles feature is omitted per instructions.
+  Booking mode is not specified.

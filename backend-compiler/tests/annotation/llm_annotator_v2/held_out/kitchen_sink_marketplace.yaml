@@ -1,0 +1,26 @@
+case: kitchen_sink_marketplace
+features:
+  bookings: true
+  favorites: true
+  file_storage: true
+  messaging: true
+  payments: true
+  reviews: true
+  roles: true
+  verification: true
+parameters:
+  file_storage.bucket_purpose: listings
+  payments.provider: stripe
+  roles.role_names: '[''owners'', ''renters'', ''admins'']'
+  verification.method: government_id_and_admin
+roles:
+- owners
+- renters
+- admins
+buckets:
+- listings
+edge_functions: []
+notes: 'Authentication and realtime are omitted because neither is explicitly mentioned
+  in the text. ''Owners upload photos'' in the context of listing equipment is mapped
+  to bucket_purpose: listings. ''Admins verify government id'' combines both admin
+  approval and government ID, mapped to government_id_and_admin.'

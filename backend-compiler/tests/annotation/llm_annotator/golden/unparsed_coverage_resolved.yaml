@@ -1,0 +1,13 @@
+case: unparsed_coverage_resolved
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: 'The text describes moderation/access control (''Owners can reject bad actors''),
+  which does not correspond to any of the 10 supported features. Reading 1 (conservative):
+  no features are described; moderation is out of scope, neither bookings nor identity
+  verification is mentioned, and ''Owners'' alone does not specify distinct named
+  user types (''bad actors'' is not a role). Reading 2: ''Owners'' could be interpreted
+  as defining a role (roles: true, roles.role_names: [owners]). Per Rule 1 (silent
+  = omit) and Rule 4 (pick the more conservative reading), no features are enabled.'

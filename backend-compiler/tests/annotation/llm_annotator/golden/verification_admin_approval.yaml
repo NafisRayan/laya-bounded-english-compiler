@@ -1,0 +1,14 @@
+case: verification_admin_approval
+features:
+  verification: true
+parameters:
+  verification.method: admin_approval
+roles: []
+buckets: []
+edge_functions: []
+notes: 'Text mentions both an admin verifying by hand and a government id document,
+  creating ambiguity between verification.method: admin_approval and government_id_and_admin;
+  selected admin_approval as the text centers on manual verification by hand. Admin
+  is mentioned as the actor rather than defining distinct user types, so roles is
+  conservatively omitted. File upload is not explicitly described, so file_storage
+  is omitted.'

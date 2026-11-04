@@ -1,0 +1,9 @@
+case: magic_link_alias
+features:
+  authentication: true
+parameters:
+  authentication.method: magic_link
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

@@ -1,0 +1,9 @@
+case: payments_without_reviews_negation
+features:
+  payments: true
+  reviews: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

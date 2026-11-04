@@ -1,0 +1,24 @@
+case: fully_answered_no_questions
+features:
+  bookings: true
+  favorites: true
+  file_storage: true
+  messaging: true
+  payments: true
+  realtime: true
+  reviews: true
+  roles: true
+  verification: true
+parameters:
+  payments.provider: stripe
+  roles.role_names: '[''renters'']'
+  verification.method: government_id
+roles:
+- renters
+buckets: []
+edge_functions: []
+notes: 'Authentication is not mentioned, so omitted. Only one user type (''renters'')
+  is named. ''id check'' is assigned to verification.method: government_id, though
+  it could be argued as unpinned if read generically as identity check. File upload
+  purpose (''photo''), realtime channels (''live updates''), booking mode, and messaging
+  trigger events are not specifically pinned by the text.'

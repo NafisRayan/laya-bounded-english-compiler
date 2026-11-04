@@ -29,12 +29,12 @@ notes: ""               # anything ambiguous, in your own words
 | Feature | Turn it on when the text describes... | Parameter (only if the text pins it) |
 |---|---|---|
 | `authentication` | users signing in / accounts | `authentication.method`: `email_password`, `magic_link`, `oauth_google`, `oauth_github` |
-| `roles` | distinct named user types (host/guest, admin/moderator) | `roles.role_names`: the list of names as written |
+| `roles` | two or more user types with **different capabilities** ("hosts approve, guests request"). A single actor named once ("a renter books a listing") is NOT roles — that is just the app's user. When unsure, leave roles off and say why in `notes` | `roles.role_names`: the list of names as written |
 | `bookings` | reserving/bookings/scheduling of items | `bookings.mode`: `instant`, `owner_approval`, `request_then_approval`, `time_slot` |
 | `messaging` | users sending messages to each other | `messaging.trigger_event`: `before_booking`, `after_request`, `after_approval`, `anytime` |
 | `payments` | charging money / checkout / cards | `payments.provider`: `stripe` |
 | `reviews` | ratings/reviews of listings after stays | (no parameter) |
-| `file_storage` | uploading files/photos/documents | `file_storage.bucket_purpose`: `avatars`, `listings`, `documents`, `mixed` |
+| `file_storage` | uploading files/photos/documents | `file_storage.bucket_purpose`: `avatars`, `listings`, `documents`, `mixed` — ONLY when the text says what uploads are for; "users can upload files" with no purpose → leave the parameter out, `buckets: []` |
 | `verification` | identity/verification checks | `verification.method`: `email`, `phone`, `government_id`, `admin_approval`, `government_id_and_admin` |
 | `realtime` | live/instant updates pushed to users | `realtime.channels`: any of `messages`, `notifications`, `bookings` (list) |
 | `favorites` | saving/bookmarking items | (no parameter) |

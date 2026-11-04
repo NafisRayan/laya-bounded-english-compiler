@@ -1,0 +1,10 @@
+case: github_auth_alias
+features:
+  authentication: true
+parameters:
+  authentication.method: oauth_github
+roles: []
+buckets: []
+edge_functions: []
+notes: Developers is treated as the generic user base rather than a distinct role;
+  roles omitted.

@@ -1,0 +1,8 @@
+case: role_staff_and_admin_dedupe
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Text mentions staff and admins, but does not specify distinct capabilities
+  between them or relative to standard users. Left roles feature off per guidelines.

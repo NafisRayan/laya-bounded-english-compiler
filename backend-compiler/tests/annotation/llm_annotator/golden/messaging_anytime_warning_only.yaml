@@ -1,0 +1,9 @@
+case: messaging_anytime_warning_only
+features:
+  messaging: true
+parameters:
+  messaging.trigger_event: anytime
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

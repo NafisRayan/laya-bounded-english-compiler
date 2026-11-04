@@ -1,0 +1,10 @@
+case: realtime_all_channels
+features:
+  realtime: true
+parameters:
+  realtime.channels: '[''messages'', ''bookings'', ''notifications'']'
+roles: []
+buckets: []
+edge_functions: []
+notes: Only realtime updates are described; 'new messages' and 'booking changes' specify
+  realtime channels rather than describing standalone messaging or booking workflows.

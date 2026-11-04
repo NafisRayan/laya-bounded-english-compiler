@@ -1,0 +1,10 @@
+case: moderator_role
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''moderator'']'
+roles:
+- moderator
+buckets: []
+edge_functions: []
+notes: ''

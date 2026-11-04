@@ -1,0 +1,11 @@
+case: laya_high_decides
+features:
+  authentication: true
+  payments: true
+parameters:
+  authentication.method: email_password
+  payments.provider: stripe
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

@@ -1,0 +1,13 @@
+case: verification_admin_approval
+features:
+  verification: true
+parameters:
+  verification.method: admin_approval
+roles: []
+buckets: []
+edge_functions: []
+notes: Admin verifies government id documents by hand, pinning verification.method
+  to admin_approval (though government_id_and_admin is also a possible reading given
+  the mention of government id documents). Roles is omitted because only a single
+  actor (admin) is named. File storage is omitted because uploading is not explicitly
+  described.

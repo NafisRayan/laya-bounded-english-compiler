@@ -1,0 +1,9 @@
+case: dep_pruning
+features:
+  bookings: true
+  messaging: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

@@ -1,0 +1,11 @@
+case: rent_without_item_needs_clarify
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: 'The text only mentions showing available equipment to renters. ''Renters''
+  is a single user type rather than distinct named user types (e.g., host/guest),
+  though an alternative reading might record roles: [renters]; conservatively omitting
+  roles. Additionally, while renting is suggested by ''renters'', no booking, reserving,
+  or scheduling mechanism is described, so bookings is omitted per Rule 3.'

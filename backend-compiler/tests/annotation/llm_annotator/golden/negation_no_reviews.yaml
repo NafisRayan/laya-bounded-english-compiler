@@ -1,0 +1,10 @@
+case: negation_no_reviews
+features:
+  bookings: true
+  reviews: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Renters are mentioned, but without distinct named user types (e.g. hosts/owners),
+  roles is conservatively omitted.

@@ -1,0 +1,13 @@
+case: id_check_verification
+features:
+  verification: true
+parameters:
+  verification.method: government_id
+roles: []
+buckets: []
+edge_functions: []
+notes: '''id check'' pins verification.method to government_id. ''before approval''
+  could ambiguously suggest admin approval (government_id_and_admin) or booking approval,
+  but neither admin nor bookings are explicitly described, so government_id is conservatively
+  chosen. ''renter'' is named, but distinct user types are not described, so roles
+  is omitted.'

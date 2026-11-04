@@ -1,0 +1,7 @@
+case: empty_spec_junk_text
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Text contains only a greeting with no backend requirements or features described.

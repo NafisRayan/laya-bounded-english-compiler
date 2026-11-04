@@ -1,0 +1,9 @@
+case: max_mcqs_cap
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: No features from the predefined list are explicitly described. 'Owners' is
+  the only actor with an action, and 'bad actors' does not define a role with distinct
+  capabilities, so roles is omitted.

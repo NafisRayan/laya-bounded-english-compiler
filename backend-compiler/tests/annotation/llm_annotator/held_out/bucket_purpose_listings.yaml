@@ -1,0 +1,12 @@
+case: bucket_purpose_listings
+features:
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: listings
+roles: []
+buckets:
+- listings
+edge_functions: []
+notes: '''Sellers'' is mentioned as the actor uploading photos, but per the ''Guests
+  can review'' example, single actor mentions without distinct role differentiation
+  do not trigger the roles feature.'

@@ -1,0 +1,11 @@
+case: laya_high_enables_everything
+features:
+  bookings: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only bookings is explicitly described ('renters book each item'). No booking
+  mode is pinned. 'renters' is mentioned as the acting user, but distinct user types
+  (e.g. host/guest) are not described, so roles is omitted under the conservative
+  reading.

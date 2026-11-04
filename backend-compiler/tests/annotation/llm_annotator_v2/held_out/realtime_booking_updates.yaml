@@ -1,0 +1,11 @@
+case: realtime_booking_updates
+features:
+  bookings: true
+  realtime: true
+parameters:
+  realtime.channels: '[''bookings'']'
+roles: []
+buckets: []
+edge_functions: []
+notes: Single user type ('renters') mentioned, so roles is omitted per instructions.
+  Booking mode is not pinned.

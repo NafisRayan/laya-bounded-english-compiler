@@ -1,0 +1,19 @@
+case: fully_answered_no_questions
+features:
+  bookings: true
+  favorites: true
+  file_storage: true
+  messaging: true
+  payments: true
+  realtime: true
+  reviews: true
+  verification: true
+parameters:
+  payments.provider: stripe
+  verification.method: government_id
+roles: []
+buckets: []
+edge_functions: []
+notes: '''renters'' is the only actor mentioned, so roles is omitted per instructions.
+  ''upload a photo'' does not specify upload purpose (avatar vs listing), so bucket
+  parameter is omitted. ''id check'' mapped to verification.method: government_id.'

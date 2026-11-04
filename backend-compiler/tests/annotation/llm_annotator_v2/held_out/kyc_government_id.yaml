@@ -1,0 +1,9 @@
+case: kyc_government_id
+features:
+  verification: true
+parameters:
+  verification.method: government_id
+roles: []
+buckets: []
+edge_functions: []
+notes: Only one actor ('Sellers') is mentioned, so roles is omitted per instructions.

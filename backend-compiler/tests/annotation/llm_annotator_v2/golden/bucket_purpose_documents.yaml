@@ -1,0 +1,12 @@
+case: bucket_purpose_documents
+features:
+  file_storage: true
+  verification: true
+parameters:
+  file_storage.bucket_purpose: documents
+  verification.method: government_id
+roles: []
+buckets:
+- documents
+edge_functions: []
+notes: Only a single actor (renters) is mentioned, so roles are left off per instructions.

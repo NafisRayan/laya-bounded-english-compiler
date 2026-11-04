@@ -1,0 +1,12 @@
+case: charge_word_payments
+features:
+  payments: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: 'Text explicitly specifies charging, activating payments: true. ''booking''
+  is mentioned as the billable unit, which could be read as bookings: true, but it
+  is conservatively omitted because reserving/booking functionality is not described.
+  ''renters'' is mentioned, but without distinct named user types, roles is conservatively
+  omitted.'

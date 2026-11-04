@@ -1,0 +1,10 @@
+case: negation_no_reviews
+features:
+  bookings: true
+  reviews: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only renters are mentioned (single actor), so roles is left off. Booking mode
+  is not specified.

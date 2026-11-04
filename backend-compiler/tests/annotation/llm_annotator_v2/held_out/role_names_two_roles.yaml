@@ -1,0 +1,13 @@
+case: role_names_two_roles
+features:
+  verification: true
+parameters:
+  verification.method: government_id_and_admin
+roles: []
+buckets: []
+edge_functions: []
+notes: The case name suggests two roles, but the text only mentions a single actor
+  ('senior team') and does not name any other user types or contrasting capabilities.
+  Per instructions, a single actor is not roles, so roles is omitted. 'A senior team
+  checks every id document' describes manual review of ID documents, pinning verification.method
+  to government_id_and_admin.

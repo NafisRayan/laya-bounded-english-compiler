@@ -1,0 +1,18 @@
+case: payments_and_uploads
+features:
+  file_storage: true
+  payments: true
+  roles: true
+parameters:
+  file_storage.bucket_purpose: listings
+  roles.role_names: '[''renters'', ''owners'']'
+roles:
+- renters
+- owners
+buckets:
+- listings
+edge_functions: []
+notes: Unclear whether 'to rent each item' triggers the bookings feature; conservatively
+  omitted bookings because no booking/reservation/scheduling mechanism or mode is
+  described, and the case name specifies payments_and_uploads. Item photos are mapped
+  to bucket purpose 'listings'.

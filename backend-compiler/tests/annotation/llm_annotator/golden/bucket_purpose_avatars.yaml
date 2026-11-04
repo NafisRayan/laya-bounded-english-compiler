@@ -1,0 +1,12 @@
+case: bucket_purpose_avatars
+features:
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: avatars
+roles: []
+buckets:
+- avatars
+edge_functions: []
+notes: 'Conservatively omitted authentication and roles: ''when they sign up'' mentions
+  registration as a temporal context rather than describing authentication/accounts,
+  and ''Hosts'' does not specify distinct user types.'

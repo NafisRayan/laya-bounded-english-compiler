@@ -1,0 +1,13 @@
+case: bucket_purpose_documents
+features:
+  file_storage: true
+  verification: true
+parameters:
+  file_storage.bucket_purpose: documents
+  verification.method: government_id
+roles: []
+buckets:
+- documents
+edge_functions: []
+notes: Renters is mentioned, but the definition for roles specifies distinct named
+  user types (e.g. host/guest), so roles is omitted under the conservative rule.

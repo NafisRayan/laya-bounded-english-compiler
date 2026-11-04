@@ -1,0 +1,10 @@
+case: kyc_avoided_negation
+features:
+  verification: false
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: KYC (Know Your Customer) corresponds to verification; explicitly avoided, so
+  marked false. Onboarding touches on sign-up, but authentication is not explicitly
+  described, so it is omitted.

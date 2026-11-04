@@ -1,0 +1,7 @@
+case: contradiction_avoided_owner_approval
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only a single actor (admin) is mentioned, so roles is left off per instructions.

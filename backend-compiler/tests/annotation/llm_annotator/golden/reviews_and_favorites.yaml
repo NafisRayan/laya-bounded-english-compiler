@@ -1,0 +1,10 @@
+case: reviews_and_favorites
+features:
+  favorites: true
+  reviews: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Guests not treated as distinct roles since only one user type is mentioned;
+  stay treated as context for reviews rather than a booking feature.

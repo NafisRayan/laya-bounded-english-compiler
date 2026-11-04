@@ -1,0 +1,13 @@
+case: booking_mode_request_then_approval
+features:
+  bookings: true
+  roles: true
+parameters:
+  bookings.mode: request_then_approval
+  roles.role_names: '[''renters'', ''owner'']'
+roles:
+- renters
+- owner
+buckets: []
+edge_functions: []
+notes: ''

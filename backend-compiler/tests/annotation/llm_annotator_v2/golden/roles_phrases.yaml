@@ -1,0 +1,8 @@
+case: roles_phrases
+features: {}
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only a single actor ('admin') is mentioned. Per instructions, two or more user
+  types with different capabilities are required for roles, so roles is omitted.

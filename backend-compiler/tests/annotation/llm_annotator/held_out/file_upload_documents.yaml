@@ -1,0 +1,10 @@
+case: file_upload_documents
+features:
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: documents
+roles: []
+buckets:
+- documents
+edge_functions: []
+notes: ''

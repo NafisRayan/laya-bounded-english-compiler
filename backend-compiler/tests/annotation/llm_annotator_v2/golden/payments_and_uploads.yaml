@@ -1,0 +1,15 @@
+case: payments_and_uploads
+features:
+  file_storage: true
+  payments: true
+parameters:
+  file_storage.bucket_purpose: listings
+roles: []
+buckets:
+- listings
+edge_functions: []
+notes: Renters and owners are both named, but owners have no distinct capabilities
+  described (only renters act), so roles is left off per the instruction 'When unsure,
+  leave roles off and say why in notes'. 'To rent each item' is context for payment
+  rather than an explicit reserving/booking/scheduling mechanism, so bookings is omitted.
+  Uploading photos of the item maps bucket purpose to listings.

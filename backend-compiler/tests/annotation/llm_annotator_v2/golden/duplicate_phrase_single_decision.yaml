@@ -1,0 +1,12 @@
+case: duplicate_phrase_single_decision
+features:
+  bookings: true
+  roles: true
+parameters:
+  roles.role_names: '[''renters'', ''owners'']'
+roles:
+- renters
+- owners
+buckets: []
+edge_functions: []
+notes: ''

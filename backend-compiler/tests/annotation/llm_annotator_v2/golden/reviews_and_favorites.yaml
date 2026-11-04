@@ -1,0 +1,10 @@
+case: reviews_and_favorites
+features:
+  favorites: true
+  reviews: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Only one actor (Guests) is mentioned, so roles is omitted. 'after their stay'
+  describes the review context rather than booking functionality, so bookings is omitted.

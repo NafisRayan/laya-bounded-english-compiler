@@ -1,0 +1,10 @@
+case: saved_items_favorites
+features:
+  favorites: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Omitted authentication (a profile may imply user accounts, but signing in/accounts
+  is not explicitly described) and roles ('shoppers' is named, but there are no distinct
+  user roles described).

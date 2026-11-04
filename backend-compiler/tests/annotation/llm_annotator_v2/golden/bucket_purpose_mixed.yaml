@@ -1,0 +1,12 @@
+case: bucket_purpose_mixed
+features:
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: mixed
+roles: []
+buckets:
+- avatars
+- listings
+- documents
+edge_functions: []
+notes: ''

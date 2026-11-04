@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-04",
+  "annotator": "LLM (disclosed; not human)",
+  "completer": "_FnCompleter",
+  "model_env": {
+    "OPENAI_MODEL": "antigravity/gemini-3.8-flash-tiered",
+    "GEMINI_MODEL": "gemini-3.5-flash"
+  },
+  "instructions": "tests/annotation/external/README-annotator.md",
+  "instruction_sha256_16": "973acedab7be111d",
+  "cases": 50,
+  "failures": [],
+  "warnings": {},
+  "manual_completions": [
+    {
+      "case": "role_staff_and_admin_dedupe",
+      "reason": "gateway timeouts on repeated retries",
+      "completer": "gemini_completer (native REST path)"
+    }
+  ]
+}

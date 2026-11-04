@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-04",
+  "annotator": "LLM (disclosed; not human)",
+  "completer": "_FnCompleter",
+  "model_env": {
+    "OPENAI_MODEL": "antigravity/gemini-3.8-flash-tiered",
+    "GEMINI_MODEL": "gemini-3.5-flash"
+  },
+  "instructions": "tests/annotation/external/README-annotator.md",
+  "instruction_sha256_16": "1d33f2cf917e2401",
+  "cases": 50,
+  "failures": [],
+  "warnings": {}
+}

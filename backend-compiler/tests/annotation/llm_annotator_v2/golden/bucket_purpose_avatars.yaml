@@ -1,0 +1,13 @@
+case: bucket_purpose_avatars
+features:
+  file_storage: true
+parameters:
+  file_storage.bucket_purpose: avatars
+roles: []
+buckets:
+- avatars
+edge_functions: []
+notes: '''Hosts'' is the only actor named, so roles is omitted per the single-actor
+  rule. ''when they sign up'' suggests user registration, but the text does not explicitly
+  describe authentication or user accounts, so authentication is conservatively omitted
+  per instructions.'

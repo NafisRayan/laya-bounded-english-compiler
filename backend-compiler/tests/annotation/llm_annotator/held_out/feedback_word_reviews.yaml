@@ -1,0 +1,8 @@
+case: feedback_word_reviews
+features:
+  reviews: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

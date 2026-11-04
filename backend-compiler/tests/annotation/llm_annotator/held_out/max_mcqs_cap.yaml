@@ -1,0 +1,12 @@
+case: max_mcqs_cap
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''owners'']'
+roles:
+- owners
+buckets: []
+edge_functions: []
+notes: Owners is the only named user type mentioned. 'Bad actors' describes malicious
+  users rather than a formal role. Rejecting bad actors does not explicitly describe
+  an identity verification check or booking approval process.

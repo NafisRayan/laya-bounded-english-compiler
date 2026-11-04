@@ -1,0 +1,8 @@
+case: unparsed_sentence_resolved_feature
+features:
+  bookings: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: ''
