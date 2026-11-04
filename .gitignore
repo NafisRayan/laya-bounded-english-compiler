@@ -14,3 +14,17 @@ coverage.xml
 # Generated per-deployment by the compiler/CLI (migrations, functions, link state)
 backend-compiler/supabase/
 backend-compiler/.env
+
+# Submission-process artifacts - never public (see PUBLISH-HYGIENE.md):
+# cover letter, COI .docx, review prompts, audit/test scripts, EM page
+# exports, AI image sources, build intermediates
+submission/
+AGENT_HANDOVER.md
+
+# LaTeX build intermediates
+main.aux
+main.out
+main.log
+main.blg
+main.spl
+main.toc
