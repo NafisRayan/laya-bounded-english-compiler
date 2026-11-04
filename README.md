@@ -32,6 +32,9 @@ copy .env.example .env        # fill in the keys you have (see Configuration)
 .\.venv\Scripts\python.exe -m pytest tests\unit tests\golden -q    # 60s, offline, no keys
 ```
 
+**Replication package:** every measured claim regenerates from this repo —
+see [`REPLICATION.md`](REPLICATION.md) (offline tier needs no keys).
+
 If that passes you have a working install. Everything else below is a
 menu — each system runs independently.
 
