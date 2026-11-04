@@ -579,20 +579,13 @@ human ruling on the linter's candidates (`LINTER_RULINGS.md`, 82 keep /
 OpenAI-compatible gateway (`antigravity/gemini-3.8-flash-tiered`);
 dbsmash through its non-interactive path. Parse counts: the baseline emitted parseable specs for 45 of 50 inputs in the original pinned run; 32 of those fall in the golden 35 (13 in held-out); the baseline was never re-run, its pinned outputs were only re-scored against the corrected gold.
 
-**Claim structure.** Two questions, two tables. *Compile-faithfulness*
-(oracle operator: MCQ answers taken per the gold) asks whether the
-pipeline builds exactly what the gold specifies. *Unaided
+**Claim structure.** Two questions, two tables. *Unaided
 interpretation* (operator-free compiler vs zero-shot baselines) asks
 what the system does when nobody supplies answers: the honest basis
-for comparison against the LLM.
-
-**Compile-faithfulness (golden 35, cleaned human gold; oracle operator).**
-
-| System | pooled R / P | omissions | hallucinations |
-|---|---|---|---|
-| **Compiler rules + MCQ** | **1.000 / 1.000** | **0** | **0** |
-| **Compiler hybrid + MCQ (real ckpt)** | 1.000 / 0.949 | 0 | 3 |
-| **Compiler hybrid + MCQ, refit T = 1.40** | 1.000 / **0.982** | 0 | **1** |
+for comparison against the LLM. *Compile-faithfulness*
+(oracle operator: MCQ answers taken per the gold) asks whether the
+pipeline builds exactly what the gold specifies: an upper bound on the
+pipeline, not a baseline comparison.
 
 **Unaided interpretation (golden 35; operator-free compiler vs zero-shot baselines).**
 
@@ -603,6 +596,14 @@ for comparison against the LLM.
 | Compiler rules, MCQ-off (operator-free) | 0.667 / 1.000 | 19 | 0 |
 | LLM → direct SQL (table R / P) | 0.419 / 0.268 | — | — |
 | dbsmash CLI (table R / P) | 0.081 / 0.179 | — | — |
+
+**Compile-faithfulness (golden 35, cleaned human gold; oracle operator).**
+
+| System | pooled R / P | omissions | hallucinations |
+|---|---|---|---|
+| **Compiler rules + MCQ** | **1.000 / 1.000** | **0** | **0** |
+| **Compiler hybrid + MCQ (real ckpt)** | 1.000 / 0.949 | 0 | 3 |
+| **Compiler hybrid + MCQ, refit T = 1.40** | 1.000 / **0.982** | 0 | **1** |
 
 Parse convention: the spec baseline emitted parseable specs for 45 of 50
 inputs in its single pinned run (32 within the golden 35); unparseable
@@ -1006,15 +1007,14 @@ and lowered its ECE: most of what earlier rounds called model
 miscalibration lived in the labels, and the gate now measures a
 well-calibrated checkpoint.
 
-**Baselines.** On the same golden cases the compiler sweeps every
-external baseline on precision and hallucinations at the point
-estimates (1.000 / 1.000 vs the best
-LLM's 0.906 / 0.850 (6 omissions, 10 hallucinations), direct-SQL table
-recall 0.419, dbsmash 0.081), with the n = 35 significance caveat
-disclosed (no compiler-vs-compiler difference is significant; the
-baseline gaps are 40+ points wide). Operator-free, omissions invert
-(11 vs 6): the honest baseline comparison is a precision-for-omissions
-trade-off against a single zero-shot run (§4.4, §7).
+**Baselines.** On the same golden cases, the operator-free compiler wins
+precision and hallucinations at the point estimates (0.939 / 3 vs the best
+zero-shot LLM→spec baseline's 0.850 / 10, direct-SQL table recall 0.419,
+dbsmash 0.081), while the baseline wins recall and omissions (0.906 / 6 vs
+0.807 / 11): a precision-for-omissions trade-off against a single zero-shot
+run (§4.4, §7). Under the oracle protocol the rules-plus-MCQ configuration
+reaches 1.000 / 1.000, but that is a reconstruction bound, not a baseline
+comparison, and no compiler-vs-compiler difference is significant at n = 35.
 
 **Deployment.** A 10-session deployment battery (30 operations across
 fresh projects: marketplace, minimal, idempotent re-deploy) succeeded
@@ -1059,11 +1059,16 @@ all output as needed and takes full responsibility for the content of the
 published article.
 
 **Data and code availability.** Every number in this paper regenerates from
-the committed project repository: the 50-case golden corpus
-(`tests/golden/cases/`), the YAML ontology, the alias and phrase-rule
-tables, the annotation worksheets and reconciliation rulings
-(`tests/annotation/LINTER_RULINGS.md`), the operator-answer re-derivation
-procedure, the paired compiler rows and baseline outputs
+the public replication package
+([github.com/NafisRayan/laya-bounded-english-compiler](https://github.com/NafisRayan/laya-bounded-english-compiler),
+archived
+[DOI 10.5281/zenodo.23942698](https://doi.org/10.5281/zenodo.23942698)):
+the 50-case golden corpus (`tests/golden/cases/`), the YAML ontology, the
+alias and phrase-rule tables, the annotation worksheets and reconciliation
+rulings (`tests/annotation/LINTER_RULINGS.md`), the operator-answer
+re-derivation procedure, the paired compiler rows and baseline outputs
 (`tests/experiments/results/ablation.jsonl`), and the deployment-battery
-logs (`tests/experiments/results/e2e_battery.jsonl`). The repository is
-published on acceptance.
+logs (`tests/experiments/results/e2e_battery.jsonl`). The offline tier
+(unit, golden, and the ablation harness) runs with no credentials:
+`pytest tests/unit tests/golden -q` passes 505 tests, and
+`python -m tests.experiments.run_ablation` regenerates the §5.2 table.
