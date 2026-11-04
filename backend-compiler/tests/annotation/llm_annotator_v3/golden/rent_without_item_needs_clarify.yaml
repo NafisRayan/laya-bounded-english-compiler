@@ -1,0 +1,10 @@
+case: rent_without_item_needs_clarify
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''renter'']'
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: ''

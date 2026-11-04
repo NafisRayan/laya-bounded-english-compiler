@@ -1,0 +1,10 @@
+case: realtime_chat
+features:
+  messaging: true
+  realtime: true
+parameters:
+  realtime.channels: '[''messages'']'
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

@@ -128,6 +128,11 @@ def run(out_dir: Path, limit: int | None = None,
         return 0
 
     instructions = README.read_text(encoding="utf-8")
+    rubric_path = README.parent / "ROLES_RUBRIC.md"
+    if rubric_path.exists():
+        instructions += ("\n\n---\n\nROLES_RUBRIC.md (normative, referenced "
+                         "above — follow it exactly):\n\n"
+                         + rubric_path.read_text(encoding="utf-8"))
     instruction_sha = hashlib.sha256(instructions.encode()).hexdigest()[:16]
     splits = load_splits()
     by_name = {name: data for name, data in iter_cases()}

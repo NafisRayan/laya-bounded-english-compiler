@@ -1,0 +1,10 @@
+case: max_mcqs_cap
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''owner'']'
+roles:
+- owner
+buckets: []
+edge_functions: []
+notes: ''

@@ -1,0 +1,14 @@
+case: bucket_purpose_avatars
+features:
+  authentication: true
+  file_storage: true
+  roles: true
+parameters:
+  file_storage.bucket_purpose: avatars
+  roles.role_names: '[''owner'']'
+roles:
+- owner
+buckets:
+- avatars
+edge_functions: []
+notes: ''

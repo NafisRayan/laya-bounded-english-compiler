@@ -1,0 +1,9 @@
+case: oauth_google_alias
+features:
+  authentication: true
+parameters:
+  authentication.method: oauth_google
+roles: []
+buckets: []
+edge_functions: []
+notes: ''

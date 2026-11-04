@@ -1,0 +1,15 @@
+case: id_check_verification
+features:
+  roles: true
+  verification: true
+parameters:
+  roles.role_names: '[''renter'']'
+  verification.method: government_id
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: Renter maps to canonical role renter under ROLES_RUBRIC. 'id check' pins verification.method
+  to government_id. 'before approval' could hint at admin approval or booking approval,
+  but neither is explicitly stated, so bookings is omitted and verification.method
+  is conservatively set to government_id rather than government_id_and_admin.

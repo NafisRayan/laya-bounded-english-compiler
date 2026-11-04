@@ -1,0 +1,13 @@
+case: negation_resolved_by_answer
+features:
+  payments: false
+  roles: true
+parameters:
+  roles.role_names: '[''renter'']'
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: 'Contradiction between ''Buyers can pay for services'' (payments: true) and
+  ''There are no payments'' (payments: false). Selected payments: false as the more
+  conservative reading.'

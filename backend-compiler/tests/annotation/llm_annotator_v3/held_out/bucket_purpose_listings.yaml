@@ -1,0 +1,13 @@
+case: bucket_purpose_listings
+features:
+  file_storage: true
+  roles: true
+parameters:
+  file_storage.bucket_purpose: listings
+  roles.role_names: '[''owner'']'
+roles:
+- owner
+buckets:
+- listings
+edge_functions: []
+notes: ''

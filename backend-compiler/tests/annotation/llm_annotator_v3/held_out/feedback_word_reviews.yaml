@@ -1,0 +1,11 @@
+case: feedback_word_reviews
+features:
+  reviews: true
+  roles: true
+parameters:
+  roles.role_names: '[''renter'']'
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: ''

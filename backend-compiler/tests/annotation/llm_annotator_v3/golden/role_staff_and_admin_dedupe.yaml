@@ -1,0 +1,10 @@
+case: role_staff_and_admin_dedupe
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''admin'']'
+roles:
+- admin
+buckets: []
+edge_functions: []
+notes: ''

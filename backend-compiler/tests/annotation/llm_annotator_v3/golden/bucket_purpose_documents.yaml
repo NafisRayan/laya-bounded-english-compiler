@@ -1,0 +1,15 @@
+case: bucket_purpose_documents
+features:
+  file_storage: true
+  roles: true
+  verification: true
+parameters:
+  file_storage.bucket_purpose: documents
+  roles.role_names: '[''renter'']'
+  verification.method: government_id
+roles:
+- renter
+buckets:
+- documents
+edge_functions: []
+notes: ''

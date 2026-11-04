@@ -1,0 +1,22 @@
+case: fully_answered_no_questions
+features:
+  bookings: true
+  favorites: true
+  file_storage: true
+  messaging: true
+  payments: true
+  realtime: true
+  reviews: true
+  roles: true
+  verification: true
+parameters:
+  payments.provider: stripe
+  roles.role_names: '[''renter'']'
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: Photo upload purpose is not specified (avatars vs listings vs documents), so
+  file_storage.bucket_purpose is omitted and buckets is empty. 'id check' triggers
+  verification, but conservatively does not pin verification.method to government_id.
+  Booking mode, messaging trigger, and realtime channels are not pinned.

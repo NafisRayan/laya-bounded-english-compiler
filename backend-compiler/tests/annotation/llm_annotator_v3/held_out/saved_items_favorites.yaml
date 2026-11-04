@@ -1,0 +1,9 @@
+case: saved_items_favorites
+features:
+  favorites: true
+parameters: {}
+roles: []
+buckets: []
+edge_functions: []
+notes: Shopper is not in the canonical roles mapping table. Profile might suggest
+  accounts, but authentication is omitted per strict non-inference rules.

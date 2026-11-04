@@ -1,0 +1,11 @@
+case: laya_high_enables_everything
+features:
+  bookings: true
+  roles: true
+parameters:
+  roles.role_names: '[''renter'']'
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: ''

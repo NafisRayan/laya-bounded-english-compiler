@@ -1,0 +1,12 @@
+case: contact_owners_messaging
+features:
+  messaging: true
+  roles: true
+parameters:
+  roles.role_names: '[''owner'', ''renter'']'
+roles:
+- owner
+- renter
+buckets: []
+edge_functions: []
+notes: ''

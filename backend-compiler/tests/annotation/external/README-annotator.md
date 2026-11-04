@@ -29,7 +29,7 @@ notes: ""               # anything ambiguous, in your own words
 | Feature | Turn it on when the text describes... | Parameter (only if the text pins it) |
 |---|---|---|
 | `authentication` | users signing in / accounts | `authentication.method`: `email_password`, `magic_link`, `oauth_google`, `oauth_github` |
-| `roles` | two or more user types with **different capabilities** ("hosts approve, guests request"). A single actor named once ("a renter books a listing") is NOT roles — that is just the app's user. When unsure, leave roles off and say why in `notes` | `roles.role_names`: the list of names as written |
+| `roles` | a person-type noun from the input that maps through **`ROLES_RUBRIC.md`** (canonical marketplace roles: owner/renter/admin after synonym mapping). Single mapped actor is enough; unmapped nouns (staff, moderator, users) give NO role | `roles.role_names`: the canonical list, singular, sorted |
 | `bookings` | reserving/bookings/scheduling of items | `bookings.mode`: `instant`, `owner_approval`, `request_then_approval`, `time_slot` |
 | `messaging` | users sending messages to each other | `messaging.trigger_event`: `before_booking`, `after_request`, `after_approval`, `anytime` |
 | `payments` | charging money / checkout / cards | `payments.provider`: `stripe` |

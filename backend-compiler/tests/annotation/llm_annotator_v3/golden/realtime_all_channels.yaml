@@ -1,0 +1,13 @@
+case: realtime_all_channels
+features:
+  realtime: true
+parameters:
+  realtime.channels: '[''messages'', ''bookings'', ''notifications'']'
+roles: []
+buckets: []
+edge_functions: []
+notes: Live updates for messages, booking changes, and notifications are explicitly
+  described, enabling realtime with all three channels. Messaging and bookings are
+  mentioned strictly as live update streams rather than functional workflows (no user-to-user
+  messaging or reservation mechanics are described), so they are omitted per the conservative
+  rule.

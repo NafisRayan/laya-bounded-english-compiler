@@ -1,0 +1,12 @@
+case: negation_no_reviews
+features:
+  bookings: true
+  reviews: false
+  roles: true
+parameters:
+  roles.role_names: '[''renter'']'
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: ''

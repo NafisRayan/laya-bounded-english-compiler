@@ -1,0 +1,12 @@
+case: kyc_government_id
+features:
+  roles: true
+  verification: true
+parameters:
+  roles.role_names: '[''owner'']'
+  verification.method: government_id
+roles:
+- owner
+buckets: []
+edge_functions: []
+notes: ''

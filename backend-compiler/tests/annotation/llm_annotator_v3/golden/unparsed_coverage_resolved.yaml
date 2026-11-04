@@ -1,0 +1,10 @@
+case: unparsed_coverage_resolved
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''owner'']'
+roles:
+- owner
+buckets: []
+edge_functions: []
+notes: ''

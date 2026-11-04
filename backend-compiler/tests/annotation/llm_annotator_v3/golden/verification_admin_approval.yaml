@@ -1,0 +1,14 @@
+case: verification_admin_approval
+features:
+  roles: true
+  verification: true
+parameters:
+  roles.role_names: '[''admin'']'
+  verification.method: admin_approval
+roles:
+- admin
+buckets: []
+edge_functions: []
+notes: Admin manually verifies government ID documents; maps to canonical role 'admin'
+  and verification.method 'admin_approval'. Uploading or document storage is not explicitly
+  described, so file_storage is omitted per Rule 1 and Rule 3.

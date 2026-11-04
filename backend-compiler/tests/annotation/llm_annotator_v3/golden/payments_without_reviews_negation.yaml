@@ -1,0 +1,12 @@
+case: payments_without_reviews_negation
+features:
+  payments: true
+  reviews: false
+  roles: true
+parameters:
+  roles.role_names: '[''owner'']'
+roles:
+- owner
+buckets: []
+edge_functions: []
+notes: ''

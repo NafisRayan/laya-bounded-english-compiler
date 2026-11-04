@@ -1,0 +1,12 @@
+case: role_names_two_roles
+features:
+  verification: true
+parameters:
+  verification.method: government_id_and_admin
+roles: []
+buckets: []
+edge_functions: []
+notes: The case name suggests two roles, but 'senior team' is not in ROLES_RUBRIC.md
+  mapping table and drops entirely; no other actor is mentioned, so roles is empty.
+  Manual review of ID documents pins verification.method to government_id_and_admin.
+  file_storage is omitted as uploading is not explicitly mentioned.

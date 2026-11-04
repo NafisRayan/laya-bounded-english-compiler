@@ -1,0 +1,10 @@
+case: contradiction_resolved
+features:
+  roles: true
+parameters:
+  roles.role_names: '[''admin'']'
+roles:
+- admin
+buckets: []
+edge_functions: []
+notes: ''

@@ -1,0 +1,24 @@
+case: kitchen_sink_marketplace
+features:
+  bookings: true
+  favorites: true
+  file_storage: true
+  messaging: true
+  payments: true
+  reviews: true
+  roles: true
+  verification: true
+parameters:
+  payments.provider: stripe
+  roles.role_names: '[''admin'', ''owner'', ''renter'']'
+  verification.method: government_id_and_admin
+roles:
+- admin
+- owner
+- renter
+buckets: []
+edge_functions: []
+notes: owners upload photos does not explicitly specify the bucket purpose (listings
+  vs avatars), so bucket_purpose is conservatively omitted and buckets is empty. verification.method
+  is set to government_id_and_admin because admins verify government id. bookings.mode
+  and messaging.trigger_event are not pinned by the text.

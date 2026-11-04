@@ -1,0 +1,12 @@
+case: reviews_and_favorites
+features:
+  favorites: true
+  reviews: true
+  roles: true
+parameters:
+  roles.role_names: '[''renter'']'
+roles:
+- renter
+buckets: []
+edge_functions: []
+notes: ''
