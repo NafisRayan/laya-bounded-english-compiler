@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23942697.svg)](https://doi.org/10.5281/zenodo.23942697)
+
 # Replication Package
 
 Artifact for **"From Bounded English to a Working Backend: A Deterministic,
@@ -65,9 +67,13 @@ Paper Outline.md               claim → experiment → artifact evidence ledger
 
 ## Citing
 
-If you use this artifact, cite the paper (bibentry in
-`submission/references.bib` in the manuscript build; preprint DOI on Zenodo,
-see the repository "Releases" section).
+Archived release: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23942697.svg)](https://doi.org/10.5281/zenodo.23942697)
+(version 1.0.0: [10.5281/zenodo.23942698](https://doi.org/10.5281/zenodo.23942698)).
+If you use this artifact, cite:
+
+> Rayan, N. (2026). *Laya: a deterministic, ontology-bounded compiler from
+> bounded English to Supabase backends* (v1.0.0) [Computer software].
+> Zenodo. https://doi.org/10.5281/zenodo.23942698
 
 ## License
 

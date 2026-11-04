@@ -34,6 +34,7 @@ copy .env.example .env        # fill in the keys you have (see Configuration)
 
 **Replication package:** every measured claim regenerates from this repo —
 see [`REPLICATION.md`](REPLICATION.md) (offline tier needs no keys).
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23942697.svg)](https://doi.org/10.5281/zenodo.23942697)
 
 If that passes you have a working install. Everything else below is a
 menu — each system runs independently.
