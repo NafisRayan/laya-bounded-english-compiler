@@ -1076,10 +1076,9 @@ all output as needed and takes full responsibility for the content of the
 published article.
 
 **Data and code availability.** Every number in this paper regenerates from
-the public replication package
-([github.com/NafisRayan/laya-bounded-english-compiler](https://github.com/NafisRayan/laya-bounded-english-compiler),
-archived
-[DOI 10.5281/zenodo.23942698](https://doi.org/10.5281/zenodo.23942698)):
+the public replication package at
+https://github.com/NafisRayan/laya-bounded-english-compiler (archived at
+https://doi.org/10.5281/zenodo.23942698):
 the 50-case golden corpus (`tests/golden/cases/`), the YAML ontology, the
 alias and phrase-rule tables, the annotation worksheets and reconciliation
 rulings (`tests/annotation/LINTER_RULINGS.md`), the operator-answer

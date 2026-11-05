@@ -134,19 +134,24 @@ def fig_ablation(out: Path) -> None:
             rec.append(p["recall"])
             prec.append(p["precision"])
     x = range(len(labels))
-    fig, ax = plt.subplots(figsize=(5.2, 2.7))
+    fig, ax = plt.subplots(figsize=(5.2, 2.9))
     bars_r = ax.bar([i - 0.2 for i in x], rec, width=0.38, label="pooled recall",
                     color=C["blue"], alpha=0.9)
     bars_p = ax.bar([i + 0.2 for i in x], prec, width=0.38, label="pooled precision",
                     color=C["orange"], alpha=0.9)
-    for bars in (bars_r, bars_p):
-        for b in bars:
+    both_zero = [h1 < 0.03 and h2 < 0.03
+                 for h1, h2 in zip(rec, prec)]
+    for i, (b1, b2, z) in enumerate(zip(bars_r, bars_p, both_zero)):
+        if z:
+            ax.text(i, 0.015, "0.00", ha="center", va="bottom", fontsize=5.8)
+            continue
+        for b in (b1, b2):
             h = b.get_height()
             ax.text(b.get_x() + b.get_width() / 2, h + 0.015, f"{h:.2f}",
                     ha="center", va="bottom", fontsize=5.8, rotation=90)
     ax.set_xticks(list(x))
     ax.set_xticklabels([l.replace("\nMCQ", " on").replace("\n—", " off")
-                        for l in labels])
+                        for l in labels], rotation=30, ha="right")
     ax.set_ylim(0, 1.34)
     ax.set_ylabel("score")
     ax.set_title("Mechanism x MCQ ablation (real ckpt, cleaned human gold)",
@@ -169,14 +174,14 @@ def fig_mcq(out: Path) -> None:
         if not mcq:
             p = pooled(rs)
             pts.append((p["mcq"], p["recall"], m))
-    blue_off = {"A": (5, 3), "B": (6, -12), "AB": (6, 5), "C": (5, 3),
-                "ABC": (5, -11)}
+    blue_off = {"A": (5, 3), "B": (7, -14), "AB": (6, 7), "C": (5, 3),
+                "ABC": (6, -12)}
     for q, r_, m in sorted(pts):
         ax.scatter(q, r_, s=50, color=C["blue"], alpha=0.85, zorder=3,
                    label="no MCQ" if m == "A" else None)
         ax.annotate(m, (q, r_), textcoords="offset points",
                     xytext=blue_off.get(m, (5, 3)), fontsize=7)
-    green_off = {"AB": (-36, -2), "ABC": (-14, -12)}
+    green_off = {"AB": (-32, 8), "ABC": (-34, -14)}
     for m in ("AB", "ABC"):
         p = pooled(by_cfg[(m, True)])
         ax.scatter(p["mcq"], p["recall"], s=50, color=C["green"],
