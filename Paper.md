@@ -1068,7 +1068,10 @@ interests.
 **Declaration of generative AI and AI-assisted technologies.** During the
 preparation of this work the author used opencode, an AI coding agent running
 Gemini and GLM models, to assist with software implementation and to touch up
-the manuscript's prose. After using these tools the author reviewed and edited
+the manuscript's prose. Figures 1 and 2 were produced with AI
+image-generation tools from the author's designs and then edited by the
+author; all technical content they depict is the author's, and each
+figure caption states this provenance. After using these tools the author reviewed and edited
 all output as needed and takes full responsibility for the content of the
 published article.
 
