@@ -36,6 +36,7 @@ asserted against its expected `BackendSpec` in `tests/golden/cases/`.
 |---|---|---|
 | §5.1 compile-faithfulness (oracle MCQ) | `tests/golden/cases/` + `tests/golden/splits.yaml` (golden 35 / held-out 15) | the quick-start command above **[verified offline]** |
 | §5.2 mechanism × MCQ ablation | `tests/experiments/results/ablation*.jsonl` + `*_summary.md` | `python -m tests.experiments.run_ablation` **[verified offline: 500 rows + summary table in ~1 s]** |
+| All paper figures (7 data-derived plots: trade-off, ablation, MCQ burden, reliability, threshold sweep, deployment battery, roles sensitivity) | the same JSONL evidence | `python -m tests.experiments.make_figures` **[verified offline]** — emits vector PDFs + PNGs |
 | §5.1 external baselines (LLM→SQL, LLM→spec, DbSmash) | `tests/experiments/results/baselines*.jsonl` | `python -m tests.experiments.run_baselines` — adapters self-skip without credentials; every committed row was measured with keys present |
 | §5.3 calibration (ECE, temperature fit) | `tests/experiments/results/calibration_pairs_human.jsonl`, `calibration_summary_human.md` | `python -m tests.experiments.run_calibration` — needs the pinned Laya checkpoint |
 | Unaided (operator-free) numbers | `tests/experiments/results/ablation_*human*.jsonl` | same ablation CLI scored against human gold (below) |
