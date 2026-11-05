@@ -453,6 +453,20 @@ remained across 50 cases. Those 35 rows received human reconciliation
 rulings (27 upholding annotator 1, 8 taking annotator 2), producing the
 **final three-reading gold** every §5 number is reported against.
 
+**LLM-annotator sensitivity check.** To probe the gold's conventions
+from outside the author's head, a disclosed LLM annotator was run three
+times over the corpus with identical worksheets and varying roles
+instructions (`tests/annotation/llm_annotator*/RESULTS.md`): generic
+wording and a "distinct capabilities" wording both failed to reproduce
+the gold's roles convention (exact roles-list match 0.44), and mining
+the convention into an explicit synonym-mapping rubric raised it to
+0.96 — establishing that the roles dimension is definitional (a mapping
+table, now normative for annotators, `tests/annotation/external/
+ROLES_RUBRIC.md`) rather than a judgment disagreement. The check is
+reported as evidence about the gold's conventions, not as validation of
+the gold; independent human annotation under supervised, AI-free
+conditions remains future work.
+
 **Remaining limitations, stated plainly.** (a) The reconciliation was
 performed by the same person who annotated first and built the system;
 a full third-party reconciliation of the 35 rows has not run (agreement
