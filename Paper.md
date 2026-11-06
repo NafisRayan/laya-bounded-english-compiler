@@ -1075,6 +1075,22 @@ figure caption states this provenance. After using these tools the author review
 all output as needed and takes full responsibility for the content of the
 published article.
 
+**Acknowledgments.** The author thanks the independent annotator
+(re-annotation of all 50 corpus cases, §4.1) and the independent third
+reader (clash-adjudication review and the 184-row agreement re-review,
+§4.1) for their validation contributions to the gold-correction process.
+The two peer annotation returns collected and excluded by provenance
+analysis are discussed in §4.1; their submitters are not acknowledged as
+contributors. The author additionally thanks the Shandong University
+journal press and the maintainers of the laya repository for the
+checkpoint infrastructure underpinning the mechanism-C measurements
+(pinned `english` checkpoint, 421M ModernBERT).
+
+**CRediT author statement note.** Validation and annotation work
+described in §4.1 was shared between the author and the independent
+contributors acknowledged above; the named CRediT statement reflects the
+author's roles as the sole accountable author.
+
 **Data and code availability.** Every number in this paper regenerates from
 the public replication package at
 https://github.com/NafisRayan/laya-bounded-english-compiler (archived at
